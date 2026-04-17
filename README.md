@@ -5,7 +5,7 @@ El proyecto tiene como finalidad diseñar una aplicación orientada a centraliza
 La aplicación permitirá a los miembros de la comunidad universitaria gestionar de manera eficiente diversos servicios, tales como: la programación de citas médicas, la recepción de notificaciones sobre citas pendientes, el acceso a resultados de exámenes médicos y la solicitud de permisos médicos.
 
 ## Arquitectura del Sistema
-El sistema usará una aquitectura cliente-servidor, en conjunto con el Modelo-Vista-Controlador (MVC) y el patrón DAO para encapsular y gestionar de forma eficiente el acceso a la base de datos, facilitando la modularidad del sistema y simplificando futuras modificaciones o mantenimientos.
+El sistema usará una aquitectura cliente-servidor, en conjunto con el Modelo-Vista-Controlador (MVC), mantenibilidad y eficiencia operativa tanto en entornos web como en futuros dispositivos móviles. Bajo este paradigma, las responsabilidades se distribuyen de manera estratégica: las aplicaciones cliente asumen la exclusividad de la capa de presentación o Vista, gestionando el renderizado gráfico y la interacción directa con el usuario de forma totalmente independiente. Por su parte, el backend operará estrictamente como una API REST centralizada, asumiendo los roles lógicos de Controlador y Modelo al delegar el procesamiento central a una capa de servicios y gestionar el acceso a datos. Finalmente, la comunicación entre ambas partes se realizará mediante el intercambio fluido de información estructurada a través de protocolos web estándar, consolidando al servidor como una única fuente de verdad robusta capaz de interactuar de manera uniforme y simultánea con múltiples plataformas tecnológicas.
 
 
 ## Entorno de desarrollo backend
