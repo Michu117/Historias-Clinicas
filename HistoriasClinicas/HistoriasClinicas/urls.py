@@ -2,16 +2,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
-)
-from django.http import JsonResponse
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 def api_root(request):
     """Vista raíz de la API"""
@@ -33,6 +25,7 @@ def api_root(request):
 urlpatterns = [
     path('', api_root, name='api-root'),
     path('admin/', admin.site.urls),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/auth/', include('authentication.urls')),
     path('api/v1/salud/', include('historias.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
