@@ -33,6 +33,7 @@ def api_root(request):
 urlpatterns = [
     path('', api_root, name='api-root'),
     path('admin/', admin.site.urls),
+    path('api/v1/auth/', include('authentication.urls')),
     path('api/v1/salud/', include('historias.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path(
