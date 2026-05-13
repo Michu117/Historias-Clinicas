@@ -36,10 +36,10 @@ urlpatterns = [
     path('api/v1/salud/', include('historias.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path(
-        'api/docs/',SpectacularSwaggerView.as_view(url_name='schema'),name='swagger-ui'
+        'api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'
     ),
     path(
-        'api/redoc/',SpectacularRedocView.as_view(url_name='schema'),name='redoc'
+        'api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'
     ),
     path('api/v1/reportes/', include('Reportes.urls')),
 ]
