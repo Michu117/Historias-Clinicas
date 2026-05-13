@@ -1,215 +1,155 @@
-from typing import List, Optional, Dict, Any
-from .models import Report
-from django.shortcuts import get_object_or_404
-from django.db.models import Count, Q, Value
-from django.db.models.functions import Coalesce
+import json
 import logging
+from datetime import date
+from typing import Dict, Any
+
+from django.apps import apps
+from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
-
-def list_reports() -> List[Report]:
-    """Listar todos los reportes disponibles."""
-    return list(Report.objects.all())
-
-
-def get_report(pk: int) -> Report:
-    """Obtener un reporte específico por ID."""
-    return get_object_or_404(Report, pk=pk)
-
-
-def create_report(data: dict) -> Report:
-    """Crear un nuevo reporte."""
-    report = Report.objects.create(title=data.get('title', ''), data=data.get('data', {}))
-    logger.info(f"Reporte creado: {report.id} - {report.title}")
-    return report
-
-
-def update_report(pk: int, data: dict) -> Report:
-    """Actualizar un reporte existente."""
-    report = get_report(pk)
-    report.title = data.get('title', report.title)
-    report.data = data.get('data', report.data)
-    report.save()
-    logger.info(f"Reporte actualizado: {report.id}")
-    return report
-
-
-def delete_report(pk: int) -> None:
-    """Eliminar un reporte."""
-    report = get_report(pk)
-    report.delete()
-    logger.info(f"Reporte eliminado: {pk}")
-
-
-# ============= Funciones Estadísticas para RF-11 =============
-
-
-def normalize_filters(tipos_servicio: Optional[List[str]] = None, 
-                     diagnosticos: Optional[List[str]] = None) -> Dict[str, List[str]]:
+class Services:
     """
-    Normalizar filtros de entrada desde query params.
-    
-    :param tipos_servicio: lista de códigos de servicio (p.ej. ['medicina', 'odontologia'])
-    :param diagnosticos: lista de códigos de diagnóstico (p.ej. ['J00', 'I10'])
-    :return: diccionario con filtros normalizados
+    Clase de servicio para generar datos del modelo Reporte.
+    Método público:
+      - generar_datos(reporte: Reporte) -> str (JSON)
     """
-    normalized = {
-        'tipos_servicio': tipos_servicio or [],
-        'diagnosticos': diagnosticos or []
-    }
-    logger.debug(f"Filtros normalizados: {normalized}")
-    return normalized
 
+    def _detect_cita_service_field(self, CitaModel):
+        """
+        Detecta si Cita tiene un FK llamado 'servicio' o un M2M llamado 'servicios'.
+        Devuelve una tupla (tipo, nombre_campo) donde tipo es 'fk' o 'm2m'.
+        """
+        try:
+            CitaModel._meta.get_field('servicio')
+            return ('fk', 'servicio')
+        except Exception:
+            pass
 
-def get_atenciones_stats(tipos_servicio: Optional[List[str]] = None,
-                         diagnosticos: Optional[List[str]] = None) -> Dict[str, Any]:
-    """
-    Generar estadísticas de atenciones atendidas para RF-11.
-    
-    NOTA: Esta función está diseñada para consumir datos desde:
-    - historias_clinicas.services.get_atenciones_reportables(filters)
-    - agendas.services.get_agenda_context_reportes(filters)
-    
-    En esta versión MVP, usa el modelo Report como fuente simulada.
-    
-    :param tipos_servicio: filtro opcional por tipos de servicio
-    :param diagnosticos: filtro opcional por diagnósticos
-    :return: diccionario con métricas agregadas
-    """
-    filters = normalize_filters(tipos_servicio, diagnosticos)
-    
-    # En MVP, simular atenciones desde el JSON data del modelo Report
-    # En production, estos datos vendrían desde Historias Clínicas
-    try:
-        total_atenciones = Report.objects.count()
-        
-        # Simulación de agregaciones por tipo de servicio
-        por_tipo_servicio = [
-            {"servicio": "medicina", "cantidad": max(0, total_atenciones // 2)},
-            {"servicio": "odontologia", "cantidad": max(0, total_atenciones - (total_atenciones // 2))},
-        ]
-        
-        # Simulación de agregaciones por diagnóstico
-        por_diagnostico = [
-            {"diagnostico": "J00", "cantidad": max(0, total_atenciones // 3)},
-            {"diagnostico": "I10", "cantidad": max(0, (total_atenciones * 2) // 3)},
-        ]
-        
-        result = {
-            "total_atenciones": total_atenciones,
-            "por_tipo_servicio": por_tipo_servicio,
-            "por_diagnostico": por_diagnostico,
-            "filtros_aplicados": filters,
+        try:
+            CitaModel._meta.get_field('servicios')
+            return ('m2m', 'servicios')
+        except Exception:
+            pass
+
+        # Ninguno encontrado
+        return (None, None)
+
+    def generar_datos(self, reporte) -> str:
+        """
+        Genera los datos del reporte (JSON string) con la siguiente salida:
+        {
+          "total_consultas": int,
+          "detalle": {
+            "medica": int,
+            "psicologica": int,
+            "odontologica": int,
+            "social": int
+          },
+          "filtros": {
+            "fecha_inicio": "...",
+            "fecha_fin": "...",
+            "servicio": null | servicio_id_or_nombre
+          }
         }
-        logger.info(f"Estadísticas de atenciones generadas: total={total_atenciones}")
-        return result
-    except Exception as e:
-        logger.error(f"Error al generar estadísticas de atenciones: {str(e)}")
-        raise
 
+        - Filtra por fecha entre reporte.fecha_inicio y reporte.fecha_fin (usando fecha_creacion de las consultas).
+        - Si reporte.servicio no es None, filtra por ese servicio.
+        - Usa select_related('cita__servicio') si existe FK para mejorar rendimiento; si es M2M usa prefetch_related.
+        """
+        try:
+            # Obtener modelos concretos
+            Cita = apps.get_model('Agendas', 'Cita')
+            # Los modelos de consulta concretos
+            ConsultaMedica = apps.get_model('Agendas', 'ConsultaMedica')
+            ConsultaPsicologica = apps.get_model('Agendas', 'ConsultaPsicologica')
+            ConsultaOdontologica = apps.get_model('Agendas', 'ConsultaOdontologica')
+            ConsultaSocial = apps.get_model('Agendas', 'ConsultaSocial')
+        except LookupError as e:
+            logger.exception("No se pudieron cargar los modelos de Agendas: %s", e)
+            raise
 
-def get_diagnosticos_frecuentes(tipos_servicio: Optional[List[str]] = None,
-                               diagnosticos: Optional[List[str]] = None) -> Dict[str, Any]:
-    """
-    Generar ranking de diagnósticos más frecuentes.
-    
-    :param tipos_servicio: filtro opcional
-    :param diagnosticos: filtro opcional
-    :return: diccionario con diagnósticos frecuentes
-    """
-    filters = normalize_filters(tipos_servicio, diagnosticos)
-    
-    try:
-        # Simulación de diagnósticos frecuentes
-        items = [
-            {"codigo": "J00", "descripcion": "Nasofaringitis aguda (resfriado común)", "cantidad": 45},
-            {"codigo": "I10", "descripcion": "Hipertensión esencial (primaria)", "cantidad": 32},
-            {"codigo": "E11", "descripcion": "Diabetes mellitus tipo 2", "cantidad": 28},
-        ]
-        
+        # Determinar cómo filtrar por servicio según definición de Cita
+        service_type, service_field = self._detect_cita_service_field(Cita)
+
+        # Rango de fechas (son DateField en Reporte)
+        fecha_inicio = reporte.fecha_inicio
+        fecha_fin = reporte.fecha_fin
+
+        # Base Q para fechas: usamos fecha_creacion (DateTimeField) de las consultas comparando por date
+        fecha_q = Q(fecha_creacion__date__gte=fecha_inicio) & Q(fecha_creacion__date__lte=fecha_fin)
+
+        # Base Q para servicio (vacío si reporte.servicio is None)
+        service_q = Q()
+        if reporte.servicio:
+            if service_type == 'fk':
+                # Cita tiene FK 'servicio'
+                service_q &= Q(cita__servicio=reporte.servicio)
+            elif service_type == 'm2m':
+                # Cita tiene M2M 'servicios'
+                service_q &= Q(cita__servicios=reporte.servicio)
+            else:
+                # Si no hay campo conocido, no filtramos por servicio (o podrías elegir lanzar error)
+                logger.warning("Cita no tiene ni 'servicio' ni 'servicios'; no se aplicará filtro por servicio.")
+        # Combine fecha + servicio
+        base_q = fecha_q & service_q
+
+        # Para eficiencia: decide select_related/prefetch según tipo
+        use_select_related = (service_type == 'fk')
+        select_related_args = []
+        prefetch_related_args = []
+        if use_select_related:
+            # Queremos traer la cita y su servicio en la misma consulta
+            select_related_args.append('cita__servicio')
+            select_related_args.append('cita')
+        else:
+            # Al menos traer la cita; si M2M, prefetch los servicios de la cita
+            select_related_args.append('cita')
+            if service_type == 'm2m':
+                prefetch_related_args.append('cita__servicios')
+
+        # Ejecutar conteos por cada subtipo
+        qs_kwargs = {}
+        # Contadores por subtipo
+        medica_count = ConsultaMedica.objects.filter(base_q)
+        psicologica_count = ConsultaPsicologica.objects.filter(base_q)
+        odontologica_count = ConsultaOdontologica.objects.filter(base_q)
+        social_count = ConsultaSocial.objects.filter(base_q)
+
+        if select_related_args:
+            medica_count = medica_count.select_related(*select_related_args)
+            psicologica_count = psicologica_count.select_related(*select_related_args)
+            odontologica_count = odontologica_count.select_related(*select_related_args)
+            social_count = social_count.select_related(*select_related_args)
+
+        if prefetch_related_args:
+            medica_count = medica_count.prefetch_related(*prefetch_related_args)
+            psicologica_count = psicologica_count.prefetch_related(*prefetch_related_args)
+            odontologica_count = odontologica_count.prefetch_related(*prefetch_related_args)
+            social_count = social_count.prefetch_related(*prefetch_related_args)
+
+        # Obtener los conteos (evaluar las queries)
+        medica = medica_count.count()
+        psicologica = psicologica_count.count()
+        odontologica = odontologica_count.count()
+        social = social_count.count()
+
+        total = medica + psicologica + odontologica + social
+
         result = {
-            "items": items,
-            "total_registros": sum(item['cantidad'] for item in items),
-            "filtros_aplicados": filters,
-        }
-        logger.info(f"Diagnósticos frecuentes generados: {len(items)} items")
-        return result
-    except Exception as e:
-        logger.error(f"Error al generar diagnósticos frecuentes: {str(e)}")
-        raise
-
-
-def get_servicios_mas_usados(tipos_servicio: Optional[List[str]] = None,
-                             diagnosticos: Optional[List[str]] = None) -> Dict[str, Any]:
-    """
-    Generar estadísticas de servicios más utilizados.
-    
-    :param tipos_servicio: filtro opcional
-    :param diagnosticos: filtro opcional
-    :return: diccionario con servicios más usados
-    """
-    filters = normalize_filters(tipos_servicio, diagnosticos)
-    
-    try:
-        total = 150
-        items = [
-            {"servicio": "medicina", "cantidad": 95, "porcentaje": 63.3},
-            {"servicio": "odontologia", "cantidad": 40, "porcentaje": 26.7},
-            {"servicio": "laboratorio", "cantidad": 15, "porcentaje": 10.0},
-        ]
-        
-        result = {
-            "items": items,
-            "total_registros": total,
-            "filtros_aplicados": filters,
-        }
-        logger.info(f"Servicios más usados generados: {len(items)} servicios")
-        return result
-    except Exception as e:
-        logger.error(f"Error al generar servicios más usados: {str(e)}")
-        raise
-
-
-def get_dashboard_metrics(tipos_servicio: Optional[List[str]] = None,
-                         diagnosticos: Optional[List[str]] = None) -> Dict[str, Any]:
-    """
-    Generar métricas consolidadas de dashboard para vista institucional.
-    
-    Combina:
-    - Estadísticas institucionales
-    - Métricas por servicio
-    - Análisis de diagnósticos
-    - Tendencias opcionales
-    
-    :param tipos_servicio: filtro opcional
-    :param diagnosticos: filtro opcional
-    :return: diccionario con métricas del dashboard
-    """
-    filters = normalize_filters(tipos_servicio, diagnosticos)
-    
-    try:
-        atenciones = get_atenciones_stats(tipos_servicio, diagnosticos)
-        servicios = get_servicios_mas_usados(tipos_servicio, diagnosticos)
-        diagnosticos_freq = get_diagnosticos_frecuentes(tipos_servicio, diagnosticos)
-        
-        result = {
-            "institucional": {
-                "total_atenciones": atenciones["total_atenciones"],
-                "servicios_activos": len(servicios["items"]),
-                "diagnosticos_rastreados": len(diagnosticos_freq["items"]),
+            "total_consultas": total,
+            "detalle": {
+                "medica": medica,
+                "psicologica": psicologica,
+                "odontologica": odontologica,
+                "social": social,
             },
-            "servicios": servicios["items"],
-            "diagnosticos": diagnosticos_freq["items"][:5],  # Top 5
-            "tendencias": {
-                "mes_anterior": {"atenciones": 120, "crecimiento": "12.5%"},
-                "mes_actual": {"atenciones": atenciones["total_atenciones"], "crecimiento": "N/A"},
+            "filtros": {
+                "fecha_inicio": fecha_inicio.isoformat() if isinstance(fecha_inicio, date) else str(fecha_inicio),
+                "fecha_fin": fecha_fin.isoformat() if isinstance(fecha_fin, date) else str(fecha_fin),
+                "servicio": getattr(reporte.servicio, 'id', None) if reporte.servicio else None,
             },
-            "filtros_aplicados": filters,
         }
-        logger.info(f"Métricas del dashboard generadas exitosamente")
-        return result
-    except Exception as e:
-        logger.error(f"Error al generar métricas del dashboard: {str(e)}")
-        raise
 
+        # Retornar JSON (string)
+        return json.dumps(result, ensure_ascii=False)

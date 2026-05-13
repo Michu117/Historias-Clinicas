@@ -1,12 +1,21 @@
 from rest_framework import serializers
-from .models import Report
+from .models import Reporte
 
 
-class ReportSerializer(serializers.ModelSerializer):
+class ReporteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Report
-        fields = ['id', 'title', 'data', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        model = Reporte
+        fields = [
+            'id',
+            'titulo',
+            'tipo',
+            'fecha_inicio',
+            'fecha_fin',
+            'servicio',
+            'profesional',
+            'fecha_generado',
+        ]
+        read_only_fields = ['id', 'fecha_generado']
 
 
 class AtencionesStatsSerializer(serializers.Serializer):
@@ -56,6 +65,6 @@ class StandardResponseSerializer(serializers.Serializer):
     """Wrapper de respuesta estándar para todos los endpoints."""
     success = serializers.BooleanField()
     message = serializers.CharField()
-    data = serializers.JSONField()
+    data = serializers.JSONField(required=False, allow_null=True)
     errors = serializers.JSONField(required=False, allow_null=True)
 

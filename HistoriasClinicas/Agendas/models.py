@@ -5,7 +5,7 @@ from django.utils import timezone
 class Servicio(models.Model):
     nombre = models.CharField(max_length=120)
     descripcion = models.TextField(blank=True)
-    activo = models.BooleanField(default=True)
+    es_activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(default=timezone.now)
 
     class Meta:
