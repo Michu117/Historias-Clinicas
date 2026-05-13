@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import Report
+from .models import Reporte
 
 
-@admin.register(Report)
-class ReportAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'created_at')
-    readonly_fields = ('created_at',)
+@admin.register(Reporte)
+class ReporteAdmin(admin.ModelAdmin):
+    list_display = ('id', 'titulo', 'fecha_generado')
+    readonly_fields = ('fecha_generado',)
 
