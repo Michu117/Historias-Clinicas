@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -38,7 +38,10 @@ class AgendasServicesTest(APITestCase):
 
 class AgendasViewTest(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='usuario', password='test1234')
+        self.user = get_user_model().objects.create_user(
+            correo='usuario@example.com',
+            password='test1234',
+        )
         self.client.force_authenticate(user=self.user)
         self.paciente_id = 1
         self.paciente_alterno_id = 2
