@@ -1,8 +1,8 @@
-from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from .models import Bitacora, Cuenta, Rol, Usuario
+from .services import crear_rol, crear_usuario, actualizar_perfil_usuario, autenticar_cuenta
 
 
 class RolSerializer(serializers.ModelSerializer):
@@ -21,11 +21,10 @@ class RoleCreateSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        rol = Rol.objects.create(
+        return crear_rol(
             nombre=validated_data['nombre'],
-            descripcion=validated_data.get('descripcion', '')
+            descripcion=validated_data.get('descripcion', ''),
         )
-        return rol
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -84,22 +83,16 @@ class RegistroSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         rol_nombre = validated_data.pop('rol', '') or 'usuario'
-        rol, _ = Rol.objects.get_or_create(nombre=rol_nombre)
-
-        user = Cuenta.objects.create_user(
+        return crear_usuario(
             correo=validated_data['correo'],
-            password=validated_data['clave'],
-            rol=rol,
-        )
-        Usuario.objects.create(
-            cuenta=user,
-            nombres=validated_data['nombre'],
-            apellidos=validated_data['apellido'],
+            clave=validated_data['clave'],
+            nombre=validated_data['nombre'],
+            apellido=validated_data['apellido'],
             cedula=validated_data['cedula'],
             fecha_nacimiento=validated_data['fechaNacimiento'],
             sexo=validated_data['sexo'],
+            rol_nombre=rol_nombre,
         )
-        return user
 
 
 class LoginSerializer(serializers.Serializer):
@@ -109,7 +102,7 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         correo = attrs.get('correo')
         clave = attrs.get('clave')
-        user = authenticate(self.context.get('request'), correo=correo, password=clave)
+        user = autenticar_cuenta(request=self.context.get('request'), correo=correo, clave=clave)
         if not user:
             raise serializers.ValidationError('Credenciales inválidas.')
         if not user.is_active:
@@ -171,21 +164,16 @@ class UserCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         rol_nombre = validated_data.pop('rol', '') or 'usuario'
-        rol, _ = Rol.objects.get_or_create(nombre=rol_nombre)
-        user = Cuenta.objects.create_user(
+        return crear_usuario(
             correo=validated_data['correo'],
-            password=validated_data['clave'],
-            rol=rol,
-        )
-        Usuario.objects.create(
-            cuenta=user,
-            nombres=validated_data['nombre'],
-            apellidos=validated_data['apellido'],
+            clave=validated_data['clave'],
+            nombre=validated_data['nombre'],
+            apellido=validated_data['apellido'],
             cedula=validated_data['cedula'],
             fecha_nacimiento=validated_data['fechaNacimiento'],
             sexo=validated_data['sexo'],
+            rol_nombre=rol_nombre,
         )
-        return user
 
 
 class UserUpdateSerializer(serializers.Serializer):
@@ -194,12 +182,4 @@ class UserUpdateSerializer(serializers.Serializer):
     sexo = serializers.ChoiceField(choices=Usuario.Sexo.choices, required=False)
 
     def update(self, instance, validated_data):
-        if hasattr(instance, 'perfil'):
-            if 'nombre' in validated_data:
-                instance.perfil.nombres = validated_data['nombre']
-            if 'apellido' in validated_data:
-                instance.perfil.apellidos = validated_data['apellido']
-            if 'sexo' in validated_data:
-                instance.perfil.sexo = validated_data['sexo']
-            instance.perfil.save()
-        return instance
+        return actualizar_perfil_usuario(instance, validated_data)

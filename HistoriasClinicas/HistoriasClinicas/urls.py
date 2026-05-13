@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair_v1'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh_v1'),
     path('api/v1/auth/', include('authentication.urls')),
+    path('api/v1/auth/', include('Seguridad.urls')),
     path('api/v1/salud/', include('historias.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path(
