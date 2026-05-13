@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_spectacular',
-    'authentication',
+    'Seguridad.apps.SeguridadConfig',
     'historias',
 ]
 
@@ -141,7 +141,7 @@ REST_FRAMEWORK = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'authentication.Cuenta'
+AUTH_USER_MODEL = 'Seguridad.Cuenta'
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),

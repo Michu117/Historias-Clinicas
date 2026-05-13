@@ -4,7 +4,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 
@@ -23,14 +22,7 @@ from .serializers import (
     UserListSerializer,
     UserUpdateSerializer,
 )
-
-
-def generar_tokens(cuenta: Cuenta) -> dict[str, str]:
-    refresh = RefreshToken.for_user(cuenta)
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
+from .services import generar_tokens, obtener_cuenta_por_correo, obtener_bitacoras_recientes, registrar_bitacora
 
 
 class RegistroView(APIView):
@@ -65,7 +57,7 @@ class RegistroView(APIView):
         serializer = RegistroSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         cuenta = serializer.save()
-        Bitacora.objects.create(
+        registrar_bitacora(
             cuenta=cuenta,
             tipo_accion=Bitacora.TipoAccion.REGISTRO,
             modulo_afectado='autenticacion',
@@ -107,15 +99,12 @@ class LoginView(APIView):
         
         # Intentar autenticar
         correo = request.data.get('correo')
-        try:
-            cuenta = Cuenta.objects.get(correo__iexact=correo)
-        except Cuenta.DoesNotExist:
-            cuenta = None
+        cuenta = obtener_cuenta_por_correo(correo)
         
         if not serializer.is_valid():
             # Registrar intento fallido
             if cuenta:
-                Bitacora.objects.create(
+                registrar_bitacora(
                     cuenta=cuenta,
                     tipo_accion=Bitacora.TipoAccion.INICIO_SESION_FALLIDO,
                     modulo_afectado='autenticacion',
@@ -124,7 +113,7 @@ class LoginView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         cuenta = serializer.validated_data['user']
-        Bitacora.objects.create(
+        registrar_bitacora(
             cuenta=cuenta,
             tipo_accion=Bitacora.TipoAccion.INICIO_SESION,
             modulo_afectado='autenticacion',
@@ -172,7 +161,7 @@ class RefreshView(TokenRefreshView):
             cuenta_id = token.get('user_id')
             if cuenta_id:
                 cuenta = get_object_or_404(Cuenta, pk=cuenta_id)
-                Bitacora.objects.create(
+                registrar_bitacora(
                     cuenta=cuenta,
                     tipo_accion=Bitacora.TipoAccion.REFRESCO_TOKEN,
                     modulo_afectado='autenticacion',
@@ -338,7 +327,7 @@ class RoleCreateView(APIView):
         rol = serializer.save()
         
         # Registrar en bitacora
-        Bitacora.objects.create(
+        registrar_bitacora(
             cuenta=request.user,
             tipo_accion=Bitacora.TipoAccion.CAMBIO_ROL,
             modulo_afectado='roles',
@@ -370,6 +359,6 @@ class BitacoraListView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         
-        bitacoras = Bitacora.objects.all()[:100]  # Últimos 100 registros
+        bitacoras = obtener_bitacoras_recientes()
         serializer = BitacoraListSerializer(bitacoras, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
