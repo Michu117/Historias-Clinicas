@@ -10,9 +10,9 @@ class NotificacionAdmin(admin.ModelAdmin):
         'tipo',
         'estado',
         'usuario_destinatario',
-        'cita_id',
+        'cita',
         'fecha_creacion',
     )
     list_filter = ('tipo', 'estado', 'fecha_creacion')
-    search_fields = ('mensaje', 'cita_id', 'origen_evento')
+    search_fields = ('mensaje', 'cita__id', 'origen_evento')
     readonly_fields = ('fecha_creacion', 'fecha_modificacion')

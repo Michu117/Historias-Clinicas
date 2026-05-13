@@ -10,7 +10,7 @@ from .models import (
 class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Servicio
-        fields = ['id', 'nombre', 'descripcion', 'activo', 'fecha_creacion']
+        fields = ['id', 'nombre', 'descripcion', 'es_activo', 'fecha_creacion']
         read_only_fields = ['fecha_creacion']
 
 

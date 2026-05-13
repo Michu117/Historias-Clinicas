@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from .models import Notificacion
@@ -57,7 +56,7 @@ def create_notification(validated_data, created_by=None):
 
     notification = Notificacion.objects.create(
         usuario_destinatario=destinatario,
-        cita_id=validated_data.get('cita_id'),
+        cita=validated_data.get('cita'),
         tipo=validated_data['tipo'],
         estado=validated_data.get('estado', Notificacion.ESTADO_NO_LEIDO),
         mensaje=validated_data['mensaje'],
@@ -90,7 +89,7 @@ def mark_notifications_read(user, filtros=None, ids=None):
     return updated
 
 
-def generate_notification_for_event(event_type, destinatario, cita_id=None, detalles=None, created_by=None):
+def generate_notification_for_event(event_type, destinatario, cita=None, detalles=None, created_by=None):
     if isinstance(destinatario, int):
         destinatario = get_object_or_404(User, pk=destinatario)
 
@@ -101,7 +100,7 @@ def generate_notification_for_event(event_type, destinatario, cita_id=None, deta
     return create_notification(
         {
             'usuario_destinatario': destinatario,
-            'cita_id': cita_id,
+            'cita': cita,
             'tipo': event_type,
             'estado': Notificacion.ESTADO_NO_LEIDO,
             'mensaje': mensaje,
