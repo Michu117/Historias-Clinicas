@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'historias',
     'Reportes',
     'Agendas',
+    'Notificaciones.apps.NotificacionesConfig',
 ]
 
 MIDDLEWARE = [
