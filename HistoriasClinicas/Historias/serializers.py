@@ -22,14 +22,6 @@ class CasoSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "historia_clinica", "created_at", "updated_at")
 
     def validate(self, attrs):
-        historia_en_url = self.context.get("historia_clinica_id")
-        historia_en_payload = self.initial_data.get("historia_clinica")
-        if historia_en_url is not None and historia_en_payload is not None:
-            if str(historia_en_payload) != str(historia_en_url):
-                raise serializers.ValidationError(
-                    {"historia_clinica": "Debe coincidir con la historia clinica del URL."}
-                )
-
         fecha_apertura = attrs.get("fecha_apertura", getattr(self.instance, "fecha_apertura", None))
         fecha_cierre = attrs.get("fecha_cierre", getattr(self.instance, "fecha_cierre", None))
         estado_caso = attrs.get("estado_caso", getattr(self.instance, "estado_caso", None))
@@ -61,17 +53,6 @@ class AntecedenteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
         return value.strip()
 
-    def validate(self, attrs):
-        historia_en_url = self.context.get("historia_clinica_id")
-        historia_en_payload = self.initial_data.get("historia_clinica")
-        if historia_en_url is not None and historia_en_payload is not None:
-            if str(historia_en_payload) != str(historia_en_url):
-                raise serializers.ValidationError(
-                    {"historia_clinica": "Debe coincidir con la historia clinica del URL."}
-                )
-        return attrs
-
-
 class DocumentoSerializer(serializers.ModelSerializer):
     tipo_documento = serializers.ChoiceField(choices=TipoDocumento.choices)
 
@@ -90,26 +71,16 @@ class DocumentoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
         return value.strip()
 
-    def validate(self, attrs):
-        historia_en_url = self.context.get("historia_clinica_id")
-        historia_en_payload = self.initial_data.get("historia_clinica")
-        if historia_en_url is not None and historia_en_payload is not None:
-            if str(historia_en_payload) != str(historia_en_url):
-                raise serializers.ValidationError(
-                    {"historia_clinica": "Debe coincidir con la historia clinica del URL."}
-                )
-        return attrs
-
-
 class HistoriaClinicaSerializer(serializers.ModelSerializer):
     casos = CasoSerializer(many=True, read_only=True)
     antecedentes = AntecedenteSerializer(many=True, read_only=True)
     documentos = DocumentoSerializer(many=True, read_only=True)
+    usuario = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = HistoriaClinica
-        fields = ("id","alergia","condicion_preexistente","factor_riesgo","created_at","updated_at","casos","antecedentes","documentos",)
-        read_only_fields = ("id", "created_at", "updated_at")
+        fields = ("id","usuario","alergia","condicion_preexistente","factor_riesgo","created_at","updated_at","casos","antecedentes","documentos",)
+        read_only_fields = ("id", "usuario", "created_at", "updated_at")
 
     def validate_alergia(self, value):
         if value is None or not value.strip():

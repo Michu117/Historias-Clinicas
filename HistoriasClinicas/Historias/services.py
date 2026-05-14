@@ -48,8 +48,8 @@ def eliminar_instancia(instancia) -> None:
     instancia.delete()
 
 
-def obtener_por_id(modelo, id: int):
-    return modelo.objects.get(pk=id)
+def obtener_por_id(modelo, id: int, **filtros):
+    return modelo.objects.get(pk=id, **filtros)
 
 
 def obtener_por_relacion(modelo, **filtros):
@@ -60,19 +60,30 @@ def obtener_historias_clinicas():
     return HistoriaClinica.objects.prefetch_related("casos", "antecedentes", "documentos").all()
 
 
-def obtener_historia_por_id(historia_id: int) -> HistoriaClinica:
-    return HistoriaClinica.objects.prefetch_related("casos", "antecedentes", "documentos").get(
-        pk=historia_id
-    )
+def obtener_historia_por_id(historia_id: int, usuario = None) -> HistoriaClinica:
+    query = HistoriaClinica.objects.prefetch_related("casos", "antecedentes", "documentos")
+    if usuario is not None:
+        query = query.filter(usuario=usuario)
+    return query.get(pk=historia_id)
 
 
-def crear_historia_clinica(payload: Mapping[str, Any]) -> HistoriaClinica:
-    return crear_instancia(HistoriaClinica, payload)
+def crear_historia_clinica(payload: Mapping[str, Any], usuario) -> HistoriaClinica:
+    if HistoriaClinica.objects.filter(usuario=usuario).exists():
+        raise ValidationError(
+            {
+                "usuario": [
+                    "El usuario autenticado ya tiene una historia clinica registrada.",
+                ]
+            }
+        )
+    datos = dict(payload)
+    datos["usuario"] = usuario
+    return crear_instancia(HistoriaClinica, datos)
 
 
-def actualizar_historia_clinica(historia_id: int, payload: Mapping[str, Any]) -> HistoriaClinica:
-    historia = obtener_historia_por_id(historia_id)
-    return actualizar_instancia(historia, payload, campos_protegidos={"id"})
+def actualizar_historia_clinica(historia_id: int, payload: Mapping[str, Any], usuario) -> HistoriaClinica:
+    historia = obtener_historia_por_id(historia_id, usuario=usuario)
+    return actualizar_instancia(historia, payload, campos_protegidos={"id", "usuario"})
 
 
 @transaction.atomic
