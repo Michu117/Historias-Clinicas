@@ -16,12 +16,12 @@ def api_root(request):
         "message": "API HistoriasClinicas v1",
         "endpoints": {
             "admin": "/admin/",
-            "Historias": "/api/v1/Historias/",
+            "Historias": "/api/v1/historias/",
             "documentacion_historias": {
-                "historias_clinicas": "/api/v1/Historias/Historias-clinicas/",
-                "casos": "/api/v1/Historias/casos/",
-                "antecedentes": "/api/v1/Historias/antecedentes/",
-                "documentos": "/api/v1/Historias/documentos/",
+                "historias_clinicas": "/api/v1/historias/historias-clinicas/",
+                "casos": "/api/v1/historias/casos/",
+                "antecedentes": "/api/v1/historias/antecedentes/",
+                "documentos": "/api/v1/historias/documentos/",
             },
             "reportes": "/api/v1/reportes/",
             "documentacion": {
@@ -45,5 +45,8 @@ urlpatterns = [
     path('api/v1/historias/', include('Historias.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('api/v1/reportes/', include('Reportes.urls')),
 ]
