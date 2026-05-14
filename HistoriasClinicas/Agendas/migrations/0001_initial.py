@@ -17,8 +17,7 @@ class Migration(migrations.Migration):
             name='Cita',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('paciente_id', models.IntegerField()),
-                ('profesional_id', models.IntegerField()),
+                ('usuario_id', models.IntegerField()),
                 ('fecha_hora', models.DateTimeField()),
                 ('estado', models.CharField(choices=[('AGENDADA', 'Agendada'), ('CONFIRMADA', 'Confirmada'), ('ATENDIDA', 'Atendida'), ('CANCELADA', 'Cancelada'), ('NO_ASISTIDA', 'No asistida')], default='AGENDADA', max_length=16)),
                 ('motivo', models.CharField(blank=True, max_length=255)),
@@ -33,7 +32,7 @@ class Migration(migrations.Migration):
             name='Derivacion',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('paciente_id', models.IntegerField()),
+                ('usuario_id', models.IntegerField()),
                 ('remitente_id', models.IntegerField()),
                 ('destinatario', models.CharField(max_length=150)),
                 ('tipo', models.CharField(choices=[('INTERNA', 'Interna'), ('EXTERNA', 'Externa')], max_length=10)),
@@ -90,6 +89,7 @@ class Migration(migrations.Migration):
                 ('nivel_socioeconomico', models.CharField(blank=True, max_length=120)),
                 ('descripcion_vivienda', models.TextField(blank=True)),
                 ('cita', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_consultas', to='Agendas.cita')),
+                ('historia_clinica_id', models.IntegerField()),
                 ('servicios', models.ManyToManyField(blank=True, related_name='%(app_label)s_%(class)s_servicios', to='Agendas.servicio')),
             ],
             options={
@@ -108,6 +108,7 @@ class Migration(migrations.Migration):
                 ('nivel_autoestima', models.PositiveIntegerField(default=0)),
                 ('diagnostico', models.TextField()),
                 ('cita', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_consultas', to='Agendas.cita')),
+                ('historia_clinica_id', models.IntegerField()),
                 ('servicios', models.ManyToManyField(blank=True, related_name='%(app_label)s_%(class)s_servicios', to='Agendas.servicio')),
             ],
             options={
@@ -123,6 +124,7 @@ class Migration(migrations.Migration):
                 ('odontograma', models.TextField()),
                 ('procedimientos', models.TextField()),
                 ('cita', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_consultas', to='Agendas.cita')),
+                ('historia_clinica_id', models.IntegerField()),
                 ('servicios', models.ManyToManyField(blank=True, related_name='%(app_label)s_%(class)s_servicios', to='Agendas.servicio')),
             ],
             options={
@@ -144,6 +146,7 @@ class Migration(migrations.Migration):
                 ('tratamiento', models.TextField()),
                 ('diagnostico', models.TextField()),
                 ('cita', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='%(class)s_consultas', to='Agendas.cita')),
+                ('historia_clinica_id', models.IntegerField()),
                 ('servicios', models.ManyToManyField(blank=True, related_name='%(app_label)s_%(class)s_servicios', to='Agendas.servicio')),
                 ('signos_vitales', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='Agendas.signosvitales')),
             ],
@@ -153,6 +156,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='cita',
-            unique_together={('paciente_id', 'profesional_id', 'fecha_hora')},
+            unique_together={('usuario_id', 'fecha_hora')},
         ),
     ]
