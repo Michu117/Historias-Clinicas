@@ -16,12 +16,12 @@ def api_root(request):
         "message": "API HistoriasClinicas v1",
         "endpoints": {
             "admin": "/admin/",
-            "Historias": "/api/v1/Historias/",
+            "Historias": "/api/v1/historias/",
             "documentacion_historias": {
-                "historias_clinicas": "/api/v1/Historias/Historias-clinicas/",
-                "casos": "/api/v1/Historias/casos/",
-                "antecedentes": "/api/v1/Historias/antecedentes/",
-                "documentos": "/api/v1/Historias/documentos/",
+                "historias_clinicas": "/api/v1/historias/Historias-clinicas/",
+                "casos": "/api/v1/historias/casos/",
+                "antecedentes": "/api/v1/historias/antecedentes/",
+                "documentos": "/api/v1/historias/documentos/",
             },
             "reportes": "/api/v1/reportes/",
             "documentacion": {
