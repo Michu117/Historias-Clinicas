@@ -1,11 +1,6 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
 from django.db import models
-
-
-def validate_non_empty_file(value):
-    if value and value.size == 0:
-        raise ValidationError("El archivo no puede estar vacio.")
+from Seguridad.models import Usuario
 
 
 class TimestampedModel(models.Model):
@@ -30,57 +25,49 @@ class Prioridad(models.TextChoices):
 
 class TipoAntecedente(models.TextChoices):
     HEREDOFAMILIARES = "HEREDOFAMILIARES", "Heredofamiliares"
-    PERSONALES_NO_PATOLOGICOS = (
-        "PERSONALES_NO_PATOLOGICOS",
-        "Personales no patologicos",
-    )
+    PERSONALES_NO_PATOLOGICOS = ("PERSONALES_NO_PATOLOGICOS","Personales no patologicos",)
     PERSONALES_PATOLOGICOS = "PERSONALES_PATOLOGICOS", "Personales patologicos"
     GINECO_OBSTETRICOS = "GINECO_OBSTETRICOS", "Gineco obstetricos"
 
 
 class TipoDocumento(models.TextChoices):
-    RESULTADOS = "RESULTADOS", "Resultados"
+    RESULTADO = "RESULTADO", "Resultado"
     FORMULARIOS = "FORMULARIOS", "Formularios"
-    CONSENTIMIENTOS = "CONSENTIMIENTOS", "Consentimientos"
+    CONSENTIMIENTO = "CONSENTIMIENTO", "Consentimiento"
     CERTIFICADO = "CERTIFICADO", "Certificado"
+
+
+def _validar_texto_requerido(valor: str | None, campo: str) -> None:
+    if valor is None or not valor.strip():
+        raise ValidationError({campo: "Este campo es obligatorio y no puede estar vacio."})
 
 
 class HistoriaClinica(TimestampedModel):
     alergia = models.TextField("alergia")
     condicion_preexistente = models.TextField("condicion preexistente")
     factor_riesgo = models.TextField("factor de riesgo")
-    antecedente_personal = models.TextField("antecedente personal")
-    antecedente_familiar = models.TextField("antecedente familiar")
-
+    usuario = models.OneToOneField(Usuario,on_delete=models.CASCADE,related_name='historia_clinica')
     class Meta:
         verbose_name = "historia clinica"
-        verbose_name_plural = "historias clinicas"
+        verbose_name_plural = "Historias clinicas"
         ordering = ("-created_at",)
 
     def __str__(self):
         return f"Historia clinica #{self.pk}"
 
+    def clean(self):
+        super().clean()
+        _validar_texto_requerido(self.alergia, "alergia")
+        _validar_texto_requerido(self.condicion_preexistente, "condicion_preexistente")
+        _validar_texto_requerido(self.factor_riesgo, "factor_riesgo")
+
 
 class Caso(TimestampedModel):
-    historia_clinica = models.ForeignKey(
-        HistoriaClinica,
-        on_delete=models.CASCADE,
-        related_name="casos",
-        verbose_name="historia clinica",
-    )
+    historia_clinica = models.ForeignKey(HistoriaClinica,on_delete=models.CASCADE,related_name="casos",verbose_name="historia clinica",)
     fecha_apertura = models.DateField("fecha de apertura")
     fecha_cierre = models.DateField("fecha de cierre", null=True, blank=True)
-    estado = models.CharField(
-        "estado",
-        max_length=20,
-        choices=EstadoCaso.choices,
-        default=EstadoCaso.ABIERTO,
-    )
-    prioridad = models.CharField(
-        "prioridad",
-        max_length=10,
-        choices=Prioridad.choices,
-        default=Prioridad.MEDIA,
+    estado_caso = models.CharField("estado del caso", max_length=20, choices=EstadoCaso.choices, default=EstadoCaso.ABIERTO, )
+    prioridad = models.CharField("prioridad", max_length=10,choices=Prioridad.choices,default=Prioridad.MEDIA,
     )
 
     class Meta:
@@ -94,7 +81,7 @@ class Caso(TimestampedModel):
             raise ValidationError(
                 {"fecha_cierre": "La fecha de cierre no puede ser anterior a la fecha de apertura."}
             )
-        if self.estado == EstadoCaso.CERRADO and not self.fecha_cierre:
+        if self.estado_caso == EstadoCaso.CERRADO and not self.fecha_cierre:
             raise ValidationError(
                 {"fecha_cierre": "La fecha de cierre es obligatoria cuando el caso esta cerrado."}
             )
@@ -104,23 +91,14 @@ class Caso(TimestampedModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Caso #{self.pk} ({self.get_estado_display()})"
+        return f"Caso #{self.pk} ({self.get_estado_caso_display()})"
 
 
 class Antecedente(TimestampedModel):
-    historia_clinica = models.ForeignKey(
-        HistoriaClinica,
-        on_delete=models.CASCADE,
-        related_name="antecedentes",
-        verbose_name="historia clinica",
-    )
+    historia_clinica = models.ForeignKey(HistoriaClinica,on_delete=models.CASCADE, related_name="antecedentes",verbose_name="historia clinica",)
     descripcion = models.TextField("descripcion")
     fecha = models.DateField("fecha")
-    tipo_antecedente = models.CharField(
-        "tipo de antecedente",
-        max_length=30,
-        choices=TipoAntecedente.choices,
-    )
+    tipo_antecedente = models.CharField("tipo de antecedente",max_length=30,choices=TipoAntecedente.choices,)
 
     class Meta:
         verbose_name = "antecedente"
@@ -130,31 +108,17 @@ class Antecedente(TimestampedModel):
     def __str__(self):
         return f"{self.get_tipo_antecedente_display()} ({self.fecha})"
 
+    def clean(self):
+        super().clean()
+        _validar_texto_requerido(self.descripcion, "descripcion")
+
 
 class Documento(TimestampedModel):
-    historia_clinica = models.ForeignKey(
-        HistoriaClinica,
-        on_delete=models.CASCADE,
-        related_name="documentos",
-        verbose_name="historia clinica",
-    )
+    historia_clinica = models.ForeignKey(HistoriaClinica, on_delete=models.CASCADE, related_name="documentos", verbose_name="historia clinica",)
     fecha = models.DateField("fecha")
-    tipo_documento = models.CharField(
-        "tipo de documento",
-        max_length=20,
-        choices=TipoDocumento.choices,
-    )
-    archivo = models.FileField(
-        "archivo",
-        upload_to="documentos/",
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=["pdf", "jpg", "jpeg", "png"],
-                message="El archivo debe ser PDF o imagen (jpg, jpeg, png).",
-            ),
-            validate_non_empty_file,
-        ],
-    )
+    tipo_documento = models.CharField("tipo de documento", max_length=20, choices=TipoDocumento.choices,)
+    encabezado = models.TextField("encabezado")
+    cuerpo = models.TextField("cuerpo")
 
     class Meta:
         verbose_name = "documento"
@@ -163,3 +127,8 @@ class Documento(TimestampedModel):
 
     def __str__(self):
         return f"{self.get_tipo_documento_display()} ({self.fecha})"
+
+    def clean(self):
+        super().clean()
+        _validar_texto_requerido(self.encabezado, "encabezado")
+        _validar_texto_requerido(self.cuerpo, "cuerpo")
