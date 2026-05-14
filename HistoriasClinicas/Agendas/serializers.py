@@ -16,7 +16,7 @@ class ServicioSerializer(serializers.ModelSerializer):
 
 class CitaSerializer(serializers.ModelSerializer):
     servicios = serializers.PrimaryKeyRelatedField(
-        queryset=Servicio.objects.filter(activo=True),
+        queryset=Servicio.objects.filter(es_activo=True),
         many=True,
         required=False,
         allow_empty=True,

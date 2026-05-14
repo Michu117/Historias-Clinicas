@@ -18,7 +18,7 @@ def api_root(request):
             "admin": "/admin/",
             "Historias": "/api/v1/historias/",
             "documentacion_historias": {
-                "historias_clinicas": "/api/v1/historias/Historias-clinicas/",
+                "historias_clinicas": "/api/v1/historias/historias-clinicas/",
                 "casos": "/api/v1/historias/casos/",
                 "antecedentes": "/api/v1/historias/antecedentes/",
                 "documentos": "/api/v1/historias/documentos/",
