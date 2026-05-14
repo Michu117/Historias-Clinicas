@@ -70,7 +70,7 @@ class CitaViewSet(BaseAgendasViewSet):
 
 
 class ServicioViewSet(BaseAgendasViewSet):
-    queryset = Servicio.objects.filter(activo=True)
+    queryset = Servicio.objects.filter(es_activo=True)
     serializer_class = ServicioSerializer
     ordering_fields = ['nombre', 'fecha_creacion']
     ordering = ['nombre']
