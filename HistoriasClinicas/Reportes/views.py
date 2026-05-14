@@ -6,76 +6,149 @@ import logging
 
 from .models import Reporte
 from .serializers import ReporteSerializer
-# NOTA: evitamos importar Reportes.services porque en esta versión ese módulo
-# sigue refiriendo a un modelo `Report` que ya no existe (se renombró a `Reporte`).
-# Para mantener el módulo `Reportes` consistente sin tocar `models.py` ni
-# `services.py` (según lo solicitado), implementamos aquí pequeñas funciones
-# locales que retornan estructuras compatibles usadas por los endpoints.
-
 from django.apps import apps
+from django.db.models import Q, Count
+from datetime import datetime
 
 AgendaConsultaMedica = apps.get_model('Agendas', 'ConsultaMedica')
 AgendaConsultaPsicologica = apps.get_model('Agendas', 'ConsultaPsicologica')
 AgendaConsultaOdontologica = apps.get_model('Agendas', 'ConsultaOdontologica')
 AgendaConsultaSocial = apps.get_model('Agendas', 'ConsultaSocial')
+AgendaCita = apps.get_model('Agendas', 'Cita')
+AgendaServicio = apps.get_model('Agendas', 'Servicio')
 
 def _parse_comma_list(param: str):
     return [s.strip() for s in param.split(',') if s.strip()] if param else None
 
-def _get_atenciones_stats_local(tipos_servicio=None, diagnosticos=None):
-    """Versión local y simplificada para el endpoint de atenciones.
-    Cuenta consultas por subtipo (medica, psicologica, odontologica, social).
+
+def _get_atenciones_stats_local(fecha_inicio=None, fecha_fin=None, servicio_id=None):
+    """Genera conteos reales por subtipo de consulta usando los modelos de Agendas.
+
+    - fecha_inicio/fecha_fin: objetos date (opcionales). Si se pasan, se filtra por
+      cita__fecha_hora__date entre ambos inclusive.
+    - servicio_id: id del servicio (int) para filtrar solo citas que incluyan ese servicio.
     """
     try:
-        # Base queryset sin filtros de fecha (los endpoints actuales no reciben fechas)
-        m_qs = AgendaConsultaMedica.objects.all()
-        p_qs = AgendaConsultaPsicologica.objects.all()
-        o_qs = AgendaConsultaOdontologica.objects.all()
-        s_qs = AgendaConsultaSocial.objects.all()
+        # Construir Q de fecha
+        q_fecha = Q()
+        if fecha_inicio:
+            q_fecha &= Q(cita__fecha_hora__date__gte=fecha_inicio)
+        if fecha_fin:
+            q_fecha &= Q(cita__fecha_hora__date__lte=fecha_fin)
 
-        # Simulación: si se dieran tipos_servicio/diagnosticos, podríamos filtrarlos
-        # sobre campos existentes; aquí devolvemos conteos simples para evitar
-        # dependencias adicionales.
-        total = m_qs.count() + p_qs.count() + o_qs.count() + s_qs.count()
+        # Filtro por servicio (Cita tiene M2M 'servicios')
+        q_serv = Q()
+        if servicio_id:
+            q_serv = Q(cita__servicios=servicio_id)
+
+        # Preparar querysets para cada subtipo
+        m_qs = AgendaConsultaMedica.objects.filter(q_fecha & q_serv).select_related('cita').prefetch_related('cita__servicios')
+        p_qs = AgendaConsultaPsicologica.objects.filter(q_fecha & q_serv).select_related('cita').prefetch_related('cita__servicios')
+        o_qs = AgendaConsultaOdontologica.objects.filter(q_fecha & q_serv).select_related('cita').prefetch_related('cita__servicios')
+        s_qs = AgendaConsultaSocial.objects.filter(q_fecha & q_serv).select_related('cita').prefetch_related('cita__servicios')
+
+        medica = m_qs.count()
+        psicologica = p_qs.count()
+        odontologica = o_qs.count()
+        social = s_qs.count()
+
+        total = medica + psicologica + odontologica + social
 
         por_tipo_servicio = [
-            {"servicio": "medicina", "cantidad": m_qs.count()},
-            {"servicio": "odontologia", "cantidad": o_qs.count()},
-        ]
-
-        por_diagnostico = [
-            {"diagnostico": "J00", "cantidad": max(0, total // 3)},
-            {"diagnostico": "I10", "cantidad": max(0, (total * 2) // 3)},
+            {"tipo": "medica", "cantidad": medica},
+            {"tipo": "psicologica", "cantidad": psicologica},
+            {"tipo": "odontologica", "cantidad": odontologica},
+            {"tipo": "social", "cantidad": social},
         ]
 
         return {
             "total_atenciones": total,
             "por_tipo_servicio": por_tipo_servicio,
-            "por_diagnostico": por_diagnostico,
             "filtros_aplicados": {
-                "tipos_servicio": tipos_servicio or [],
-                "diagnosticos": diagnosticos or []
+                "fecha_inicio": fecha_inicio.isoformat() if fecha_inicio else None,
+                "fecha_fin": fecha_fin.isoformat() if fecha_fin else None,
+                "servicio_id": servicio_id,
             }
         }
-    except Exception as e:
-        logging.getLogger(__name__).exception("Error local al generar atenciones: %s", e)
+    except Exception:
+        logging.getLogger(__name__).exception("Error al generar atenciones reales")
         raise
 
-def _get_diagnosticos_frecuentes_local(tipos_servicio=None, diagnosticos=None):
-    items = [
-        {"codigo": "J00", "descripcion": "Nasofaringitis aguda (resfriado común)", "cantidad": 45},
-        {"codigo": "I10", "descripcion": "Hipertensión esencial (primaria)", "cantidad": 32},
-        {"codigo": "E11", "descripcion": "Diabetes mellitus tipo 2", "cantidad": 28},
-    ]
-    return {"items": items, "total_registros": sum(i['cantidad'] for i in items), "filtros_aplicados": {"tipos_servicio": tipos_servicio or [], "diagnosticos": diagnosticos or []}}
+def _get_diagnosticos_frecuentes_local(fecha_inicio=None, fecha_fin=None, servicio_id=None, limit=10):
+    """Agrega y devuelve los diagnósticos más frecuentes basándose en los campos
+    `diagnostico` de ConsultaMedica y ConsultaPsicologica.
+    """
+    try:
+        q_fecha = Q()
+        if fecha_inicio:
+            q_fecha &= Q(cita__fecha_hora__date__gte=fecha_inicio)
+        if fecha_fin:
+            q_fecha &= Q(cita__fecha_hora__date__lte=fecha_fin)
 
-def _get_servicios_mas_usados_local(tipos_servicio=None, diagnosticos=None):
-    items = [
-        {"servicio": "medicina", "cantidad": 95, "porcentaje": 63.3},
-        {"servicio": "odontologia", "cantidad": 40, "porcentaje": 26.7},
-        {"servicio": "laboratorio", "cantidad": 15, "porcentaje": 10.0},
-    ]
-    return {"items": items, "total_registros": sum(i['cantidad'] for i in items), "filtros_aplicados": {"tipos_servicio": tipos_servicio or [], "diagnosticos": diagnosticos or []}}
+        q_serv = Q()
+        if servicio_id:
+            q_serv = Q(cita__servicios=servicio_id)
+
+        # Medica
+        med_qs = AgendaConsultaMedica.objects.filter(q_fecha & q_serv).values('diagnostico')
+        med_agg = med_qs.annotate(cantidad=Count('diagnostico')).order_by('-cantidad')
+
+        # Psicologica
+        psi_qs = AgendaConsultaPsicologica.objects.filter(q_fecha & q_serv).values('diagnostico')
+        psi_agg = psi_qs.annotate(cantidad=Count('diagnostico')).order_by('-cantidad')
+
+        # Combinar resultados en dict
+        combined = {}
+        for row in med_agg:
+            key = (row['diagnostico'] or '').strip()
+            if not key:
+                continue
+            combined.setdefault(key, 0)
+            combined[key] += row['cantidad']
+        for row in psi_agg:
+            key = (row['diagnostico'] or '').strip()
+            if not key:
+                continue
+            combined.setdefault(key, 0)
+            combined[key] += row['cantidad']
+
+        items = [
+            {"codigo": k, "descripcion": k, "cantidad": v}
+            for k, v in sorted(combined.items(), key=lambda x: x[1], reverse=True)[:limit]
+        ]
+
+        return {"items": items, "total_registros": sum(v for v in combined.values()), "filtros_aplicados": {"fecha_inicio": fecha_inicio.isoformat() if fecha_inicio else None, "fecha_fin": fecha_fin.isoformat() if fecha_fin else None, "servicio_id": servicio_id}}
+    except Exception:
+        logging.getLogger(__name__).exception("Error generando diagnósticos frecuentes")
+        raise
+
+def _get_servicios_mas_usados_local(fecha_inicio=None, fecha_fin=None, servicio_id=None, limit=10):
+    """Cuenta servicios más usados a partir de las citas en el rango dado.
+    Devuelve lista de servicios con su cantidad y porcentaje.
+    """
+    try:
+        citas_q = AgendaCita.objects.all()
+        if fecha_inicio:
+            citas_q = citas_q.filter(fecha_hora__date__gte=fecha_inicio)
+        if fecha_fin:
+            citas_q = citas_q.filter(fecha_hora__date__lte=fecha_fin)
+        if servicio_id:
+            # Si se filtra por servicio, limitar las citas a las que tengan ese servicio
+            citas_q = citas_q.filter(servicios=servicio_id)
+
+        # Contar uso por servicio
+        servicios_q = AgendaServicio.objects.filter(citas__in=citas_q).annotate(cantidad=Count('citas')).order_by('-cantidad')
+        total = servicios_q.aggregate(total_sum=Count('citas'))['total_sum'] or 0
+
+        items = []
+        for s in servicios_q[:limit]:
+            porcentaje = (s.cantidad / total * 100) if total else 0
+            items.append({"servicio": s.nombre, "cantidad": s.cantidad, "porcentaje": round(porcentaje, 2)})
+
+        return {"items": items, "total_registros": total, "filtros_aplicados": {"fecha_inicio": fecha_inicio.isoformat() if fecha_inicio else None, "fecha_fin": fecha_fin.isoformat() if fecha_fin else None, "servicio_id": servicio_id}}
+    except Exception:
+        logging.getLogger(__name__).exception("Error generando servicios más usados")
+        raise
 
 logger = logging.getLogger(__name__)
 
@@ -140,14 +213,25 @@ def atenciones_stats_view(request):
     """
     try:
         # Parsear filtros desde query params
-        tipos_servicio_param = request.query_params.get('tipos_servicio', '')
-        diagnosticos_param = request.query_params.get('diagnosticos', '')
+        fecha_inicio_param = request.query_params.get('fecha_inicio')
+        fecha_fin_param = request.query_params.get('fecha_fin')
+        servicio_param = request.query_params.get('servicio')
 
-        tipos_servicio = _parse_comma_list(tipos_servicio_param)
-        diagnosticos = _parse_comma_list(diagnosticos_param)
+        fecha_inicio = None
+        fecha_fin = None
+        try:
+            fecha_inicio = datetime.strptime(fecha_inicio_param, '%Y-%m-%d').date() if fecha_inicio_param else None
+        except Exception:
+            pass
+        try:
+            fecha_fin = datetime.strptime(fecha_fin_param, '%Y-%m-%d').date() if fecha_fin_param else None
+        except Exception:
+            pass
 
-        # Llamar a la implementación local
-        stats = _get_atenciones_stats_local(tipos_servicio, diagnosticos)
+        servicio_id = int(servicio_param) if servicio_param and servicio_param.isdigit() else None
+
+        # Llamar a la implementación real
+        stats = _get_atenciones_stats_local(fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, servicio_id=servicio_id)
 
         logger.info(f"Endpoint atenciones_stats: usuario={request.user}, filtros_aplicados=True")
 
@@ -182,18 +266,29 @@ def estadisticas_view(request):
     - diagnosticos: comma-separated
     """
     try:
-        # Parsear filtros desde query params
-        tipos_servicio_param = request.query_params.get('tipos_servicio', '')
-        diagnosticos_param = request.query_params.get('diagnosticos', '')
+        # Parsear filtros desde query params (fecha y servicio son los más relevantes)
+        fecha_inicio_param = request.query_params.get('fecha_inicio')
+        fecha_fin_param = request.query_params.get('fecha_fin')
+        servicio_param = request.query_params.get('servicio')
 
-        tipos_servicio = _parse_comma_list(tipos_servicio_param)
-        diagnosticos = _parse_comma_list(diagnosticos_param)
-
-        # Construir dashboard local combinando funciones locales
+        fecha_inicio = None
+        fecha_fin = None
         try:
-            atenciones = _get_atenciones_stats_local(tipos_servicio, diagnosticos)
-            servicios = _get_servicios_mas_usados_local(tipos_servicio, diagnosticos)
-            diagnosticos_freq = _get_diagnosticos_frecuentes_local(tipos_servicio, diagnosticos)
+            fecha_inicio = datetime.strptime(fecha_inicio_param, '%Y-%m-%d').date() if fecha_inicio_param else None
+        except Exception:
+            pass
+        try:
+            fecha_fin = datetime.strptime(fecha_fin_param, '%Y-%m-%d').date() if fecha_fin_param else None
+        except Exception:
+            pass
+
+        servicio_id = int(servicio_param) if servicio_param and servicio_param.isdigit() else None
+
+        # Construir dashboard real combinando funciones reales
+        try:
+            atenciones = _get_atenciones_stats_local(fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, servicio_id=servicio_id)
+            servicios = _get_servicios_mas_usados_local(fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, servicio_id=servicio_id)
+            diagnosticos_freq = _get_diagnosticos_frecuentes_local(fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, servicio_id=servicio_id)
 
             stats = {
                 "institucional": {
@@ -204,16 +299,17 @@ def estadisticas_view(request):
                 "servicios": servicios["items"],
                 "diagnosticos": diagnosticos_freq["items"][:5],
                 "tendencias": {
-                    "mes_anterior": {"atenciones": 120, "crecimiento": "12.5%"},
+                    "mes_anterior": {"atenciones": 0, "crecimiento": "N/A"},
                     "mes_actual": {"atenciones": atenciones["total_atenciones"], "crecimiento": "N/A"},
                 },
                 "filtros_aplicados": {
-                    "tipos_servicio": tipos_servicio or [],
-                    "diagnosticos": diagnosticos or []
+                    "fecha_inicio": fecha_inicio.isoformat() if fecha_inicio else None,
+                    "fecha_fin": fecha_fin.isoformat() if fecha_fin else None,
+                    "servicio_id": servicio_id,
                 },
             }
         except Exception as e:
-            logger.exception("Error construyendo dashboard local: %s", e)
+            logger.exception("Error construyendo dashboard real: %s", e)
             raise
 
         logger.info(f"Endpoint estadisticas: usuario={request.user}, filtros_aplicados=True")
@@ -244,13 +340,24 @@ def diagnosticos_frecuentes_view(request):
     Endpoint para obtener diagnósticos más frecuentes.
     """
     try:
-        tipos_servicio_param = request.query_params.get('tipos_servicio', '')
-        diagnosticos_param = request.query_params.get('diagnosticos', '')
+        fecha_inicio_param = request.query_params.get('fecha_inicio')
+        fecha_fin_param = request.query_params.get('fecha_fin')
+        servicio_param = request.query_params.get('servicio')
 
-        tipos_servicio = _parse_comma_list(tipos_servicio_param)
-        diagnosticos = _parse_comma_list(diagnosticos_param)
+        fecha_inicio = None
+        fecha_fin = None
+        try:
+            fecha_inicio = datetime.strptime(fecha_inicio_param, '%Y-%m-%d').date() if fecha_inicio_param else None
+        except Exception:
+            pass
+        try:
+            fecha_fin = datetime.strptime(fecha_fin_param, '%Y-%m-%d').date() if fecha_fin_param else None
+        except Exception:
+            pass
 
-        stats = _get_diagnosticos_frecuentes_local(tipos_servicio, diagnosticos)
+        servicio_id = int(servicio_param) if servicio_param and servicio_param.isdigit() else None
+
+        stats = _get_diagnosticos_frecuentes_local(fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, servicio_id=servicio_id)
 
         return build_response(
             success=True,
@@ -278,13 +385,24 @@ def servicios_mas_usados_view(request):
     Endpoint para obtener servicios más utilizados.
     """
     try:
-        tipos_servicio_param = request.query_params.get('tipos_servicio', '')
-        diagnosticos_param = request.query_params.get('diagnosticos', '')
+        fecha_inicio_param = request.query_params.get('fecha_inicio')
+        fecha_fin_param = request.query_params.get('fecha_fin')
+        servicio_param = request.query_params.get('servicio')
 
-        tipos_servicio = _parse_comma_list(tipos_servicio_param)
-        diagnosticos = _parse_comma_list(diagnosticos_param)
+        fecha_inicio = None
+        fecha_fin = None
+        try:
+            fecha_inicio = datetime.strptime(fecha_inicio_param, '%Y-%m-%d').date() if fecha_inicio_param else None
+        except Exception:
+            pass
+        try:
+            fecha_fin = datetime.strptime(fecha_fin_param, '%Y-%m-%d').date() if fecha_fin_param else None
+        except Exception:
+            pass
 
-        stats = _get_servicios_mas_usados_local(tipos_servicio, diagnosticos)
+        servicio_id = int(servicio_param) if servicio_param and servicio_param.isdigit() else None
+
+        stats = _get_servicios_mas_usados_local(fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, servicio_id=servicio_id)
 
         return build_response(
             success=True,
