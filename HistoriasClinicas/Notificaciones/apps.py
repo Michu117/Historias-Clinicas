@@ -1,8 +1,7 @@
 from pathlib import Path
 from django.apps import AppConfig
 
-
-class ReportesConfig(AppConfig):
+class NotificacionesConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "Reportes"
+    name = "Notificaciones"
     path = str(Path(__file__).resolve().parent)

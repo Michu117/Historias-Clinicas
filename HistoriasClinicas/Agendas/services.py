@@ -56,7 +56,7 @@ def validar_servicios_cita(servicios_ids):
         raise DatosInvalidosError('Debe especificar al menos un servicio.')
 
     ids = [s if isinstance(s, int) else s.id for s in servicios_ids]
-    servicios = Servicio.objects.filter(id__in=ids, activo=True)
+    servicios = Servicio.objects.filter(id__in=ids, es_activo=True)
 
     if servicios.count() != len(set(ids)):
         raise DatosInvalidosError('Uno o más servicios no existen o están inactivos.')

@@ -14,7 +14,7 @@ from .views import (
     UserUpdateView,
 )
 
-app_name = 'authentication'
+app_name = 'Seguridad'
 
 urlpatterns = [
     path('register', RegistroView.as_view(), name='register'),

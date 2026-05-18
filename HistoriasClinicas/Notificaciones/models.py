@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 
 
@@ -24,11 +23,17 @@ class Notificacion(models.Model):
     ]
 
     usuario_destinatario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        'Seguridad.Cuenta',
         related_name='notificaciones_recibidas',
         on_delete=models.CASCADE,
     )
-    cita_id = models.CharField(max_length=64, blank=True, null=True)
+    cita = models.ForeignKey(
+        'Agendas.Cita',
+        related_name='notificaciones',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     tipo = models.CharField(max_length=32, choices=TIPO_CHOICES)
     estado = models.CharField(
         max_length=16,
@@ -39,14 +44,14 @@ class Notificacion(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
     usuario_creacion = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        'Seguridad.Cuenta',
         related_name='notificaciones_creadas',
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
     usuario_modificacion = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        'Seguridad.Cuenta',
         related_name='notificaciones_modificadas',
         null=True,
         blank=True,
