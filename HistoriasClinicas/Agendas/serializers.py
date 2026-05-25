@@ -10,13 +10,13 @@ from .models import (
 class ServicioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Servicio
-        fields = ['id', 'nombre', 'descripcion', 'activo', 'fecha_creacion']
+        fields = ['id', 'nombre', 'descripcion', 'es_activo', 'fecha_creacion']
         read_only_fields = ['fecha_creacion']
 
 
 class CitaSerializer(serializers.ModelSerializer):
     servicios = serializers.PrimaryKeyRelatedField(
-        queryset=Servicio.objects.filter(activo=True),
+        queryset=Servicio.objects.filter(es_activo=True),
         many=True,
         required=False,
         allow_empty=True,
@@ -25,7 +25,7 @@ class CitaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cita
         fields = [
-            'id', 'paciente_id', 'profesional_id', 'fecha_hora', 'estado',
+            'id', 'usuario_id', 'fecha_hora', 'estado',
             'motivo', 'servicios', 'fecha_creacion', 'fecha_actualizacion'
         ]
         read_only_fields = ['fecha_creacion', 'fecha_actualizacion']
@@ -66,7 +66,7 @@ class ConsultaMedicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConsultaMedica
         fields = [
-            'id', 'cita', 'anamnesis', 'tratamiento', 'diagnostico',
+            'id', 'cita', 'historia_clinica_id', 'anamnesis', 'tratamiento', 'diagnostico',
             'observaciones', 'signos_vitales', 'servicios', 'fecha_creacion'
         ]
         read_only_fields = ['fecha_creacion']
@@ -78,7 +78,7 @@ class ConsultaOdontologicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConsultaOdontologica
         fields = [
-            'id', 'cita', 'odontograma', 'procedimientos',
+            'id', 'cita', 'historia_clinica_id', 'odontograma', 'procedimientos',
             'observaciones', 'servicios', 'fecha_creacion'
         ]
         read_only_fields = ['fecha_creacion']
@@ -90,7 +90,7 @@ class ConsultaPsicologicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConsultaPsicologica
         fields = [
-            'id', 'cita', 'notas_evolucion', 'estado_humor',
+            'id', 'cita', 'historia_clinica_id', 'notas_evolucion', 'estado_humor',
             'nivel_ansiedad', 'nivel_autoestima', 'diagnostico',
             'observaciones', 'servicios', 'fecha_creacion'
         ]
@@ -103,7 +103,7 @@ class ConsultaSocialSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConsultaSocial
         fields = [
-            'id', 'cita', 'nivel_socioeconomico',
+            'id', 'cita', 'historia_clinica_id', 'nivel_socioeconomico',
             'descripcion_vivienda', 'observaciones', 'servicios', 'fecha_creacion'
         ]
         read_only_fields = ['fecha_creacion']
@@ -112,7 +112,7 @@ class ConsultaSocialSerializer(serializers.ModelSerializer):
 class DerivacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Derivacion
-        fields = ['id', 'paciente_id', 'remitente_id', 'destinatario', 'tipo', 'motivo', 'estado', 'fecha_creacion']
+        fields = ['id', 'usuario_id', 'remitente_id', 'destinatario', 'tipo', 'motivo', 'estado', 'fecha_creacion']
         read_only_fields = ['estado', 'fecha_creacion']
 
 

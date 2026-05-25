@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'Seguridad.apps.SeguridadConfig',
-    'historias',
+    'Historias.apps.HistoriasConfig',
     'Reportes',
     'Agendas',
     'Notificaciones.apps.NotificacionesConfig',
@@ -117,8 +117,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'authentication.Cuenta'
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -168,7 +166,7 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Historias Clínicas API',
-    'DESCRIPTION': 'API de autenticación del sistema de historias clínicas.',
+    'DESCRIPTION': 'API de autenticación del sistema de Historias clínicas.',
     'VERSION': 'v1',
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': '/api/v1',
