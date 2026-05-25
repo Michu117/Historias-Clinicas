@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Documentación técnica de la API REST</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="libs/clipboard/clipboard.min.js"></script>
+<script src="libs/quarto-html/quarto.js" type="module"></script>
+<script src="libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="libs/quarto-html/popper.min.js"></script>
+<script src="libs/quarto-html/tippy.umd.min.js"></script>
+<script src="libs/quarto-html/anchor.min.js"></script>
+<link href="libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="libs/bootstrap/bootstrap.min.js"></script>
+<link href="libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="libs/bootstrap/bootstrap-67270d1595a62d14f123c043d4fb2f18.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Tabla de contenidos</h2>
+   
+  <ul>
+  <li><a href="#integrantes" id="toc-integrantes" class="nav-link active" data-scroll-target="#integrantes"><span class="header-section-number">1</span> Integrantes</a></li>
+  <li><a href="#descripción-general-del-proyecto" id="toc-descripción-general-del-proyecto" class="nav-link" data-scroll-target="#descripción-general-del-proyecto"><span class="header-section-number">2</span> Descripción general del proyecto</a></li>
+  <li><a href="#estructura-del-proyecto" id="toc-estructura-del-proyecto" class="nav-link" data-scroll-target="#estructura-del-proyecto"><span class="header-section-number">3</span> Estructura del proyecto</a>
+  <ul class="collapse">
+  <li><a href="#responsabilidad-de-capas" id="toc-responsabilidad-de-capas" class="nav-link" data-scroll-target="#responsabilidad-de-capas"><span class="header-section-number">3.1</span> Responsabilidad de capas</a></li>
+  <li><a href="#flujo-de-una-petición-http" id="toc-flujo-de-una-petición-http" class="nav-link" data-scroll-target="#flujo-de-una-petición-http"><span class="header-section-number">3.2</span> Flujo de una petición HTTP</a></li>
+  </ul></li>
+  <li><a href="#documentación-completa-de-la-api-por-módulo" id="toc-documentación-completa-de-la-api-por-módulo" class="nav-link" data-scroll-target="#documentación-completa-de-la-api-por-módulo"><span class="header-section-number">4</span> Documentación completa de la API (por módulo)</a>
+  <ul class="collapse">
+  <li><a href="#seguridad" id="toc-seguridad" class="nav-link" data-scroll-target="#seguridad"><span class="header-section-number">4.1</span> Seguridad</a>
+  <ul class="collapse">
+  <li><a href="#endpoints-detectados" id="toc-endpoints-detectados" class="nav-link" data-scroll-target="#endpoints-detectados"><span class="header-section-number">4.1.1</span> Endpoints detectados</a></li>
+  <li><a href="#códigos-http-generales" id="toc-códigos-http-generales" class="nav-link" data-scroll-target="#códigos-http-generales"><span class="header-section-number">4.1.3</span> Códigos HTTP generales</a></li>
+  </ul></li>
+  <li><a href="#agendas" id="toc-agendas" class="nav-link" data-scroll-target="#agendas"><span class="header-section-number">4.2</span> Agendas</a>
+  <ul class="collapse">
+  <li><a href="#modelos-clave" id="toc-modelos-clave" class="nav-link" data-scroll-target="#modelos-clave"><span class="header-section-number">4.2.1</span> Modelos clave</a></li>
+  <li><a href="#endpoints" id="toc-endpoints" class="nav-link" data-scroll-target="#endpoints"><span class="header-section-number">4.2.2</span> Endpoints</a></li>
+  </ul></li>
+  <li><a href="#historias" id="toc-historias" class="nav-link" data-scroll-target="#historias"><span class="header-section-number">4.3</span> Historias</a>
+  <ul class="collapse">
+  <li><a href="#endpoints-principales" id="toc-endpoints-principales" class="nav-link" data-scroll-target="#endpoints-principales"><span class="header-section-number">4.3.1</span> Endpoints principales</a></li>
+  </ul></li>
+  <li><a href="#reportes" id="toc-reportes" class="nav-link" data-scroll-target="#reportes"><span class="header-section-number">4.4</span> Reportes</a>
+  <ul class="collapse">
+  <li><a href="#modelo-principal-reporte-con-titulo-tipo-fecha_inicio-fecha_fin-servicio-fk-a-agendas.servicio-y-profesional-fk-a-seguridad.cuenta." id="toc-modelo-principal-reporte-con-titulo-tipo-fecha_inicio-fecha_fin-servicio-fk-a-agendas.servicio-y-profesional-fk-a-seguridad.cuenta." class="nav-link" data-scroll-target="#modelo-principal-reporte-con-titulo-tipo-fecha_inicio-fecha_fin-servicio-fk-a-agendas.servicio-y-profesional-fk-a-seguridad.cuenta."><span class="header-section-number">4.4.1</span> Modelo principal <code>Reporte</code> con <code>titulo</code>, <code>tipo</code>, <code>fecha_inicio</code>, <code>fecha_fin</code>, <code>servicio</code> (FK a <code>Agendas.Servicio</code>) y <code>profesional</code> (FK a <code>Seguridad.Cuenta</code>).</a></li>
+  <li><a href="#endpoints-detectados-1" id="toc-endpoints-detectados-1" class="nav-link" data-scroll-target="#endpoints-detectados-1"><span class="header-section-number">4.4.2</span> Endpoints detectados</a></li>
+  </ul></li>
+  <li><a href="#notificaciones" id="toc-notificaciones" class="nav-link" data-scroll-target="#notificaciones"><span class="header-section-number">4.5</span> Notificaciones</a>
+  <ul class="collapse">
+  <li><a href="#modelo-notificacion" id="toc-modelo-notificacion" class="nav-link" data-scroll-target="#modelo-notificacion"><span class="header-section-number">4.5.1</span> Modelo Notificacion</a></li>
+  <li><a href="#endpoints-detectados-2" id="toc-endpoints-detectados-2" class="nav-link" data-scroll-target="#endpoints-detectados-2"><span class="header-section-number">4.5.2</span> Endpoints detectados</a></li>
+  <li><a href="#lógica-interna" id="toc-lógica-interna" class="nav-link" data-scroll-target="#lógica-interna"><span class="header-section-number">4.5.3</span> Lógica interna</a></li>
+  <li><a href="#pruebas-consideradas" id="toc-pruebas-consideradas" class="nav-link" data-scroll-target="#pruebas-consideradas"><span class="header-section-number">4.5.4</span> Pruebas consideradas</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#modelos-de-base-de-datos-resumen-técnico" id="toc-modelos-de-base-de-datos-resumen-técnico" class="nav-link" data-scroll-target="#modelos-de-base-de-datos-resumen-técnico"><span class="header-section-number">5</span> Modelos de base de datos (resumen técnico)</a>
+  <ul class="collapse">
+  <li><a href="#restricciones-y-validaciones-importantes" id="toc-restricciones-y-validaciones-importantes" class="nav-link" data-scroll-target="#restricciones-y-validaciones-importantes"><span class="header-section-number">5.1</span> Restricciones y validaciones importantes</a></li>
+  <li><a href="#diagrama-lógico-textual" id="toc-diagrama-lógico-textual" class="nav-link" data-scroll-target="#diagrama-lógico-textual"><span class="header-section-number">5.2</span> Diagrama lógico textual</a></li>
+  </ul></li>
+  <li><a href="#seguridad-1" id="toc-seguridad-1" class="nav-link" data-scroll-target="#seguridad-1"><span class="header-section-number">6</span> Seguridad</a></li>
+  <li><a href="#diagramas-mermaid" id="toc-diagramas-mermaid" class="nav-link" data-scroll-target="#diagramas-mermaid"><span class="header-section-number">7</span> Diagramas (Mermaid)</a>
+  <ul class="collapse">
+  <li><a href="#arquitectura-general" id="toc-arquitectura-general" class="nav-link" data-scroll-target="#arquitectura-general"><span class="header-section-number">7.1</span> Arquitectura general</a></li>
+  <li><a href="#flujo-de-autenticación" id="toc-flujo-de-autenticación" class="nav-link" data-scroll-target="#flujo-de-autenticación"><span class="header-section-number">7.2</span> Flujo de autenticación</a></li>
+  <li><a href="#flujo-creación-de-cita-agendas" id="toc-flujo-creación-de-cita-agendas" class="nav-link" data-scroll-target="#flujo-creación-de-cita-agendas"><span class="header-section-number">7.3</span> Flujo: creación de <code>Cita</code> (agendas)</a></li>
+  </ul></li>
+  <li><a href="#testing" id="toc-testing" class="nav-link" data-scroll-target="#testing"><span class="header-section-number">8</span> Testing</a></li>
+  <li><a href="#ejemplos-reales-requestsresponses" id="toc-ejemplos-reales-requestsresponses" class="nav-link" data-scroll-target="#ejemplos-reales-requestsresponses"><span class="header-section-number">9</span> Ejemplos reales (requests/responses)</a>
+  <ul class="collapse">
+  <li><a href="#crear-notificación-ejemplo-de-notificacionestests.py" id="toc-crear-notificación-ejemplo-de-notificacionestests.py" class="nav-link" data-scroll-target="#crear-notificación-ejemplo-de-notificacionestests.py"><span class="header-section-number">9.1</span> Crear notificación (ejemplo de <code>Notificaciones/tests.py</code>)</a>
+  <ul class="collapse">
+  <li><a href="#request" id="toc-request" class="nav-link" data-scroll-target="#request"><span class="header-section-number">9.1.1</span> Request</a></li>
+  <li><a href="#response-esperado" id="toc-response-esperado" class="nav-link" data-scroll-target="#response-esperado"><span class="header-section-number">9.1.2</span> Response esperado</a></li>
+  <li><a href="#errores-comunes" id="toc-errores-comunes" class="nav-link" data-scroll-target="#errores-comunes"><span class="header-section-number">9.1.3</span> Errores comunes</a></li>
+  </ul></li>
+  <li><a href="#crear-cita-ejemplo-de-agendastests.py" id="toc-crear-cita-ejemplo-de-agendastests.py" class="nav-link" data-scroll-target="#crear-cita-ejemplo-de-agendastests.py"><span class="header-section-number">9.2</span> Crear cita (ejemplo de <code>Agendas/tests.py</code>)</a>
+  <ul class="collapse">
+  <li><a href="#request-1" id="toc-request-1" class="nav-link" data-scroll-target="#request-1"><span class="header-section-number">9.2.1</span> Request</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#alcance-de-la-documentación" id="toc-alcance-de-la-documentación" class="nav-link" data-scroll-target="#alcance-de-la-documentación"><span class="header-section-number">10</span> Alcance de la documentación</a></li>
+  <li><a href="#recomendaciones-y-próximos-pasos" id="toc-recomendaciones-y-próximos-pasos" class="nav-link" data-scroll-target="#recomendaciones-y-próximos-pasos"><span class="header-section-number">11</span> Recomendaciones y próximos pasos</a></li>
+  <li><a href="#cómo-renderizar-esta-documentación-con-quarto" id="toc-cómo-renderizar-esta-documentación-con-quarto" class="nav-link" data-scroll-target="#cómo-renderizar-esta-documentación-con-quarto"><span class="header-section-number">12</span> Cómo renderizar esta documentación con Quarto</a></li>
+  <li><a href="#conclusión" id="toc-conclusión" class="nav-link" data-scroll-target="#conclusión"><span class="header-section-number">13</span> Conclusión</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Otros formatos</h2><ul><li><a href="Documentacion.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Documentación técnica de la API REST</h1>
+<p class="subtitle lead">Proyecto Historias Clínicas</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Fecha de publicación</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">24 de mayo de 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="integrantes" class="level1" data-align="center" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Integrantes</h1>
+<p>Douglas Carreño</p>
+<p>Viviana Córdova</p>
+<p>Arelys Ajila</p>
+<p>Fabricio Ruiz</p>
+<p>Jasiel Quezada</p>
+</section>
+<section id="descripción-general-del-proyecto" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Descripción general del proyecto</h1>
+<p>Este documento ofrece una descripción técnica completa de la API REST del proyecto “Historias Clínicas”. Está orientado a desarrolladores, arquitectos y responsables de integración.</p>
+<ul>
+<li><p>Objetivo: Proveer una plataforma backend para la gestión de citas (Agendas), historias clínicas (Historias), usuarios y permisos (Seguridad), reportes (Reportes) y notificaciones (Notificaciones).</p></li>
+<li><p>Problema que resuelve: centralizar la gestión clínica (citas, atenciones, historias y notificaciones) con control de acceso por roles y una API REST consumible por clientes (web/móvil).</p></li>
+<li><p>Arquitectura: Monorepo Django con aplicaciones Django por dominio (apps): <code>Seguridad</code>, <code>Agendas</code>, <code>Historias</code>, <code>Reportes</code>, <code>Notificaciones</code>. Se usa Django REST Framework (DRF) y SimpleJWT para autenticación.</p></li>
+<li><p>Tecnologías: Python, Django, Django REST Framework, SimpleJWT, SQLite (archivo <code>db.sqlite3</code> en el repo), Quarto para documentación.</p></li>
+<li><p>Patrones: Separación por capas (models → serializers → services → views → urls). Uso de una capa de <code>services.py</code> para lógica de negocio para mantener views delgadas.</p></li>
+<li><p>Comunicación entre módulos: apps se importan entre sí mediante referencias a modelos (p.&nbsp;ej. <code>ForeignKey('Agendas.Servicio')</code>). Las URLs principales se montan desde <code>HistoriasClinicas/urls.py</code> e incluyen los routers de cada app.</p></li>
+</ul>
+</section>
+<section id="estructura-del-proyecto" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Estructura del proyecto</h1>
+<p>Estructura relevante (resumen):</p>
+<ul>
+<li><p><code>HistoriasClinicas/</code> — proyecto Django (settings, urls, wsgi, asgi).</p></li>
+<li><p><code>Agendas/</code> — citas, servicios, derivaciones, certificados. Contiene <code>models.py</code>, <code>serializers.py</code>, <code>views.py</code>, <code>services.py</code>, <code>urls.py</code>, <code>tests.py</code>.</p></li>
+<li><p><code>Seguridad/</code> — gestión de cuentas y roles, autenticación. Contiene modelo <code>Cuenta</code> (AUTH_USER_MODEL), <code>serializers.py</code>, <code>views.py</code>, <code>services.py</code>, <code>permissions.py</code>, <code>urls.py</code>.</p></li>
+<li><p><code>Historias/</code> — historias clínicas, casos, documentos.</p></li>
+<li><p><code>Reportes/</code> — modelo <code>Reporte</code>, vistas de estadística y servicios para generar datos.</p></li>
+<li><p><code>Notificaciones/</code> — modelo <code>Notificacion</code>, vistas para crear/leer/marcar notificaciones.</p></li>
+</ul>
+<section id="responsabilidad-de-capas" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="responsabilidad-de-capas"><span class="header-section-number">3.1</span> Responsabilidad de capas</h2>
+<ul>
+<li><p><code>models.py</code>: definición de entidades y relaciones.</p></li>
+<li><p><code>serializers.py</code>: contratos de entrada/salida y validaciones de API.</p></li>
+<li><p><code>services.py</code>: lógica de negocio reutilizable (validaciones complejas, generación de tokens, agregaciones).</p></li>
+<li><p><code>views.py</code>: endpoints (ViewSets, APIViews) que usan serializers y services.</p></li>
+<li><p><code>urls.py</code>: definición de rutas y registro de routers.</p></li>
+<li><p><code>tests.py</code>: pruebas unitarias y de API.</p></li>
+</ul>
+</section>
+<section id="flujo-de-una-petición-http" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="flujo-de-una-petición-http"><span class="header-section-number">3.2</span> Flujo de una petición HTTP</h2>
+<ol type="1">
+<li><p>Request llega a <code>HistoriasClinicas/urls.py</code> y se enruta al <code>include()</code> correspondiente (p.&nbsp;ej. <code>api/v1/agendas/</code>).</p></li>
+<li><p>El router de <code>Agendas.urls</code> (DefaultRouter) resuelve el viewset o la función view.</p></li>
+<li><p>La view utiliza <code>authentication_classes</code> (JWT) y <code>permission_classes</code> para autorizar.</p></li>
+<li><p>Si procede, la view invoca un <code>serializer</code> para validar/serializar datos.</p></li>
+<li><p>La view llama a <code>services.py</code> si hay lógica de negocio compleja.</p></li>
+<li><p>DB: ORM (models) ejecuta queries; resultados se serializan y se devuelve <code>Response</code>.</p></li>
+</ol>
+</section>
+</section>
+<section id="documentación-completa-de-la-api-por-módulo" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Documentación completa de la API (por módulo)</h1>
+<p>Nota: la información indicada procede del análisis estático del código en el repositorio. Donde no hay ejemplos de respuestas reales, se indica explícitamente.</p>
+<section id="seguridad" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="seguridad"><span class="header-section-number">4.1</span> Seguridad</h2>
+<p>Archivo principal: <code>C:\Users\Are\Desktop\Historias-Clinicas\HistoriasClinicas\Seguridad\views.py</code></p>
+<section id="endpoints-detectados" class="level3" data-number="4.1.1">
+<h3 data-number="4.1.1" class="anchored" data-anchor-id="endpoints-detectados"><span class="header-section-number">4.1.1</span> Endpoints detectados</h3>
+<ul>
+<li>Registro de usuario
+<ul>
+<li>Método: POST</li>
+<li>URL: <code>/api/v1/auth/register</code> (según <code>Seguridad/urls.py</code>)</li>
+<li>Descripción: registra una nueva cuenta. Usa <code>RegistroSerializer</code>.</li>
+<li>Body (según <code>RegistroSerializer</code>):
+<ul>
+<li><code>correo</code> (email) — obligatorio</li>
+<li><code>clave</code> (password) — obligatorio, min_length=8</li>
+<li><code>nombre</code>, <code>apellido</code>, <code>cedula</code> — campos opcionales/según serializer</li>
+</ul></li>
+<li><h3 id="lógica-interna-crea-cuenta-utilizando-cuentamanager-y-llama-a-generar_tokens-en-services.py." data-number="4.1.2" class="anchored"><span class="header-section-number">4.1.2</span> Lógica interna crea <code>Cuenta</code> utilizando <code>CuentaManager</code> y llama a <code>generar_tokens</code> en <code>services.py</code>.</h3></li>
+<li>Respuestas esperadas: 201 con tokens en JSON; 400 en caso de validación.</li>
+</ul></li>
+<li>Login / Token
+<ul>
+<li>Método: POST</li>
+<li>URL: <code>/api/v1/auth/login</code> (y endpoints JWT estándar <code>/api/token/</code> y <code>/api/token/refresh/</code> montados en root)</li>
+<li>Descripción: obtiene tokens JWT. Implementado con <code>TokenObtainPairView</code> y vistas propias.</li>
+<li>Body: credenciales (correo/clave) — ver <code>Seguridad.serializers</code>.</li>
+<li>Respuestas: 200 con <code>access</code> y <code>refresh</code>.</li>
+</ul></li>
+<li>Gestión de usuarios (list, detail)
+<ul>
+<li><code>GET /api/v1/auth/users</code> — lista de usuarios</li>
+<li><code>GET /api/v1/auth/users/{user_id}</code> — detalle de usuario</li>
+<li>Permisos: restringidos por <code>HasRole</code> y roles definidos en <code>Seguridad.permissions</code>.</li>
+</ul></li>
+</ul>
+</section>
+<section id="códigos-http-generales" class="level3" data-number="4.1.3">
+<h3 data-number="4.1.3" class="anchored" data-anchor-id="códigos-http-generales"><span class="header-section-number">4.1.3</span> Códigos HTTP generales</h3>
+<ul>
+<li><p>200 OK: peticiones GET o POST exitosas que devuelven recursos o tokens.</p></li>
+<li><p>201 Created: registro exitoso.</p></li>
+<li><p>400 Bad ### Request errores de validación del serializer.</p></li>
+<li><p>401 Unauthorized: credenciales inválidas o token ausente/expirado.</p></li>
+<li><p>403 Forbidden: usuario autenticado pero sin permisos.</p></li>
+</ul>
+</section>
+</section>
+<section id="agendas" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="agendas"><span class="header-section-number">4.2</span> Agendas</h2>
+<p>Archivos: <code>Agendas/models.py</code>, <code>Agendas/serializers.py</code>, <code>Agendas/views.py</code>, <code>Agendas/services.py</code>, <code>Agendas/urls.py</code>.</p>
+<section id="modelos-clave" class="level3" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="modelos-clave"><span class="header-section-number">4.2.1</span> Modelos clave</h3>
+<ul>
+<li><p><code>Servicio</code> — servicios clínicos (p.&nbsp;ej. Odontología, Psicología).</p></li>
+<li><p><code>Cita</code> — campos: <code>paciente_id</code> (Integer), <code>profesional_id</code> (Integer), <code>fecha_hora</code> (DateTime), <code>estado</code>, <code>motivo</code>, <code>servicios</code> (ManyToMany a <code>Servicio</code>).</p></li>
+</ul>
+</section>
+<section id="endpoints" class="level3" data-number="4.2.2">
+<h3 data-number="4.2.2" class="anchored" data-anchor-id="endpoints"><span class="header-section-number">4.2.2</span> Endpoints</h3>
+<ul>
+<li><p><code>GET, POST /api/v1/agendas/citas/</code> — listar/crear citas.</p>
+<ul>
+<li>Body (create): <code>paciente_id</code>, <code>profesional_id</code>, <code>fecha_hora</code> (iso), <code>motivo</code>, <code>servicios</code> (lista de ids)</li>
+<li>Validaciones: <code>services.validar_choque_citas</code> verifica que <code>fecha_hora</code> sea futura y sin choque de horarios.</li>
+</ul></li>
+<li><p><code>PATCH/PUT/DELETE /api/v1/agendas/citas/{id}/</code> — actualizar/eliminar.</p></li>
+<li><p><code>GET /api/v1/agendas/servicios/</code> — CRUD de servicios.</p></li>
+<li><p>Endpoint especial <code>POST /api/v1/agendas/atenciones/</code> mapeado a <code>AtencionViewSet.create</code> (registra una atencion integral, invoca <code>services.registrar_atencion_integral</code>).</p></li>
+</ul>
+<p>Respuestas y códigos: 201 en creación de cita, 400 si choque o fecha inválida, 404 si no existe.</p>
+</section>
+</section>
+<section id="historias" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="historias"><span class="header-section-number">4.3</span> Historias</h2>
+<p>Archivos: <code>Historias/models.py</code>, <code>Historias/serializers.py</code>, <code>Historias/views.py</code>, <code>Historias/urls.py</code>.</p>
+<p>Descripción: gestión de <code>HistoriaClinica</code> y <code>Caso</code>.</p>
+<section id="endpoints-principales" class="level3" data-number="4.3.1">
+<h3 data-number="4.3.1" class="anchored" data-anchor-id="endpoints-principales"><span class="header-section-number">4.3.1</span> Endpoints principales</h3>
+<ul>
+<li><p><code>GET, POST /api/v1/historias/historias_clinicas/</code></p></li>
+<li><p><code>GET, PATCH /api/v1/historias/casos/</code></p></li>
+</ul>
+<p>Validaciones: <code>serializers</code> imponen choices y constraints.</p>
+</section>
+</section>
+<section id="reportes" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="reportes"><span class="header-section-number">4.4</span> Reportes</h2>
+<p>Archivos: <code>Reportes/models.py</code>, <code>Reportes/serializers.py</code>, <code>Reportes/views.py</code>, <code>Reportes/services.py</code>, <code>Reportes/urls.py</code>.</p>
+<section id="modelo-principal-reporte-con-titulo-tipo-fecha_inicio-fecha_fin-servicio-fk-a-agendas.servicio-y-profesional-fk-a-seguridad.cuenta." class="level3" data-number="4.4.1">
+<h3 data-number="4.4.1" class="anchored" data-anchor-id="modelo-principal-reporte-con-titulo-tipo-fecha_inicio-fecha_fin-servicio-fk-a-agendas.servicio-y-profesional-fk-a-seguridad.cuenta."><span class="header-section-number">4.4.1</span> Modelo principal <code>Reporte</code> con <code>titulo</code>, <code>tipo</code>, <code>fecha_inicio</code>, <code>fecha_fin</code>, <code>servicio</code> (FK a <code>Agendas.Servicio</code>) y <code>profesional</code> (FK a <code>Seguridad.Cuenta</code>).</h3>
+</section>
+<section id="endpoints-detectados-1" class="level3" data-number="4.4.2">
+<h3 data-number="4.4.2" class="anchored" data-anchor-id="endpoints-detectados-1"><span class="header-section-number">4.4.2</span> Endpoints detectados</h3>
+<ul>
+<li><p><code>GET, POST /api/v1/reportes/</code> — listar/crear reportes</p></li>
+<li><p><code>GET /api/v1/reportes/{pk}/</code> — detalle</p></li>
+<li><p>Estadísticas:</p>
+<ul>
+<li><code>GET /api/v1/reportes/atenciones/</code> — estadísticas de atenciones (fecha_inicio, fecha_fin, servicio opcional)</li>
+<li><code>GET /api/v1/reportes/estadisticas/</code> — estadísticas agregadas</li>
+<li><code>GET /api/v1/reportes/diagnosticos-frecuentes/</code> — diagnósticos más frecuentes</li>
+<li><code>GET /api/v1/reportes/servicios-mas-usados/</code> — servicios más usados</li>
+</ul></li>
+</ul>
+<p>Notas:</p>
+<ul>
+<li><p>En la sesión previa se implementaron (en <code>Reportes/views.py</code>) consultas reales que filtran por <code>cita__fecha_hora__date</code> entre <code>fecha_inicio</code> y <code>fecha_fin</code> y hacen counts sobre los modelos de consultas (medica, psicologica, odontologica, social), usando <code>select_related</code>/<code>prefetch_related</code>.</p></li>
+<li><p><code>Reportes/services.py</code> contiene una clase <code>Services.generar_datos(reporte)</code> que retorna JSON con totales y desglose por subespecialidad. No se mutó <code>Reportes/models.py</code> ni <code>Reportes/services.py</code> en el análisis.</p></li>
+</ul>
+</section>
+</section>
+<section id="notificaciones" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="notificaciones"><span class="header-section-number">4.5</span> Notificaciones</h2>
+<p>Archivos: <code>Notificaciones/models.py</code>, <code>Notificaciones/serializers.py</code>, <code>Notificaciones/views.py</code>, <code>Notificaciones/services.py</code>, <code>Notificaciones/urls.py</code>.</p>
+<section id="modelo-notificacion" class="level3" data-number="4.5.1">
+<h3 data-number="4.5.1" class="anchored" data-anchor-id="modelo-notificacion"><span class="header-section-number">4.5.1</span> Modelo Notificacion</h3>
+<ul>
+<li>Campos importantes:
+<ul>
+<li><code>usuario_destinatario</code> — FK a <code>Seguridad.Cuenta</code> (related_name=‘notificaciones_recibidas’)</li>
+<li><code>cita</code> — FK a <code>Agendas.Cita</code>, <code>null=True, blank=True</code></li>
+<li><code>tipo</code>, <code>estado</code>, <code>mensaje</code></li>
+<li><code>usuario_creacion</code>, <code>usuario_modificacion</code> — FK a <code>Seguridad.Cuenta</code> (null=True)</li>
+</ul></li>
+</ul>
+</section>
+<section id="endpoints-detectados-2" class="level3" data-number="4.5.2">
+<h3 data-number="4.5.2" class="anchored" data-anchor-id="endpoints-detectados-2"><span class="header-section-number">4.5.2</span> Endpoints detectados</h3>
+<ul>
+<li><p><code>GET, POST /api/v1/notificaciones/</code> — listar y crear notificaciones</p></li>
+<li><p><code>GET /api/v1/notificaciones/{pk}/</code> — detalle</p></li>
+<li><p><code>PATCH /api/v1/notificaciones/{pk}/leer/</code> — marca una notificación como leída</p></li>
+<li><p><code>PATCH /api/v1/notificaciones/marcar-como-leidas/</code> — marca todas como leídas</p></li>
+</ul>
+</section>
+<section id="lógica-interna" class="level3" data-number="4.5.3">
+<h3 data-number="4.5.3" class="anchored" data-anchor-id="lógica-interna"><span class="header-section-number">4.5.3</span> Lógica interna</h3>
+<ul>
+<li><p><code>Notificaciones.services.get_notifications_for_user(user, filtros=None)</code> filtra las notificaciones según el usuario autenticado.</p></li>
+<li><p>Los usuarios no administrativos visualizan únicamente las notificaciones asociadas a su cuenta.</p></li>
+<li><p>Las operaciones de lectura y marcado de notificaciones se procesan mediante servicios y vistas protegidas.</p></li>
+</ul>
+</section>
+<section id="pruebas-consideradas" class="level3" data-number="4.5.4">
+<h3 data-number="4.5.4" class="anchored" data-anchor-id="pruebas-consideradas"><span class="header-section-number">4.5.4</span> Pruebas consideradas</h3>
+<ul>
+<li><p>Creación de notificaciones.</p></li>
+<li><p>Consulta de notificaciones del usuario autenticado.</p></li>
+<li><p>Marcado individual de notificaciones como leídas.</p></li>
+<li><p>Marcado múltiple de notificaciones como leídas.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="modelos-de-base-de-datos-resumen-técnico" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Modelos de base de datos (resumen técnico)</h1>
+<p>A continuación se describen los modelos clave y sus relaciones; el detalle es una síntesis del código fuente.</p>
+<ul>
+<li><p><code>Seguridad.Rol</code> 1—* <code>Seguridad.Cuenta.rol</code> (FK)</p></li>
+<li><p><code>Seguridad.Cuenta</code> — modelo usuario personalizado, campos principales: <code>correo</code> (único), <code>rol</code> (FK), <code>is_active</code>, <code>is_staff</code></p></li>
+<li><p><code>Agendas.Servicio</code> — catálogo de servicios clínicos</p></li>
+<li><p><code>Agendas.Cita</code> — contiene <code>servicios</code> ManyToMany a <code>Servicio</code></p></li>
+<li><p><code>Consulta</code> (abstracta) y subclases:</p>
+<ul>
+<li><code>AgendaConsultaMedica</code>, <code>AgendaConsultaPsicologica</code>, <code>AgendaConsultaOdontologica</code>, <code>AgendaConsultaSocial</code> — cada una tiene FK a <code>Cita</code> y datos propios (diagnóstico, notas).</li>
+</ul></li>
+<li><p><code>Historias.HistoriaClinica</code> — OneToOne a <code>Seguridad.Cuenta</code> (usuario)</p></li>
+<li><p><code>Reportes.Reporte</code> — FK a <code>Agendas.Servicio</code> (nullable), FK a <code>Seguridad.Cuenta</code> (profesional), campos <code>fecha_inicio/fin</code>.</p></li>
+<li><p><code>Notificaciones.Notificacion</code> — FK <code>usuario_destinatario</code> → <code>Seguridad.Cuenta</code>, FK <code>cita</code> → <code>Agendas.Cita</code>, FK <code>usuario_creacion</code> y <code>usuario_modificacion</code> → <code>Seguridad.Cuenta</code>.</p></li>
+</ul>
+<section id="restricciones-y-validaciones-importantes" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="restricciones-y-validaciones-importantes"><span class="header-section-number">5.1</span> Restricciones y validaciones importantes</h2>
+<ul>
+<li><p><code>Cuenta.correo</code> debe ser único y es el identificador principal.</p></li>
+<li><p><code>Cita.fecha_hora</code> validada para ser futura en creación (<code>services.validar_choque_citas</code>).</p></li>
+<li><p><code>Cita.servicios</code> es M2M: la lógica de filtros en reportes debe usar <code>prefetch_related('servicios')</code>.</p></li>
+</ul>
+</section>
+<section id="diagrama-lógico-textual" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="diagrama-lógico-textual"><span class="header-section-number">5.2</span> Diagrama lógico textual</h2>
+<p>Seguridad.Cuenta &lt;–(M) Reportes.Reporte.profesional Agendas.Cita – M2M – Agendas.Servicio Agendas.Cita &lt;–(1) AgendaConsulta* (cada consulta apunta a su cita) Notificaciones.Notificacion.usuario_destinatario –&gt; Seguridad.Cuenta Notificaciones.Notificacion.cita –&gt; Agendas.Cita</p>
+</section>
+</section>
+<section id="seguridad-1" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Seguridad</h1>
+<ul>
+<li><p>Autenticación: JSON Web Tokens (SimpleJWT). Endpoints <code>/api/token/</code> y <code>/api/token/refresh/</code> están montados en el proyecto.</p></li>
+<li><p>Permisos: <code>Seguridad/permissions.py</code> contiene <code>HasRole</code> que controla acceso por <code>rol.nombre</code>. También existen permisos <code>IsAdmin</code>, <code>IsMedico</code>, <code>IsPsicologo</code>, <code>IsOwnerOrAdmin</code>.</p></li>
+<li><p>Recomendaciones:</p>
+<ul>
+<li>Evitar mezclar <code>is_staff/is_superuser</code> con <code>Rol</code> si la gestión de accesos se hace por <code>Rol</code>.</li>
+<li>Asegurar que los tests creen usuarios con <code>correo</code> y <code>clave</code> al usar <code>AUTH_USER_MODEL</code>.</li>
+</ul></li>
+</ul>
+</section>
+<section id="diagramas-mermaid" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Diagramas (Mermaid)</h1>
+<section id="arquitectura-general" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="arquitectura-general"><span class="header-section-number">7.1</span> Arquitectura general</h2>
+<pre class="mermaid"><code>flowchart TB
+  subgraph Proyecto
+    A[Client] --&gt;|HTTP| B(API Gateway - Django urls)
+    B --&gt; C[Seguridad]
+    B --&gt; D[Agendas]
+    B --&gt; E[Historias]
+    B --&gt; F[Reportes]
+    B --&gt; G[Notificaciones]
+  end</code></pre>
+</section>
+<section id="flujo-de-autenticación" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="flujo-de-autenticación"><span class="header-section-number">7.2</span> Flujo de autenticación</h2>
+<pre class="mermaid"><code>sequenceDiagram
+  participant C as Client
+  participant S as Django API
+  participant DB as Database
+
+  C-&gt;&gt;S: POST /api/v1/auth/login {correo, clave}
+  S-&gt;&gt;DB: validar credenciales (Cuenta)
+  DB--&gt;&gt;S: usuario
+  S--&gt;&gt;C: {access, refresh}</code></pre>
+</section>
+<section id="flujo-creación-de-cita-agendas" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="flujo-creación-de-cita-agendas"><span class="header-section-number">7.3</span> Flujo: creación de <code>Cita</code> (agendas)</h2>
+<pre class="mermaid"><code>sequenceDiagram
+  Client-&gt;&gt;API: POST /api/v1/agendas/citas/ {paciente_id, profesional_id, fecha_hora, servicios}
+  API-&gt;&gt;Services: validar_choque_citas(profesional_id, fecha_hora)
+  Services-&gt;&gt;DB: consulta citas existentes
+  DB--&gt;&gt;Services: resultado
+  Services--&gt;&gt;API: OK or raise
+  API-&gt;&gt;DB: crear Cita y M2M servicios
+  DB--&gt;&gt;API: 201 Created
+  API--&gt;&gt;Client: 201 + Cita JSON</code></pre>
+</section>
+</section>
+<section id="testing" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Testing</h1>
+<p>Archivos de tests detectados (no exhaustivo):</p>
+<ul>
+<li><p><code>Agendas/tests.py</code> — pruebas de creación de cita y validación de choque de fechas.</p></li>
+<li><p><code>Notificaciones/tests.py</code> — pruebas de creación, marcado como leída y listar notificaciones.</p></li>
+<li><p><code>Reportes/tests.py</code> — pruebas de endpoints de reportes CRUD básicos.</p></li>
+</ul>
+<p>Validaciones consideradas en pruebas:</p>
+<ul>
+<li><p>Creación correcta de usuarios de prueba.</p></li>
+<li><p>Autenticación mediante JWT.</p></li>
+<li><p>Creación de objetos base como servicios y citas.</p></li>
+<li><p>Verificación de respuestas HTTP esperadas.</p></li>
+</ul>
+<p>Buenas prácticas aplicadas en pruebas:</p>
+<ul>
+<li><p>Uso de usuarios autenticados para endpoints protegidos.</p></li>
+<li><p>Creación de datos mínimos necesarios para cada prueba.</p></li>
+<li><p>Validación de códigos HTTP de éxito y error.</p></li>
+<li><p>Reutilización de datos comunes para reducir duplicación.</p></li>
+</ul>
+</section>
+<section id="ejemplos-reales-requestsresponses" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Ejemplos reales (requests/responses)</h1>
+<p>Se incluyen ejemplos tomados del código y tests del proyecto.</p>
+<section id="crear-notificación-ejemplo-de-notificacionestests.py" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="crear-notificación-ejemplo-de-notificacionestests.py"><span class="header-section-number">9.1</span> Crear notificación (ejemplo de <code>Notificaciones/tests.py</code>)</h2>
+<section id="request" class="level3" data-number="9.1.1">
+<h3 data-number="9.1.1" class="anchored" data-anchor-id="request"><span class="header-section-number">9.1.1</span> Request</h3>
+<pre><code>POST /api/v1/notificaciones/
+Authorization: Bearer &lt;access-token&gt;
+Content-Type: application/json
+
+{
+  "usuario_destinatario": 2,
+  "tipo": "confirmacion",
+  "estado": "no_leido",
+  "mensaje": "Tu cita ha sido confirmada."
+}</code></pre>
+</section>
+<section id="response-esperado" class="level3" data-number="9.1.2">
+<h3 data-number="9.1.2" class="anchored" data-anchor-id="response-esperado"><span class="header-section-number">9.1.2</span> Response esperado</h3>
+<ul>
+<li><p>201 Created</p></li>
+<li><p>Body: representación serializada de <code>Notificacion</code> (campos: id, usuario_destinatario, tipo, estado, mensaje, cita?, fecha_creacion)</p></li>
+</ul>
+</section>
+<section id="errores-comunes" class="level3" data-number="9.1.3">
+<h3 data-number="9.1.3" class="anchored" data-anchor-id="errores-comunes"><span class="header-section-number">9.1.3</span> Errores comunes</h3>
+<ul>
+<li><p>400 Bad ### Request si <code>usuario_destinatario</code> no existe o <code>mensaje</code> está vacío.</p></li>
+<li><p>401 Unauthorized: token inválido o ausente.</p></li>
+</ul>
+</section>
+</section>
+<section id="crear-cita-ejemplo-de-agendastests.py" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="crear-cita-ejemplo-de-agendastests.py"><span class="header-section-number">9.2</span> Crear cita (ejemplo de <code>Agendas/tests.py</code>)</h2>
+<section id="request-1" class="level3" data-number="9.2.1">
+<h3 data-number="9.2.1" class="anchored" data-anchor-id="request-1"><span class="header-section-number">9.2.1</span> Request</h3>
+<pre><code>POST /api/v1/agendas/citas/
+Authorization: Bearer &lt;access-token&gt;
+Content-Type: application/json
+
+{
+  "paciente_id": 10,
+  "profesional_id": 5,
+  "fecha_hora": "2026-06-01T10:00:00Z",
+  "motivo": "Sesión inicial",
+  "servicios": [1]
+}</code></pre>
+<p>Response esperado: 201 Created con JSON del objeto <code>Cita</code>.</p>
+</section>
+</section>
+</section>
+<section id="alcance-de-la-documentación" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> Alcance de la documentación</h1>
+<p>La documentación consolida la información principal de la API REST, incluyendo estructura del proyecto, endpoints, modelos, seguridad, pruebas y ejemplos de comunicación JSON.</p>
+<p>Esta versión está orientada a servir como documentación inicial del backend y como evidencia técnica del funcionamiento general de la API.</p>
+</section>
+<section id="recomendaciones-y-próximos-pasos" class="level1" data-number="11">
+<h1 data-number="11"><span class="header-section-number">11</span> Recomendaciones y próximos pasos</h1>
+<p>Para fortalecer la documentación y el mantenimiento de la API se recomienda:</p>
+<ol type="1">
+<li><p>Mantener actualizada la documentación cada vez que se agreguen nuevos endpoints.</p></li>
+<li><p>Registrar ejemplos reales de request y response para los endpoints principales.</p></li>
+<li><p>Complementar la documentación con capturas de Swagger UI o Postman.</p></li>
+<li><p>Ejecutar pruebas automáticas antes de integrar cambios al repositorio principal.</p></li>
+<li><p>Mantener separada la lógica de negocio en servicios para facilitar pruebas y mantenimiento.</p></li>
+</ol>
+</section>
+<section id="cómo-renderizar-esta-documentación-con-quarto" class="level1" data-number="12">
+<h1 data-number="12"><span class="header-section-number">12</span> Cómo renderizar esta documentación con Quarto</h1>
+<p>Si tienes Quarto instalado, desde la raíz del proyecto ejecuta:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>quarto render DOCUMENTACION_API_HistoriasClinicas_COMPLETA<span class="op">.</span><span class="fu">qmd</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Esto generará <code>DOCUMENTACION_API_HistoriasClinicas_COMPLETA.html</code> en la misma carpeta.</p>
+</section>
+<section id="conclusión" class="level1" data-number="13">
+<h1 data-number="13"><span class="header-section-number">13</span> Conclusión</h1>
+<p>La documentación técnica generada permite describir de manera ordenada la API REST del proyecto Historias Clínicas. El documento presenta la arquitectura general, la estructura modular del backend, los endpoints principales, la seguridad basada en JWT, las respuestas JSON, las validaciones de entrada y la evidencia de pruebas.</p>
+<p>Esta documentación sirve como base inicial para comprender el funcionamiento del backend, facilitar la integración con clientes externos y respaldar el mantenimiento futuro del sistema.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
