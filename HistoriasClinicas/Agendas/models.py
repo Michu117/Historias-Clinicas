@@ -5,7 +5,7 @@ from django.utils import timezone
 class Servicio(models.Model):
     nombre = models.CharField(max_length=120)
     descripcion = models.TextField(blank=True)
-    activo = models.BooleanField(default=True)
+    es_activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -24,8 +24,7 @@ class EstadoCita(models.TextChoices):
 
 
 class Cita(models.Model):
-    paciente_id = models.IntegerField()
-    profesional_id = models.IntegerField()
+    usuario_id = models.IntegerField()
     fecha_hora = models.DateTimeField()
     estado = models.CharField(
         max_length=16,
@@ -39,10 +38,10 @@ class Cita(models.Model):
 
     class Meta:
         ordering = ['-fecha_hora']
-        unique_together = [['paciente_id', 'profesional_id', 'fecha_hora']]
+        unique_together = [['usuario_id', 'fecha_hora']]
 
     def __str__(self):
-        return f'Cita {self.id} - Paciente {self.paciente_id} con Profesional {self.profesional_id} el {self.fecha_hora}'
+        return f'Cita {self.id} - Usuario {self.usuario_id} el {self.fecha_hora}'
 
     def contar_consultas(self):
         return (
@@ -69,6 +68,7 @@ class Consulta(models.Model):
         on_delete=models.CASCADE,
         related_name='%(class)s_consultas',
     )
+    historia_clinica_id = models.IntegerField()
     observaciones = models.TextField(blank=True)
     servicios = models.ManyToManyField(
         Servicio,
@@ -121,7 +121,7 @@ class EstadoDerivacion(models.TextChoices):
 
 
 class Derivacion(models.Model):
-    paciente_id = models.IntegerField()
+    usuario_id = models.IntegerField()
     remitente_id = models.IntegerField()
     destinatario = models.CharField(max_length=150)
     tipo = models.CharField(max_length=10, choices=TipoDerivacion.choices)
@@ -133,7 +133,7 @@ class Derivacion(models.Model):
         ordering = ['-fecha_creacion']
 
     def __str__(self):
-        return f'Derivación {self.tipo} para paciente {self.paciente_id}'
+        return f'Derivación {self.tipo} para usuario {self.usuario_id}'
 
 
 class Certificado(models.Model):

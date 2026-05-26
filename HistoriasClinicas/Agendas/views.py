@@ -26,7 +26,7 @@ class BaseAgendasViewSet(viewsets.ModelViewSet):
 class CitaViewSet(BaseAgendasViewSet):
     queryset = Cita.objects.all()
     serializer_class = CitaSerializer
-    filterset_fields = ['paciente_id', 'profesional_id', 'estado']
+    filterset_fields = ['usuario_id', 'estado']
     ordering_fields = ['fecha_hora', 'fecha_creacion']
     ordering = ['-fecha_hora']
 
@@ -36,7 +36,7 @@ class CitaViewSet(BaseAgendasViewSet):
 
         try:
             services.validar_choque_citas(
-                profesional_id=serializer.validated_data['profesional_id'],
+                usuario_id=serializer.validated_data['usuario_id'],
                 fecha_hora=serializer.validated_data['fecha_hora']
             )
 
@@ -70,7 +70,7 @@ class CitaViewSet(BaseAgendasViewSet):
 
 
 class ServicioViewSet(BaseAgendasViewSet):
-    queryset = Servicio.objects.filter(activo=True)
+    queryset = Servicio.objects.filter(es_activo=True)
     serializer_class = ServicioSerializer
     ordering_fields = ['nombre', 'fecha_creacion']
     ordering = ['nombre']
@@ -122,7 +122,7 @@ class AtencionViewSet(viewsets.ViewSet):
 class DerivacionViewSet(BaseAgendasViewSet):
     queryset = Derivacion.objects.all()
     serializer_class = DerivacionSerializer
-    filterset_fields = ['paciente_id', 'tipo', 'estado']
+    filterset_fields = ['usuario_id', 'tipo', 'estado']
     ordering_fields = ['fecha_creacion', 'estado']
     ordering = ['-fecha_creacion']
 
@@ -132,7 +132,7 @@ class DerivacionViewSet(BaseAgendasViewSet):
 
         try:
             derivacion = services.gestionar_derivacion(
-                paciente_id=serializer.validated_data['paciente_id'],
+                usuario_id=serializer.validated_data['usuario_id'],
                 remitente_id=serializer.validated_data['remitente_id'],
                 destinatario=serializer.validated_data['destinatario'],
                 tipo_derivacion=serializer.validated_data['tipo'],
