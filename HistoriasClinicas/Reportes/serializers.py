@@ -57,6 +57,7 @@ class DashboardMetricsSerializer(serializers.Serializer):
     institucional = serializers.DictField(read_only=True)
     servicios = serializers.ListField(read_only=True)
     diagnosticos = serializers.ListField(read_only=True)
+    consultas_por_genero = serializers.DictField(read_only=True)
     tendencias = serializers.DictField(read_only=True)
     filtros_aplicados = serializers.DictField(read_only=True)
 
