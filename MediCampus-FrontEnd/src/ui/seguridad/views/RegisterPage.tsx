@@ -85,43 +85,43 @@ const RegisterPage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nombres</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nombres <span className="text-red-500">*</span></label>
               <Input placeholder="Ana" value={form.nombre} onChange={handleChange('nombre')} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Apellidos</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Apellidos <span className="text-red-500">*</span></label>
               <Input placeholder="Pérez" value={form.apellido} onChange={handleChange('apellido')} required />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Cédula</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Cédula <span className="text-red-500">*</span></label>
             <Input placeholder="0102030405" value={form.cedula} onChange={handleChange('cedula')} required />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Correo electrónico <span className="text-red-500">*</span></label>
             <Input type="email" placeholder="ana@example.com" value={form.correo} onChange={handleChange('correo')} required />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña <span className="text-red-500">*</span></label>
               <Input type="password" placeholder="••••••••" value={form.clave} onChange={handleChange('clave')} required minLength={8} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar contraseña</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar contraseña <span className="text-red-500">*</span></label>
               <Input type="password" placeholder="••••••••" value={form.confirmarClave} onChange={handleChange('confirmarClave')} required minLength={8} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de nacimiento</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de nacimiento <span className="text-red-500">*</span></label>
               <Input type="date" value={form.fechaNacimiento} onChange={handleChange('fechaNacimiento')} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Sexo <span className="text-red-500">*</span></label>
               <Select options={SEXO_OPTIONS} value={form.sexo} onChange={handleChange('sexo')} required />
             </div>
           </div>

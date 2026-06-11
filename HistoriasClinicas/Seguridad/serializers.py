@@ -122,10 +122,11 @@ class BitacoraListSerializer(serializers.ModelSerializer):
     tipoAccion = serializers.CharField(source='get_tipo_accion_display', read_only=True)
     fechaHora = serializers.DateTimeField(source='fecha_hora', read_only=True)
     moduloAfectado = serializers.CharField(source='modulo_afectado', read_only=True)
+    direccionIp = serializers.CharField(source='direccion_ip', read_only=True)
 
     class Meta:
         model = Bitacora
-        fields = ('id', 'fechaHora', 'tipoAccion', 'moduloAfectado', 'correo', 'detalle')
+        fields = ('id', 'fechaHora', 'tipoAccion', 'moduloAfectado', 'correo', 'detalle', 'direccionIp')
 
 
 class UserListSerializer(serializers.ModelSerializer):

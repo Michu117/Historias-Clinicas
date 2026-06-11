@@ -11,6 +11,8 @@ import { Pagination } from '../../components/Pagination'
 import { listUsers, createUser, User, RegisterPayload } from '../utils/authApi'
 import { useAuth } from '../hooks/useAuth'
 
+const DEBOUNCE_MS = 300
+
 const ITEMS_PER_PAGE = 8
 
 const SEXO_OPTIONS = [
@@ -34,6 +36,8 @@ const UserManagementPage: React.FC = () => {
   const [page, setPage] = useState(1)
   const [filterRole, setFilterRole] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState({
     correo: '',
@@ -48,32 +52,35 @@ const UserManagementPage: React.FC = () => {
   const [createError, setCreateError] = useState('')
   const [creating, setCreating] = useState(false)
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   const loadUsers = useCallback(async () => {
     if (!isAuthenticated) return
     setLoading(true)
     try {
-      const data = await listUsers()
+      const activoMap: Record<string, string> = { activo: 'true', inactivo: 'false' }
+      const data = await listUsers({
+        rol: filterRole || undefined,
+        activo: filterStatus ? activoMap[filterStatus] : undefined,
+        busqueda: debouncedSearch || undefined,
+      })
       setUsers(data)
     } catch {
       // silent
     } finally {
       setLoading(false)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, filterRole, filterStatus, debouncedSearch])
 
   useEffect(() => {
     loadUsers()
   }, [loadUsers])
 
-  const filtered = users.filter((u) => {
-    if (filterRole && u.rol?.nombre !== filterRole) return false
-    if (filterStatus === 'activo' && !u.esActiva) return false
-    if (filterStatus === 'inactivo' && u.esActiva) return false
-    return true
-  })
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+  const totalPages = Math.max(1, Math.ceil(users.length / ITEMS_PER_PAGE))
+  const paginated = users.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
   const handleCreateField = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setCreateForm((prev) => ({ ...prev, [field]: e.target.value }))
@@ -110,8 +117,6 @@ const UserManagementPage: React.FC = () => {
     return <Badge variant="danger">Inactivo</Badge>
   }
 
-  const getStatusOption = (activa: boolean) => (activa ? 'activo' : 'inactivo')
-
   return (
     <ProtectedRoute permission="users.manage">
       <div className="space-y-6">
@@ -126,6 +131,14 @@ const UserManagementPage: React.FC = () => {
         </div>
 
         <div className="flex gap-4">
+          <div className="w-64">
+            <Input
+              type="text"
+              placeholder="Buscar por nombre, correo o cédula..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <div className="w-48">
             <Select
               options={[
@@ -188,7 +201,7 @@ const UserManagementPage: React.FC = () => {
               )}
             </TableBody>
           </Table>
-          {filtered.length > ITEMS_PER_PAGE && (
+          {users.length > ITEMS_PER_PAGE && (
             <div className="mt-4 flex justify-end">
               <Pagination page={page} totalPages={totalPages} onPage={setPage} />
             </div>
