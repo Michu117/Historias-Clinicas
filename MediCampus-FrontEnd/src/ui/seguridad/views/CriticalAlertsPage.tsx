@@ -5,7 +5,7 @@ import { Badge } from '../../components/Badge'
 import { Button } from '../../components/Button'
 import { Modal } from '../../components/Modal'
 import { Input } from '../../components/Input'
-import { Select } from '../../components/Select'
+import { exportAuditLogs } from '../utils/authApi'
 
 interface Incident {
   time: string
@@ -35,14 +35,10 @@ const INCIDENTS: Incident[] = [
   },
 ]
 
-const FORMAT_OPTIONS = [
-  { value: 'pdf', label: 'PDF (Seguro)' },
-  { value: 'excel', label: 'Excel/CSV' },
-]
-
 const CriticalAlertsPage: React.FC = () => {
   const [showExport, setShowExport] = useState(false)
-  const [exportForm, setExportForm] = useState({ startDate: '', endDate: '', format: 'pdf' })
+  const [exporting, setExporting] = useState(false)
+  const [exportForm, setExportForm] = useState({ startDate: '', endDate: '' })
 
   const severityVariant = (s: Incident['severity']): 'danger' | 'warning' | 'neutral' => {
     if (s === 'critical') return 'danger'
@@ -123,14 +119,14 @@ const CriticalAlertsPage: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Formato de exportación</label>
-              <Select options={FORMAT_OPTIONS} value={exportForm.format} onChange={(e) => setExportForm((p) => ({ ...p, format: e.target.value }))} />
-            </div>
-
             <div className="flex justify-end gap-3 pt-2">
               <Button variant="secondary" onClick={() => setShowExport(false)}>Cancelar</Button>
-              <Button variant="primary">Generar Exportación</Button>
+              <Button variant="primary" onClick={async () => { setExporting(true); await exportAuditLogs({ fecha_desde: exportForm.startDate || undefined, fecha_hasta: exportForm.endDate || undefined, formato: 'csv' }); setExporting(false); setShowExport(false) }} disabled={exporting}>
+                {exporting ? 'Exportando...' : 'CSV'}
+              </Button>
+              <Button variant="primary" onClick={async () => { setExporting(true); await exportAuditLogs({ fecha_desde: exportForm.startDate || undefined, fecha_hasta: exportForm.endDate || undefined, formato: 'pdf' }); setExporting(false); setShowExport(false) }} disabled={exporting}>
+                {exporting ? 'Exportando...' : 'PDF'}
+              </Button>
             </div>
           </div>
         </Modal>

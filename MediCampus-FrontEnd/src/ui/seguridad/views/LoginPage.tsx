@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
     try {
       const res = await login({ correo, clave })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      navigate('/seguridad/dashboard')
+      navigate(res.usuario.rol?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
     } catch (err: any) {
       if (err.status === 400) {
         setError('Credenciales inválidas. Verifica tu correo y contraseña.')
@@ -46,7 +46,7 @@ const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Correo electrónico <span className="text-red-500">*</span></label>
             <Input
               type="email"
               placeholder="tu@correo.com"
@@ -58,7 +58,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña <span className="text-red-500">*</span></label>
             <Input
               type="password"
               placeholder="••••••••"

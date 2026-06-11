@@ -96,6 +96,7 @@ class Bitacora(models.Model):
     modulo_afectado = models.CharField(max_length=100)
     cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE, related_name='bitacoras')
     detalle = models.TextField(blank=True)
+    direccion_ip = models.GenericIPAddressField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Bitácora'

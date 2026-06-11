@@ -2,33 +2,52 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { ProtectedRoute } from '../components/ProtectedRoute'
 import { Card, CardTitle } from '../../components/Card'
 import { Badge } from '../../components/Badge'
+import { Input } from '../../components/Input'
+import { Select } from '../../components/Select'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/Table'
 import { Pagination } from '../../components/Pagination'
 import { Button } from '../../components/Button'
-import { listAuditLogs, AuditLogEntry } from '../utils/authApi'
+import { listAuditLogs, exportAuditLogs, AuditLogEntry, AuditLogFilters } from '../utils/authApi'
 import { useAuth } from '../hooks/useAuth'
 
 const ITEMS_PER_PAGE = 8
+
+const TIPO_ACCION_OPTIONS = [
+  { value: '', label: 'Todas las acciones' },
+  { value: 'registro', label: 'Registro' },
+  { value: 'inicio_sesion', label: 'Inicio de sesión' },
+  { value: 'inicio_sesion_fallido', label: 'Inicio fallido' },
+  { value: 'refresco_token', label: 'Refresco de token' },
+  { value: 'cambio_rol', label: 'Cambio de rol' },
+]
 
 const AuditDashboardPage: React.FC = () => {
   const { token } = useAuth()
   const [logs, setLogs] = useState<AuditLogEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
+  const [filters, setFilters] = useState<AuditLogFilters>({
+    fecha_desde: '',
+    fecha_hasta: '',
+    tipo_accion: '',
+    usuario: '',
+  })
+  const [exporting, setExporting] = useState(false)
   const isAuthenticated = !!token
 
   const loadLogs = useCallback(async () => {
     if (!isAuthenticated) return
     setLoading(true)
     try {
-      const data = await listAuditLogs()
+      const data = await listAuditLogs(filters)
       setLogs(data)
+      setPage(1)
     } catch {
       // silent fallback
     } finally {
       setLoading(false)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, filters])
 
   useEffect(() => {
     loadLogs()
@@ -50,9 +69,36 @@ const AuditDashboardPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-900">Auditoría y Logs de Seguridad</h1>
             <p className="text-sm text-slate-500 mt-1">Registro de actividades del sistema</p>
           </div>
-          <Button variant="primary" onClick={loadLogs} disabled={loading}>
-            {loading ? 'Cargando...' : 'Refrescar'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => { setExporting(true); exportAuditLogs({ ...filters, formato: 'csv' }).finally(() => setExporting(false)) }} disabled={exporting}>
+              {exporting ? 'Exportando...' : 'CSV'}
+            </Button>
+            <Button variant="secondary" onClick={() => { setExporting(true); exportAuditLogs({ ...filters, formato: 'pdf' }).finally(() => setExporting(false)) }} disabled={exporting}>
+              {exporting ? 'Exportando...' : 'PDF'}
+            </Button>
+            <Button variant="primary" onClick={loadLogs} disabled={loading}>
+              {loading ? 'Cargando...' : 'Refrescar'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 items-end">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Fecha inicio</label>
+            <Input type="date" value={filters.fecha_desde || ''} onChange={(e) => setFilters((p) => ({ ...p, fecha_desde: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Fecha fin</label>
+            <Input type="date" value={filters.fecha_hasta || ''} onChange={(e) => setFilters((p) => ({ ...p, fecha_hasta: e.target.value }))} />
+          </div>
+          <div className="w-48">
+            <label className="block text-xs font-medium text-slate-500 mb-1">Tipo de acción</label>
+            <Select options={TIPO_ACCION_OPTIONS} value={filters.tipo_accion || ''} onChange={(e) => setFilters((p) => ({ ...p, tipo_accion: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Usuario</label>
+            <Input type="text" placeholder="Filtrar por correo" value={filters.usuario || ''} onChange={(e) => setFilters((p) => ({ ...p, usuario: e.target.value }))} />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -87,6 +133,7 @@ const AuditDashboardPage: React.FC = () => {
                 <TableHead>Usuario</TableHead>
                 <TableHead>Operación</TableHead>
                 <TableHead>Módulo</TableHead>
+                <TableHead>IP</TableHead>
                 <TableHead>Detalle</TableHead>
               </TableRow>
             </TableHeader>
@@ -110,12 +157,13 @@ const AuditDashboardPage: React.FC = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{log.moduloAfectado}</TableCell>
+                    <TableCell className="font-mono text-xs">{log.direccionIp || '—'}</TableCell>
                     <TableCell className="max-w-xs truncate">{log.detalle}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-slate-400">
+                  <TableCell colSpan={6} className="text-center text-slate-400">
                     {loading ? 'Cargando registros...' : isAuthenticated ? 'No hay registros de auditoría' : 'Inicia sesión para ver los registros'}
                   </TableCell>
                 </TableRow>
