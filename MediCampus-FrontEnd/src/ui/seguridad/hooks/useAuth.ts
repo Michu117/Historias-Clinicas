@@ -19,7 +19,13 @@ export function useAuth() {
     return !jwtUtils.isExpired(token)
   }
 
-  return { token, claims, isAuthenticated }
+  let storedUser: unknown = null
+  try {
+    const raw = localStorage.getItem('currentUser')
+    if (raw) storedUser = JSON.parse(raw)
+  } catch { /* noop */ }
+
+  return { token, claims, isAuthenticated, storedUser }
 }
 
 export default useAuth
