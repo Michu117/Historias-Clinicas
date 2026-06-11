@@ -8,7 +8,7 @@ import { Select } from '../../components/Select'
 import { Modal } from '../../components/Modal'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/Table'
 import { Pagination } from '../../components/Pagination'
-import { listUsers, createUser, User, RegisterPayload } from '../utils/authApi'
+import { listUsers, createUser, updateUser, User, RegisterPayload } from '../utils/authApi'
 import { useAuth } from '../hooks/useAuth'
 
 const DEBOUNCE_MS = 300
@@ -21,7 +21,7 @@ const SEXO_OPTIONS = [
 ]
 
 const ROL_OPTIONS = [
-  { value: 'administrador', label: 'Administrador' },
+  { value: 'Administrador', label: 'Administrador' },
   { value: 'medico', label: 'Médico' },
   { value: 'psicologo', label: 'Psicólogo' },
   { value: 'trabajo_social', label: 'Trabajo Social' },
@@ -51,6 +51,11 @@ const UserManagementPage: React.FC = () => {
   })
   const [createError, setCreateError] = useState('')
   const [creating, setCreating] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [editForm, setEditForm] = useState({ nombre: '', apellido: '', sexo: '' })
+  const [editError, setEditError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [viewUser, setViewUser] = useState<User | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), DEBOUNCE_MS)
@@ -84,6 +89,45 @@ const UserManagementPage: React.FC = () => {
 
   const handleCreateField = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setCreateForm((prev) => ({ ...prev, [field]: e.target.value }))
+  }
+
+  const openEditModal = (u: User) => {
+    setEditingUser(u)
+    setEditForm({
+      nombre: u.usuario?.nombre || '',
+      apellido: u.usuario?.apellido || '',
+      sexo: u.usuario?.sexo || '',
+    })
+    setEditError('')
+  }
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser) return
+    setEditError('')
+    setSaving(true)
+    try {
+      const payload: Record<string, unknown> = {}
+      if (editForm.nombre) payload.nombre = editForm.nombre
+      if (editForm.apellido) payload.apellido = editForm.apellido
+      if (editForm.sexo) payload.sexo = editForm.sexo
+      await updateUser(editingUser.id, payload)
+      setEditingUser(null)
+      loadUsers()
+    } catch (err: any) {
+      setEditError(err.message || 'Error al actualizar usuario')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleToggleStatus = async (u: User) => {
+    try {
+      await updateUser(u.id, { esActiva: !u.esActiva })
+      loadUsers()
+    } catch {
+      // silent
+    }
   }
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -186,8 +230,9 @@ const UserManagementPage: React.FC = () => {
                     <TableCell>{getStatusBadge(u.esActiva)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button variant="tertiary" size="sm">Editar</Button>
-                        <Button variant="tertiary" size="sm">{u.esActiva ? 'Bloquear' : 'Activar'}</Button>
+                        <Button variant="tertiary" size="sm" onClick={() => setViewUser(u)}>Ver</Button>
+                        <Button variant="tertiary" size="sm" onClick={() => openEditModal(u)}>Editar</Button>
+                        <Button variant="tertiary" size="sm" onClick={() => handleToggleStatus(u)}>{u.esActiva ? 'Bloquear' : 'Activar'}</Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -207,6 +252,87 @@ const UserManagementPage: React.FC = () => {
             </div>
           )}
         </Card>
+
+        <Modal open={!!viewUser} onClose={() => setViewUser(null)} title="Detalles del Usuario">
+          {viewUser && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-500">Nombre</label>
+                  <p className="text-slate-900">{viewUser.usuario?.nombre || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-500">Apellido</label>
+                  <p className="text-slate-900">{viewUser.usuario?.apellido || '-'}</p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-500">Cédula</label>
+                <p className="text-slate-900">{viewUser.usuario?.cedula || '-'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-500">Correo electrónico</label>
+                <p className="text-slate-900">{viewUser.correo}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-500">Fecha de nacimiento</label>
+                <p className="text-slate-900">{viewUser.usuario?.fechaNacimiento || '-'}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-500">Sexo</label>
+                  <p className="text-slate-900">
+                    {viewUser.usuario?.sexo === 'H' ? 'Hombre' : viewUser.usuario?.sexo === 'M' ? 'Mujer' : '-'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-500">Rol</label>
+                  <p className="text-slate-900">{viewUser.rol?.nombre || 'Sin rol'}</p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-500">Estado</label>
+                <p className="text-slate-900">{viewUser.esActiva ? 'Activo' : 'Inactivo'}</p>
+              </div>
+              <div className="flex justify-end pt-2">
+                <Button variant="secondary" onClick={() => setViewUser(null)}>Cerrar</Button>
+              </div>
+            </div>
+          )}
+        </Modal>
+
+        <Modal open={!!editingUser} onClose={() => setEditingUser(null)} title="Editar Usuario">
+          <form onSubmit={handleEdit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+              <Input value={editForm.nombre} onChange={(e) => setEditForm((p) => ({ ...p, nombre: e.target.value }))} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
+              <Input value={editForm.apellido} onChange={(e) => setEditForm((p) => ({ ...p, apellido: e.target.value }))} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+              <Select
+                options={SEXO_OPTIONS}
+                value={editForm.sexo}
+                onChange={(e) => setEditForm((p) => ({ ...p, sexo: e.target.value }))}
+                required
+              />
+            </div>
+            {editError && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-global p-3" role="alert">
+                {editError}
+              </div>
+            )}
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="secondary" type="button" onClick={() => setEditingUser(null)}>Cancelar</Button>
+              <Button variant="primary" type="submit" disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
+              </Button>
+            </div>
+          </form>
+        </Modal>
 
         <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)} title="Crear Nuevo Usuario">
           <form onSubmit={handleCreate} className="space-y-4">

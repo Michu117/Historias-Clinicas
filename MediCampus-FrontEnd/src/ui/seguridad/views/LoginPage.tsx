@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
     try {
       const res = await login({ correo, clave })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      navigate('/seguridad/dashboard')
+      navigate(res.usuario.rol?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
     } catch (err: any) {
       if (err.status === 400) {
         setError('Credenciales inválidas. Verifica tu correo y contraseña.')

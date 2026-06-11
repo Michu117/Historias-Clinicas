@@ -117,6 +117,14 @@ export async function getUserDetail(userId: number): Promise<User> {
   return fetchJSON(`${AUTH_BASE}/users/${userId}`, token || undefined);
 }
 
+export async function updateUser(userId: number, payload: Record<string, unknown>): Promise<User> {
+  const token = getToken();
+  return fetchJSON(`${AUTH_BASE}/users/${userId}/update`, token || undefined, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function deleteUser(userId: number): Promise<void> {
   const token = getToken();
   await fetchJSON(`${AUTH_BASE}/users/${userId}/delete`, token || undefined, {

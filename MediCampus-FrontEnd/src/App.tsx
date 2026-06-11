@@ -9,12 +9,15 @@ import PermissionAssignmentPage from './ui/seguridad/views/PermissionAssignmentP
 import CriticalAlertsPage from './ui/seguridad/views/CriticalAlertsPage'
 import AuditLogDetailPage from './ui/seguridad/views/AuditLogDetailPage'
 import ForbiddenPage from './ui/seguridad/views/ForbiddenPage'
+import LandingPage from './ui/global/LandingPage'
+import HomePage from './ui/global/HomePage'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/seguridad/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/seguridad/login" element={<LoginPage />} />
         <Route path="/seguridad/register" element={<RegisterPage />} />
         <Route path="/seguridad/403" element={<ForbiddenPage />} />

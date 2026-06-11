@@ -27,14 +27,31 @@ const RegisterPage: React.FC = () => {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([])
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
   }
 
+  const validatePassword = (pw: string): string[] => {
+    const errors: string[] = []
+    if (pw.length < 8) errors.push('Mínimo 8 caracteres')
+    if (!/[A-Z]/.test(pw)) errors.push('Al menos una mayúscula')
+    if (!/[a-z]/.test(pw)) errors.push('Al menos una minúscula')
+    if (!/\d/.test(pw)) errors.push('Al menos un número')
+    return errors
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setPasswordErrors([])
+
+    const pwErrors = validatePassword(form.clave)
+    if (pwErrors.length > 0) {
+      setPasswordErrors(pwErrors)
+      return
+    }
 
     if (form.clave !== form.confirmarClave) {
       setError('Las contraseñas no coinciden.')
@@ -53,7 +70,7 @@ const RegisterPage: React.FC = () => {
         sexo: form.sexo,
       })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      navigate('/seguridad/dashboard')
+      navigate(res.usuario.rol?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
     } catch (err: any) {
       if (err.body) {
         try {
@@ -107,11 +124,20 @@ const RegisterPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña <span className="text-red-500">*</span></label>
-              <Input type="password" placeholder="••••••••" value={form.clave} onChange={handleChange('clave')} required minLength={8} />
+              <Input type="password" placeholder="••••••••" value={form.clave} onChange={handleChange('clave')} required />
+              {passwordErrors.length > 0 && (
+                <ul className="mt-1 text-xs text-red-600 space-y-0.5">
+                  {passwordErrors.map((msg, i) => (
+                    <li key={i} className="flex items-center gap-1">
+                      <span>✗</span> {msg}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar contraseña <span className="text-red-500">*</span></label>
-              <Input type="password" placeholder="••••••••" value={form.confirmarClave} onChange={handleChange('confirmarClave')} required minLength={8} />
+              <Input type="password" placeholder="••••••••" value={form.confirmarClave} onChange={handleChange('confirmarClave')} required />
             </div>
           </div>
 
