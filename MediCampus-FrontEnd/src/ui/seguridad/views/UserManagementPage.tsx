@@ -1,0 +1,266 @@
+import React, { useEffect, useState, useCallback } from 'react'
+import { ProtectedRoute } from '../components/ProtectedRoute'
+import { Card, CardTitle } from '../../components/Card'
+import { Button } from '../../components/Button'
+import { Badge } from '../../components/Badge'
+import { Input } from '../../components/Input'
+import { Select } from '../../components/Select'
+import { Modal } from '../../components/Modal'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/Table'
+import { Pagination } from '../../components/Pagination'
+import { listUsers, createUser, User, RegisterPayload } from '../utils/authApi'
+import { useAuth } from '../hooks/useAuth'
+
+const ITEMS_PER_PAGE = 8
+
+const SEXO_OPTIONS = [
+  { value: 'H', label: 'Hombre' },
+  { value: 'M', label: 'Mujer' },
+]
+
+const ROL_OPTIONS = [
+  { value: 'administrador', label: 'Administrador' },
+  { value: 'medico', label: 'Médico' },
+  { value: 'psicologo', label: 'Psicólogo' },
+  { value: 'trabajo_social', label: 'Trabajo Social' },
+  { value: 'auditor', label: 'Auditor' },
+]
+
+const UserManagementPage: React.FC = () => {
+  const { token } = useAuth()
+  const isAuthenticated = !!token
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [filterRole, setFilterRole] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [createForm, setCreateForm] = useState({
+    correo: '',
+    clave: '',
+    nombre: '',
+    apellido: '',
+    cedula: '',
+    fechaNacimiento: '',
+    sexo: '',
+    rol: '',
+  })
+  const [createError, setCreateError] = useState('')
+  const [creating, setCreating] = useState(false)
+
+  const loadUsers = useCallback(async () => {
+    if (!isAuthenticated) return
+    setLoading(true)
+    try {
+      const data = await listUsers()
+      setUsers(data)
+    } catch {
+      // silent
+    } finally {
+      setLoading(false)
+    }
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    loadUsers()
+  }, [loadUsers])
+
+  const filtered = users.filter((u) => {
+    if (filterRole && u.rol?.nombre !== filterRole) return false
+    if (filterStatus === 'activo' && !u.esActiva) return false
+    if (filterStatus === 'inactivo' && u.esActiva) return false
+    return true
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
+  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+
+  const handleCreateField = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setCreateForm((prev) => ({ ...prev, [field]: e.target.value }))
+  }
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreateError('')
+    setCreating(true)
+    try {
+      await createUser(createForm as RegisterPayload)
+      setShowCreateModal(false)
+      setCreateForm({ correo: '', clave: '', nombre: '', apellido: '', cedula: '', fechaNacimiento: '', sexo: '', rol: '' })
+      loadUsers()
+    } catch (err: any) {
+      if (err.body) {
+        try {
+          const body = JSON.parse(err.body)
+          const msgs = Object.values(body).flat().join('. ')
+          setCreateError(msgs)
+        } catch {
+          setCreateError(err.body)
+        }
+      } else {
+        setCreateError(err.message || 'Error al crear usuario')
+      }
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const getStatusBadge = (activa: boolean) => {
+    if (activa) return <Badge variant="success">Activo</Badge>
+    return <Badge variant="danger">Inactivo</Badge>
+  }
+
+  const getStatusOption = (activa: boolean) => (activa ? 'activo' : 'inactivo')
+
+  return (
+    <ProtectedRoute permission="users.manage">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Directorio de Usuarios</h1>
+            <p className="text-sm text-slate-500 mt-1">Administra los accesos y roles del personal del hospital.</p>
+          </div>
+          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+            + Crear Usuario
+          </Button>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="w-48">
+            <Select
+              options={[
+                { value: '', label: 'Todos los Roles' },
+                ...ROL_OPTIONS,
+              ]}
+              value={filterRole}
+              onChange={(e) => { setFilterRole(e.target.value); setPage(1) }}
+            />
+          </div>
+          <div className="w-48">
+            <Select
+              options={[
+                { value: '', label: 'Todos los Estados' },
+                { value: 'activo', label: 'Activo' },
+                { value: 'inactivo', label: 'Inactivo' },
+              ]}
+              value={filterStatus}
+              onChange={(e) => { setFilterStatus(e.target.value); setPage(1) }}
+            />
+          </div>
+        </div>
+
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre y Correo</TableHead>
+                <TableHead>Rol Principal</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginated.length > 0 ? (
+                paginated.map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell>
+                      <div className="font-medium text-slate-900">
+                        {u.usuario ? `${u.usuario.nombre} ${u.usuario.apellido}` : 'Sin perfil'}
+                      </div>
+                      <div className="text-sm text-slate-400">{u.correo}</div>
+                    </TableCell>
+                    <TableCell>{u.rol?.nombre || 'Sin rol'}</TableCell>
+                    <TableCell>{getStatusBadge(u.esActiva)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button variant="tertiary" size="sm">Editar</Button>
+                        <Button variant="tertiary" size="sm">{u.esActiva ? 'Bloquear' : 'Activar'}</Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-slate-400">
+                    {loading ? 'Cargando...' : isAuthenticated ? 'No hay usuarios registrados' : 'Inicia sesión para ver usuarios'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          {filtered.length > ITEMS_PER_PAGE && (
+            <div className="mt-4 flex justify-end">
+              <Pagination page={page} totalPages={totalPages} onPage={setPage} />
+            </div>
+          )}
+        </Card>
+
+        <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)} title="Crear Nuevo Usuario">
+          <form onSubmit={handleCreate} className="space-y-4">
+            <p className="text-sm text-slate-500 mb-4">Ingresa los datos para registrar un nuevo perfil en el sistema.</p>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre completo</label>
+              <Input placeholder="Nombre y apellido" value={createForm.nombre} onChange={handleCreateField('nombre')} required />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
+                <Input placeholder="Apellido" value={createForm.apellido} onChange={handleCreateField('apellido')} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Cédula</label>
+                <Input placeholder="0102030405" value={createForm.cedula} onChange={handleCreateField('cedula')} required />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Correo institucional</label>
+              <Input type="email" placeholder="correo@hospital.com" value={createForm.correo} onChange={handleCreateField('correo')} required />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña provisional</label>
+              <Input type="password" placeholder="••••••••" value={createForm.clave} onChange={handleCreateField('clave')} required minLength={8} />
+              <p className="text-xs text-slate-400 mt-1">El usuario deberá cambiarla en su primer ingreso.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de nacimiento</label>
+                <Input type="date" value={createForm.fechaNacimiento} onChange={handleCreateField('fechaNacimiento')} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+                <Select options={SEXO_OPTIONS} value={createForm.sexo} onChange={handleCreateField('sexo')} required />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Rol del sistema</label>
+              <Select options={ROL_OPTIONS} value={createForm.rol} onChange={handleCreateField('rol')} required />
+            </div>
+
+            {createError && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-global p-3" role="alert">
+                {createError}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="secondary" type="button" onClick={() => setShowCreateModal(false)}>
+                Cancelar
+              </Button>
+              <Button variant="primary" type="submit" disabled={creating}>
+                {creating ? 'Guardando...' : 'Guardar Usuario'}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      </div>
+    </ProtectedRoute>
+  )
+}
+
+export default UserManagementPage
