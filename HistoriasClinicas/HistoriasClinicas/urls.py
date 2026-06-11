@@ -27,6 +27,7 @@ def api_root(request):
             "documentacion": {
                 "atenciones": "/api/v1/reportes/atenciones/",
                 "estadisticas": "/api/v1/reportes/estadisticas/",
+                "consultas_por_genero": "/api/v1/reportes/consultas-por-genero/",
                 "diagnosticos_frecuentes": "/api/v1/reportes/diagnosticos-frecuentes/",
                 "servicios_mas_usados": "/api/v1/reportes/servicios-mas-usados/"
             }
