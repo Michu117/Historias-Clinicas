@@ -1,72 +1,58 @@
-<<<<<<< HEAD
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 
 const STORAGE_KEY_TOKEN = 'token'
 const STORAGE_KEY_REFRESH = 'refreshToken'
 const STORAGE_KEY_USER = 'currentUser'
-=======
-import { useState, useEffect } from 'react'
->>>>>>> origin/feature/fabricio
+
+function readToken(): string | null {
+  try {
+    return typeof window !== 'undefined' && window.localStorage
+      ? window.localStorage.getItem(STORAGE_KEY_TOKEN)
+      : null
+  } catch {
+    return null
+  }
+}
 
 export function useSessionToken() {
-  const [token, setToken] = useState<string | null>(null)
+  const [token, setToken] = useState<string | null>(readToken)
 
-  useEffect(() => {
-    try {
-<<<<<<< HEAD
-      const t = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem(STORAGE_KEY_TOKEN) : null
-=======
-      const t = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('token') : null
->>>>>>> origin/feature/fabricio
-      setToken(t)
-    } catch {
-      setToken(null)
-    }
-  }, [])
-
-<<<<<<< HEAD
   const saveToken = useCallback((t: string | null) => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         if (t) window.localStorage.setItem(STORAGE_KEY_TOKEN, t)
         else window.localStorage.removeItem(STORAGE_KEY_TOKEN)
-=======
-  function saveToken(t: string | null) {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        if (t) window.localStorage.setItem('token', t)
-        else window.localStorage.removeItem('token')
->>>>>>> origin/feature/fabricio
       }
     } catch {
       // noop
     }
     setToken(t)
-<<<<<<< HEAD
   }, [])
-=======
-  }
->>>>>>> origin/feature/fabricio
 
   return { token, saveToken }
 }
 
-<<<<<<< HEAD
+function readRefreshToken(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY_REFRESH)
+  } catch {
+    return null
+  }
+}
+
+function readCurrentUser(): unknown | null {
+  try {
+    const cu = localStorage.getItem(STORAGE_KEY_USER)
+    return cu ? JSON.parse(cu) : null
+  } catch {
+    return null
+  }
+}
+
 export function useSession() {
   const { token, saveToken } = useSessionToken()
-  const [refreshToken, setRefreshToken] = useState<string | null>(null)
-  const [currentUser, setCurrentUser] = useState<unknown | null>(null)
-
-  useEffect(() => {
-    try {
-      const rt = localStorage.getItem(STORAGE_KEY_REFRESH)
-      setRefreshToken(rt)
-      const cu = localStorage.getItem(STORAGE_KEY_USER)
-      if (cu) setCurrentUser(JSON.parse(cu))
-    } catch {
-      // noop
-    }
-  }, [])
+  const [refreshToken, setRefreshToken] = useState<string | null>(readRefreshToken)
+  const [currentUser, setCurrentUser] = useState<unknown | null>(readCurrentUser)
 
   const saveSession = useCallback((access: string, refresh: string, user?: unknown) => {
     saveToken(access)
@@ -92,6 +78,4 @@ export function useSession() {
   return { token, refreshToken, currentUser, saveSession, clearSession }
 }
 
-=======
->>>>>>> origin/feature/fabricio
 export default useSessionToken

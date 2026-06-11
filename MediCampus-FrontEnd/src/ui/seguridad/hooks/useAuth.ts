@@ -19,7 +19,6 @@ export function useAuth() {
     return !jwtUtils.isExpired(token)
   }
 
-<<<<<<< HEAD
   let storedUser: unknown = null
   try {
     const raw = localStorage.getItem('currentUser')
@@ -27,9 +26,6 @@ export function useAuth() {
   } catch { /* noop */ }
 
   return { token, claims, isAuthenticated, storedUser }
-=======
-  return { token, claims, isAuthenticated }
->>>>>>> origin/feature/fabricio
 }
 
 export default useAuth

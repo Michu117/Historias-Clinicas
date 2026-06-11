@@ -1,24 +1,6 @@
-@import "tailwindcss";
-
-@theme {
-  --color-hc-primary: #475569;
-  --color-hc-primaryHover: #334155;
-  --color-hc-primaryText: #ffffff;
-  --color-hc-secondary: #e2e8f0;
-  --color-hc-secondaryHover: #cbd5e1;
-  --color-hc-secondaryText: #334155;
-  --color-hc-tertiary: transparent;
-  --color-hc-tertiaryHover: #f1f5f9;
-  --color-hc-tertiaryText: #475569;
-  --color-hc-danger: #ef4444;
-  --color-hc-dangerHover: #dc2626;
-  --color-hc-dangerText: #ffffff;
-  --color-hc-success: #22c55e;
-  --color-hc-successHover: #16a34a;
-  --color-hc-successText: #ffffff;
-
-  --radius-global: 0.375rem;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
   background-color: #f8fafc;
