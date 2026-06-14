@@ -1,17 +1,23 @@
 # Django Core
 Django==6.0.4
 djangorestframework==3.14.0
-djangorestframework-simplejwt==5.3.2
+djangorestframework-simplejwt==5.5.1
 django-filter==23.5
+drf-spectacular==0.27.2
 
 # Database
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.12
 
 # Testing
 pytest==7.4.3
 pytest-django==4.7.0
 pytest-cov==4.1.0
 
+# PDF Generation
+reportlab==4.2.5
+
 # Development
 python-dotenv==1.0.0
 
+# PDF generation
+reportlab==4.2.5
