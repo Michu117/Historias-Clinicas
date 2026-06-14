@@ -2,8 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* --- COLORES BASE  --- */
+    --hc-bg: #f8fafc; /* Fondo general (Gris) */
+    --hc-text: #0f172a; /* Texto (Gris oscuro) */
+
+    /* --- TOKENS DE ACCIÓN  --- */
+
+    /* Primario: Acción principal (Ej. Agendar Cita).  */
+    --btn-primary-bg: #475569;
+    --btn-primary-hover: #334155;
+    --btn-primary-text: #ffffff;
+
+    /* Secundario: Acciones alternativas (Ej. Cancelar modal, Volver) */
+    --btn-secondary-bg: #e2e8f0; /* Gris muy clarito */
+    --btn-secondary-hover: #cbd5e1;
+    --btn-secondary-text: #334155;
+
+    /* Terciario: Botones invisibles/fantasma (Ej. Iconos, Editar) */
+    --btn-tertiary-bg: transparent;
+    --btn-tertiary-hover: #f1f5f9;
+    --btn-tertiary-text: #475569;
+
+    /* --- TOKENS SEMÁNTICOS (Para testing y lógica) --- */
+
+    /* Destructivo: Alertas, Eliminar, Cancelar (HU-03) */
+    --btn-danger-bg: #ef4444; /* Rojo estándar */
+    --btn-danger-hover: #dc2626;
+    --btn-danger-text: #ffffff;
+
+    /* Éxito: Guardado correcto, Descarga de archivos exitosa */
+    --btn-success-bg: #22c55e; /* Verde estándar */
+    --btn-success-hover: #16a34a;
+    --btn-success-text: #ffffff;
+
+    /* Informativo / Advertencia (Filtros de fechas activos) */
+    --btn-info-bg: #3b82f6; /* Azul estándar */
+    --btn-info-hover: #2563eb;
+    --btn-info-text: #ffffff;
+
+    /* --- TOKENS PARA DASHBOARD Y COMPONENTES (FRONTEND) --- */
+
+    /* Tarjetas de KPI (Resumen estadístico) */
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --card-text-muted: #64748b; /* Gris para etiquetas como "Total atenciones" */
+
+    /* Gráficos de Datos (Atenciones por Fecha / Distribución por Género) */
+    --chart-line-primary: #3b82f6;  /* Azul para la línea de atenciones */
+    --chart-bar-male: #0284c7;      /* Azul oscuro para género Masculino */
+    --chart-bar-female: #ec4899;    /* Rosado para género Femenino */
+    --chart-bar-other: #64748b;     /* Gris para Otros */
+    --chart-grid: #f1f5f9;          /* Color para las rejillas del fondo del gráfico */
+
+    /* Tablas de Reportes */
+    --table-header-bg: #f1f5f9;
+    --table-row-hover: #f8fafc;
+
+    /* --- MATERIAL DESIGN TOKENS (PROTOTIPO) --- */
+    --primary: #2563eb;
+    --surface-container-low: #f1f5f9;
+    --primary-fixed: #dbeafe;
+    --on-surface: #0f172a;
+    --outline-variant: #cbd5e1;
+
+    /* --- BORDES --- */
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem; /* Para contenedores grandes como los gráficos */
+  }
+}
+
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--hc-bg);
+  color: var(--hc-text);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- CLASES DE UTILIDAD PARA TU FRONTEND (OPCIONAL) --- */
+@layer components {
+  /* Estilo base para las tarjetas del Dashboard */
+  .hc-dashboard-card {
+    @apply bg-[value(--card-bg)] border border-[value(--card-border)] rounded-[value(--radius-lg)] p-6 shadow-sm;
+  }
+
+  /* Contenedor adaptativo de los gráficos */
+  .hc-chart-container {
+    @apply w-full h-[300px] relative;
+  }
 }
