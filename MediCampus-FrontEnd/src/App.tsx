@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Importaciones de Seguridad
@@ -19,6 +20,59 @@ import ReportesDashboardPage from './ui/reportes/ReportesDashboardPage';
 import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
 
 export default function App() {
+=======
+import { useState } from 'react';
+import { fetchApiRoot, getApiRootUrl } from './api';
+import { AgendarCita } from './ui/agendas/component/pages/AgendarCita';
+import { MiAgenda } from './ui/agendas/component/pages/MiAgenda';
+import { getToken } from './ui/agendas/services/storage/authStorage';
+import { validateTokenRole } from './ui/agendas/utils/auth/jwtValidator';
+
+const getCurrentPath = () => window.location.pathname || '/';
+
+export default function App() {
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+  const currentPath = getCurrentPath();
+
+  const handleCheckBackend = async () => {
+    setStatus('loading');
+    setMessage('');
+
+    try {
+      const data = await fetchApiRoot();
+      setStatus('ready');
+      setMessage(data.message);
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Error desconocido');
+    }
+  };
+
+  if (currentPath === '/agendas/mi-agenda') {
+    const token = getToken();
+    const isProfessional = token ? validateTokenRole(token, 'PROFESIONAL') : false;
+
+    if (!isProfessional) {
+      return (
+        <main className="shell">
+          <section className="card hero">
+            <p className="eyebrow">Acceso restringido</p>
+            <h1>Mi Agenda</h1>
+            <p>Debes iniciar sesión como profesional para acceder a esta página.</p>
+          </section>
+        </main>
+      );
+    }
+
+    return <MiAgenda />;
+  }
+
+  if (currentPath === '/AgendarCita') {
+    return <AgendarCita />;
+  }
+
+>>>>>>> Stashed changes
   return (
     <BrowserRouter>
       {/* Contenedor principal a pantalla completa */}
