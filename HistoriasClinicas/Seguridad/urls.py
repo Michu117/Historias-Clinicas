@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    BitacoraExportView,
     BitacoraListView,
     LoginView,
     MeView,
@@ -28,4 +29,5 @@ urlpatterns = [
     path('roles', RoleListView.as_view(), name='role-list'),
     path('roles/create', RoleCreateView.as_view(), name='role-create'),
     path('logs', BitacoraListView.as_view(), name='bitacora-list'),
+    path('logs/export', BitacoraExportView.as_view(), name='bitacora-export'),
 ]

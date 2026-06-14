@@ -1,0 +1,21 @@
+import React from 'react';
+
+interface LoadingStateProps {
+  message?: string;
+}
+
+export default function LoadingState({
+  message = 'Cargando datos...'
+}: LoadingStateProps): JSX.Element {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <div className="flex flex-col items-center">
+        <div className="relative h-12 w-12">
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+        </div>
+        <p className="mt-4 text-gray-600 font-medium">{message}</p>
+      </div>
+    </div>
+  );
+}
+

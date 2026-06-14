@@ -263,7 +263,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             const encodedItem = encodeURI(item);
             if (
               encodedItem === currentPagePath ||
-              encodedItem === currentPagePath + "index.html"
+              encodedItem === currentPagePath + "FrontEnd.html"
             ) {
               // Resolve this path against the offset to be sure
               // we already are using the correct path to the listing
@@ -291,7 +291,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           const referrerListing = listingHrefs.find((listingHref) => {
             const isListingReferrer =
               listingHref === referredRelativePath ||
-              listingHref === referredRelativePath + "index.html";
+              listingHref === referredRelativePath + "FrontEnd.html";
             return isListingReferrer;
           });
 

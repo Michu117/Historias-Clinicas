@@ -28,3 +28,31 @@ export async function fetchApiRoot(): Promise<ApiRootResponse> {
 
   return response.json() as Promise<ApiRootResponse>;
 }
+
+export type TokenRequestPayload = {
+  correo: string;
+  password: string;
+};
+
+// noinspection JSUnusedGlobalSymbols
+export async function requestToken(payload: TokenRequestPayload) {
+  const response = await fetch(new URL('/backend/api/token/', getApiBaseUrl()).toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      correo: payload.correo,
+      password: payload.password
+    })
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error((data as { detail?: string; message?: string }).detail || (data as { message?: string }).message || `No fue posible obtener el token: ${response.status}`);
+  }
+
+  return data as { access?: string; refresh?: string; token?: string };
+}
+

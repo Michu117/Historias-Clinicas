@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from django.contrib.auth import authenticate
-from django.db import transaction
+from django.db import models, transaction
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Bitacora, Cuenta, Rol, Usuario
@@ -24,12 +24,14 @@ def registrar_bitacora(
     tipo_accion: str,
     modulo_afectado: str,
     detalle: str = '',
+    direccion_ip: str | None = None,
 ) -> Bitacora:
     return Bitacora.objects.create(
         cuenta=cuenta,
         tipo_accion=tipo_accion,
         modulo_afectado=modulo_afectado,
         detalle=detalle,
+        direccion_ip=direccion_ip,
     )
 
 
@@ -118,5 +120,46 @@ def actualizar_perfil_usuario(instance: Cuenta, validated_data: dict[str, Any]) 
     return instance
 
 
+def obtener_bitacoras(
+    *,
+    fecha_desde: str | None = None,
+    fecha_hasta: str | None = None,
+    tipo_accion: str | None = None,
+    usuario_correo: str | None = None,
+    limite: int = 100,
+):
+    qs = Bitacora.objects.select_related('cuenta').all()
+    if fecha_desde:
+        qs = qs.filter(fecha_hora__gte=fecha_desde)
+    if fecha_hasta:
+        qs = qs.filter(fecha_hora__lte=fecha_hasta)
+    if tipo_accion:
+        qs = qs.filter(tipo_accion=tipo_accion)
+    if usuario_correo:
+        qs = qs.filter(cuenta__correo__icontains=usuario_correo)
+    return qs[:limite]
+
+
 def obtener_bitacoras_recientes(limite: int = 100):
     return Bitacora.objects.all()[:limite]
+
+
+def obtener_usuarios(
+    *,
+    rol_nombre: str | None = None,
+    activo: bool | None = None,
+    busqueda: str | None = None,
+):
+    qs = Cuenta.objects.select_related('rol', 'perfil').all()
+    if rol_nombre:
+        qs = qs.filter(rol__nombre__iexact=rol_nombre)
+    if activo is not None:
+        qs = qs.filter(is_active=activo)
+    if busqueda:
+        qs = qs.filter(
+            models.Q(correo__icontains=busqueda)
+            | models.Q(perfil__nombres__icontains=busqueda)
+            | models.Q(perfil__apellidos__icontains=busqueda)
+            | models.Q(perfil__cedula__icontains=busqueda)
+        )
+    return qs
