@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 
 import { Card } from '../../../ui/components/Card';
 import { HistoriasClinicasDashboardLayout } from '../components/HistoriasClinicasDashboardLayout';
+import { HistoriasClinicasHeader } from '../components/HistoriasClinicasHeader';
 import { HistoriasClinicasFiltersPanel } from '../components/HistoriasClinicasFiltersPanel';
 import { HistoriasClinicasPagination } from '../components/HistoriasClinicasPagination';
 import { HistoriasClinicasStatsCards } from '../components/HistoriasClinicasStatsCards';
 import { HistoriasClinicasTable } from '../components/HistoriasClinicasTable';
+import { MessageBanner } from '../components/MessageBanner';
 import { useHistoriasClinicas } from '../hooks/useHistoriasClinicas';
 import { useHistoriasClinicasAuth } from '../hooks/useHistoriasClinicasAuth';
 
@@ -139,25 +141,11 @@ const AuthorizedContent = () => {
 
   return (
     <HistoriasClinicasDashboardLayout>
-      <header className="flex shrink-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Gestión de Historias Clínicas
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-600">
-            Administración de historias clínicas de usuarios atendidos por Bienestar Universitario.
-          </p>
-        </div>
-
-        <button
-            type="button"
-            onClick={handleNuevaHistoria}
-            className="rounded-lg bg-[#0056b3] px-6 py-3 text-[14px] font-semibold text-white shadow-sm transition hover:opacity-90"
-        >
-          + Nueva Historia Clínica
-        </button>
-      </header>
+      <HistoriasClinicasHeader
+        title="Gestión de Historias Clínicas"
+        subtitle="Administración de historias clínicas de usuarios atendidos por Bienestar Universitario."
+        action={{ label: '+ Nueva Historia Clínica', onClick: handleNuevaHistoria }}
+      />
 
       <HistoriasClinicasStatsCards items={statCards} />
 
@@ -170,11 +158,7 @@ const AuthorizedContent = () => {
           onClearFilters={handleClearFilters}
       />
 
-      {actionMessage && (
-        <div className="shrink-0 rounded-global border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-          {actionMessage}
-        </div>
-      )}
+      {actionMessage && <MessageBanner type="info" message={actionMessage} />}
 
       <section className="min-h-0 flex-1">
         {loading && (

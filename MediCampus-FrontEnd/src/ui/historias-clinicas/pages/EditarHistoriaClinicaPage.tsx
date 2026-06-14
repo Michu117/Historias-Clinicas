@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Card } from '../../../ui/components/Card';
+import { HistoriasClinicasDashboardLayout } from '../components/HistoriasClinicasDashboardLayout';
+import { HistoriasClinicasHeader } from '../components/HistoriasClinicasHeader';
 import { HistoriaClinicaForm } from '../components/HistoriaClinicaForm';
+import { MessageBanner } from '../components/MessageBanner';
 import { historiasClinicasService } from '../services/historiasClinicasService';
 
 import type {
@@ -137,107 +140,71 @@ export default function EditarHistoriaClinicaPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10">
-        <Card>
-          <p className="text-sm text-slate-600">
-            Cargando historia clínica para edición...
-          </p>
-        </Card>
-      </main>
+      <HistoriasClinicasDashboardLayout>
+        <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
+        <section className="min-h-0 flex-1">
+          <Card>
+            <p className="text-sm text-slate-600">
+              Cargando historia clínica para edición...
+            </p>
+          </Card>
+        </section>
+      </HistoriasClinicasDashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10">
-        <Card>
-          <h1 className="text-xl font-semibold text-slate-900">
-            Editar Historia Clínica
-          </h1>
-
-          <p className="mt-3 text-sm text-rose-600">{error}</p>
-
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="mt-4 rounded-global border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Volver
-          </button>
-        </Card>
-      </main>
+      <HistoriasClinicasDashboardLayout>
+        <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
+        <section className="min-h-0 flex-1">
+          <Card>
+            <MessageBanner type="error" message={error} />
+            <p className="text-sm text-slate-500">No se pudo cargar la información de la historia clínica.</p>
+          </Card>
+        </section>
+      </HistoriasClinicasDashboardLayout>
     );
   }
 
   if (!historia) {
     return (
-      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10">
-        <Card>
-          <h1 className="text-xl font-semibold text-slate-900">
-            Editar Historia Clínica
-          </h1>
-
-          <p className="mt-3 text-sm text-slate-600">
-            No se encontró la historia clínica solicitada.
-          </p>
-
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="mt-4 rounded-global border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Volver
-          </button>
-        </Card>
-      </main>
+      <HistoriasClinicasDashboardLayout>
+        <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
+        <section className="min-h-0 flex-1">
+          <Card>
+            <p className="text-sm text-slate-500">
+              No se encontró la historia clínica solicitada.
+            </p>
+          </Card>
+        </section>
+      </HistoriasClinicasDashboardLayout>
     );
   }
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 pb-24">
-      <header className="space-y-3 rounded-global border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-slate-500">
-              Historias Clínicas / Edición
-            </p>
+    <HistoriasClinicasDashboardLayout>
+      <HistoriasClinicasHeader
+        title="Editar Historia Clínica"
+        subtitle="Modificación preparada para la historia clínica seleccionada."
+        backTo="/historias"
+        secondaryAction={{ label: 'Cancelar', onClick: handleCancel }}
+      />
 
-            <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-              Editar Historia Clínica
-            </h1>
+      {message && <MessageBanner type="info" message={message} />}
 
-            <p className="mt-2 text-sm text-slate-600">
-              Modificación preparada para la historia clínica seleccionada.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="rounded-global border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Cancelar
-          </button>
-
-        </div>
-      </header>
-
-      {message && (
-        <div className="rounded-global border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          {message}
-        </div>
-      )}
-
-      <Card>
-        <HistoriaClinicaForm
-          mode="edit"
-          values={values}
-          onChange={handleChange}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isSubmitting={isSubmitting}
-        />
-      </Card>
-    </main>
+      <section className="min-h-0 flex-1">
+        <Card>
+          <HistoriaClinicaForm
+            mode="edit"
+            values={values}
+            onChange={handleChange}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            isSubmitting={isSubmitting}
+          />
+        </Card>
+      </section>
+    </HistoriasClinicasDashboardLayout>
   );
 }

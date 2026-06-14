@@ -60,23 +60,14 @@ export const HistoriasClinicasDashboardLayout = ({
           </nav>
 
           <div className="mt-auto border-t border-[#c2c6d4] px-6 py-6">
-            <div className="space-y-2">
-              <button type="button"
-                      className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[14px] font-semibold text-[#424752] transition-all duration-200 hover:bg-[#e1e8fe]"
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  help
-                </span>
+            <div className="space-y-1">
+              <button type="button" className="flex w-full cursor-pointer items-center gap-3">
+                <span className="material-symbols-outlined text-[20px]">help</span>
                 Soporte
               </button>
 
-              <button
-                type="button"
-                className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[14px] font-semibold text-red-600 transition-all duration-200 hover:bg-red-50"
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  logout
-                </span>
+              <button type="button" className="flex w-full cursor-pointer items-center gap-3">
+                <span className="material-symbols-outlined text-[20px]">logout</span>
                 Cerrar sesión
               </button>
             </div>

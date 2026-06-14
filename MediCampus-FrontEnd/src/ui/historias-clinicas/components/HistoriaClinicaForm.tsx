@@ -136,11 +136,11 @@ export const HistoriaClinicaForm = ({
           onChange={(event) => onChange('consultas', event.target.value)}
         />
       </div>
-      <div className="flex flex-wrap gap-2 justify-end">
-        <Button type="button" variant="secondary" onClick={onCancel}>
+      <div className="flex flex-wrap items-center gap-4 justify-end pt-4 border-t border-slate-100">
+        <button type="button" onClick={onCancel} className="cursor-pointer text-sm">
           Cancelar
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        </button>
+        <Button type="submit" disabled={isSubmitting} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white">
           {submitLabel}
         </Button>
       </div>
