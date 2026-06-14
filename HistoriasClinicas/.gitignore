@@ -1,5 +1,3 @@
-agendaSpec/
-**/__pycache__/
+__pycache__/
 *.py[cod]
 db.sqlite3
-.venv/

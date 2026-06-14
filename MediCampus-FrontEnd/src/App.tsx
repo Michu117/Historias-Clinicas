@@ -1,56 +1,36 @@
-import { useState } from 'react';
-import { fetchApiRoot, getApiRootUrl } from './api';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import SecurityLayout from './ui/seguridad/components/SecurityLayout'
+import LoginPage from './ui/seguridad/views/LoginPage'
+import RegisterPage from './ui/seguridad/views/RegisterPage'
+import SecurityDashboard from './ui/seguridad/views/SecurityDashboard'
+import AuditDashboardPage from './ui/seguridad/views/AuditDashboardPage'
+import UserManagementPage from './ui/seguridad/views/UserManagementPage'
+import PermissionAssignmentPage from './ui/seguridad/views/PermissionAssignmentPage'
+import CriticalAlertsPage from './ui/seguridad/views/CriticalAlertsPage'
+import AuditLogDetailPage from './ui/seguridad/views/AuditLogDetailPage'
+import ForbiddenPage from './ui/seguridad/views/ForbiddenPage'
+import LandingPage from './ui/global/LandingPage'
+import HomePage from './ui/global/HomePage'
 
 export default function App() {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-
-  const handleCheckBackend = async () => {
-    setStatus('loading');
-    setMessage('');
-
-    try {
-      const data = await fetchApiRoot();
-      setStatus('ready');
-      setMessage(data.message);
-    } catch (error) {
-      setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Error desconocido');
-    }
-  };
-
   return (
-    <main className="shell">
-      <section className="card hero">
-        <p className="eyebrow">MediCampus FrontEnd</p>
-        <h1>Frontend React para consumir el backend Django</h1>
-        <p className="copy">
-          Esta base apunta al backend en <strong>{getApiRootUrl()}</strong> y trae una prueba simple para validar que la API responde.
-        </p>
-
-        <div className="actions">
-          <button type="button" onClick={handleCheckBackend} disabled={status === 'loading'}>
-            {status === 'loading' ? 'Verificando...' : 'Probar backend'}
-          </button>
-          <span className={`badge badge-${status}`}>{status === 'idle' ? 'listo' : status}</span>
-        </div>
-
-        {message ? <p className="result">{message}</p> : null}
-      </section>
-
-      <section className="card endpoints">
-        <h2>Prueba inicial</h2>
-        <p>
-          El botón consulta la raíz del backend Django. Si responde, el frontend ya está listo para conectarse a los endpoints de autenticación,
-          historias, agendas y reportes.
-        </p>
-        <ul>
-          <li>/api/v1/auth/</li>
-          <li>/api/v1/historias/</li>
-          <li>/api/v1/agendas/</li>
-          <li>/api/v1/reportes/</li>
-        </ul>
-      </section>
-    </main>
-  );
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/seguridad/login" element={<LoginPage />} />
+        <Route path="/seguridad/register" element={<RegisterPage />} />
+        <Route path="/seguridad/403" element={<ForbiddenPage />} />
+        <Route path="/seguridad" element={<SecurityLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<SecurityDashboard />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="permissions" element={<PermissionAssignmentPage />} />
+          <Route path="audit" element={<AuditDashboardPage />} />
+          <Route path="audit/:logId" element={<AuditLogDetailPage />} />
+          <Route path="alerts" element={<CriticalAlertsPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
 }
