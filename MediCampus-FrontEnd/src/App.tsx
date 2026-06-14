@@ -72,7 +72,6 @@ export default function App() {
     return <AgendarCita />;
   }
 
->>>>>>> Stashed changes
   return (
     <BrowserRouter>
       {/* Contenedor principal a pantalla completa */}
