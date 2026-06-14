@@ -166,8 +166,8 @@ const UserManagementPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Directorio de Usuarios</h1>
-            <p className="text-sm text-slate-500 mt-1">Administra los accesos y roles del personal del hospital.</p>
+            <h1 className="text-2xl font-bold text-[#141b2b]">Directorio de Usuarios</h1>
+            <p className="text-sm text-[#424752] mt-1">Administra los accesos y roles del personal del hospital.</p>
           </div>
           <Button variant="primary" onClick={() => setShowCreateModal(true)}>
             + Crear Usuario
@@ -221,10 +221,10 @@ const UserManagementPage: React.FC = () => {
                 paginated.map((u) => (
                   <TableRow key={u.id}>
                     <TableCell>
-                      <div className="font-medium text-slate-900">
+                      <div className="font-medium text-[#141b2b]">
                         {u.usuario ? `${u.usuario.nombre} ${u.usuario.apellido}` : 'Sin perfil'}
                       </div>
-                      <div className="text-sm text-slate-400">{u.correo}</div>
+                      <div className="text-sm text-[#424752]">{u.correo}</div>
                     </TableCell>
                     <TableCell>{u.rol?.nombre || 'Sin rol'}</TableCell>
                     <TableCell>{getStatusBadge(u.esActiva)}</TableCell>
@@ -239,7 +239,7 @@ const UserManagementPage: React.FC = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-slate-400">
+                  <TableCell colSpan={4} className="text-center text-[#424752]">
                     {loading ? 'Cargando...' : isAuthenticated ? 'No hay usuarios registrados' : 'Inicia sesión para ver usuarios'}
                   </TableCell>
                 </TableRow>
@@ -258,41 +258,41 @@ const UserManagementPage: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-500">Nombre</label>
-                  <p className="text-slate-900">{viewUser.usuario?.nombre || '-'}</p>
+                  <label className="block text-sm font-medium text-[#424752]">Nombre</label>
+                  <p className="text-[#141b2b]">{viewUser.usuario?.nombre || '-'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-500">Apellido</label>
-                  <p className="text-slate-900">{viewUser.usuario?.apellido || '-'}</p>
+                  <label className="block text-sm font-medium text-[#424752]">Apellido</label>
+                  <p className="text-[#141b2b]">{viewUser.usuario?.apellido || '-'}</p>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-500">Cédula</label>
-                <p className="text-slate-900">{viewUser.usuario?.cedula || '-'}</p>
+                <label className="block text-sm font-medium text-[#424752]">Cédula</label>
+                <p className="text-[#141b2b]">{viewUser.usuario?.cedula || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-500">Correo electrónico</label>
-                <p className="text-slate-900">{viewUser.correo}</p>
+                <label className="block text-sm font-medium text-[#424752]">Correo electrónico</label>
+                <p className="text-[#141b2b]">{viewUser.correo}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-500">Fecha de nacimiento</label>
-                <p className="text-slate-900">{viewUser.usuario?.fechaNacimiento || '-'}</p>
+                <label className="block text-sm font-medium text-[#424752]">Fecha de nacimiento</label>
+                <p className="text-[#141b2b]">{viewUser.usuario?.fechaNacimiento || '-'}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-500">Sexo</label>
-                  <p className="text-slate-900">
+                  <label className="block text-sm font-medium text-[#424752]">Sexo</label>
+                  <p className="text-[#141b2b]">
                     {viewUser.usuario?.sexo === 'H' ? 'Hombre' : viewUser.usuario?.sexo === 'M' ? 'Mujer' : '-'}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-500">Rol</label>
-                  <p className="text-slate-900">{viewUser.rol?.nombre || 'Sin rol'}</p>
+                  <label className="block text-sm font-medium text-[#424752]">Rol</label>
+                  <p className="text-[#141b2b]">{viewUser.rol?.nombre || 'Sin rol'}</p>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-500">Estado</label>
-                <p className="text-slate-900">{viewUser.esActiva ? 'Activo' : 'Inactivo'}</p>
+                <label className="block text-sm font-medium text-[#424752]">Estado</label>
+                <p className="text-[#141b2b]">{viewUser.esActiva ? 'Activo' : 'Inactivo'}</p>
               </div>
               <div className="flex justify-end pt-2">
                 <Button variant="secondary" onClick={() => setViewUser(null)}>Cerrar</Button>
@@ -304,15 +304,15 @@ const UserManagementPage: React.FC = () => {
         <Modal open={!!editingUser} onClose={() => setEditingUser(null)} title="Editar Usuario">
           <form onSubmit={handleEdit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+              <label className="block text-sm font-medium text-[#424752] mb-1">Nombre</label>
               <Input value={editForm.nombre} onChange={(e) => setEditForm((p) => ({ ...p, nombre: e.target.value }))} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
+              <label className="block text-sm font-medium text-[#424752] mb-1">Apellido</label>
               <Input value={editForm.apellido} onChange={(e) => setEditForm((p) => ({ ...p, apellido: e.target.value }))} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+              <label className="block text-sm font-medium text-[#424752] mb-1">Sexo</label>
               <Select
                 options={SEXO_OPTIONS}
                 value={editForm.sexo}
@@ -336,48 +336,48 @@ const UserManagementPage: React.FC = () => {
 
         <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)} title="Crear Nuevo Usuario">
           <form onSubmit={handleCreate} className="space-y-4">
-            <p className="text-sm text-slate-500 mb-4">Ingresa los datos para registrar un nuevo perfil en el sistema.</p>
+            <p className="text-sm text-[#424752] mb-4">Ingresa los datos para registrar un nuevo perfil en el sistema.</p>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nombre completo</label>
+              <label className="block text-sm font-medium text-[#424752] mb-1">Nombre completo</label>
               <Input placeholder="Nombre y apellido" value={createForm.nombre} onChange={handleCreateField('nombre')} required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
+                <label className="block text-sm font-medium text-[#424752] mb-1">Apellido</label>
                 <Input placeholder="Apellido" value={createForm.apellido} onChange={handleCreateField('apellido')} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Cédula</label>
+                <label className="block text-sm font-medium text-[#424752] mb-1">Cédula</label>
                 <Input placeholder="0102030405" value={createForm.cedula} onChange={handleCreateField('cedula')} required />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Correo institucional</label>
+              <label className="block text-sm font-medium text-[#424752] mb-1">Correo institucional</label>
               <Input type="email" placeholder="correo@hospital.com" value={createForm.correo} onChange={handleCreateField('correo')} required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña provisional</label>
+              <label className="block text-sm font-medium text-[#424752] mb-1">Contraseña provisional</label>
               <Input type="password" placeholder="••••••••" value={createForm.clave} onChange={handleCreateField('clave')} required minLength={8} />
-              <p className="text-xs text-slate-400 mt-1">El usuario deberá cambiarla en su primer ingreso.</p>
+              <p className="text-xs text-[#424752] mt-1">El usuario deberá cambiarla en su primer ingreso.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de nacimiento</label>
+                <label className="block text-sm font-medium text-[#424752] mb-1">Fecha de nacimiento</label>
                 <Input type="date" value={createForm.fechaNacimiento} onChange={handleCreateField('fechaNacimiento')} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+                <label className="block text-sm font-medium text-[#424752] mb-1">Sexo</label>
                 <Select options={SEXO_OPTIONS} value={createForm.sexo} onChange={handleCreateField('sexo')} required />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Rol del sistema</label>
+              <label className="block text-sm font-medium text-[#424752] mb-1">Rol del sistema</label>
               <Select options={ROL_OPTIONS} value={createForm.rol} onChange={handleCreateField('rol')} required />
             </div>
 

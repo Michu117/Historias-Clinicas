@@ -51,8 +51,8 @@ const CriticalAlertsPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Alertas Críticas</h1>
-            <p className="text-sm text-slate-500 mt-1">Monitoreo en tiempo real de eventos de alto riesgo</p>
+            <h1 className="text-2xl font-bold text-[#141b2b]">Alertas Críticas</h1>
+            <p className="text-sm text-[#424752] mt-1">Monitoreo en tiempo real de eventos de alto riesgo</p>
           </div>
           <Button variant="danger" onClick={() => setShowExport(true)}>
             Exportar Logs de Auditoría
@@ -66,15 +66,15 @@ const CriticalAlertsPage: React.FC = () => {
                 <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
                 <CardTitle>Amenazas Activas</CardTitle>
               </div>
-              <span className="text-3xl font-bold text-red-600">{INCIDENTS.filter((i) => i.severity === 'critical').length}</span>
-              <p className="text-sm text-slate-500 mt-1">Requieren revisión inmediata</p>
+              <span className="text-3xl font-bold text-[#dc2626]">{INCIDENTS.filter((i) => i.severity === 'critical').length}</span>
+              <p className="text-sm text-[#424752] mt-1">Requieren revisión inmediata</p>
             </Card>
 
             <Card>
               <CardTitle>Integridad del Sistema</CardTitle>
               <div className="mt-3">
                 <Badge variant="success">Solo Lectura</Badge>
-                <p className="text-sm text-slate-500 mt-2">Todos los logs son inmutables. El registro de auditoría está protegido contra modificaciones.</p>
+                <p className="text-sm text-[#424752] mt-2">Todos los logs son inmutables. El registro de auditoría está protegido contra modificaciones.</p>
               </div>
             </Card>
           </div>
@@ -83,18 +83,18 @@ const CriticalAlertsPage: React.FC = () => {
             <CardTitle className="mb-4">Línea de Tiempo de Incidentes</CardTitle>
             <div className="space-y-4">
               {INCIDENTS.map((incident, idx) => (
-                <div key={idx} className="relative pl-6 pb-4 border-l-2 border-slate-200 last:pb-0">
+                <div key={idx} className="relative pl-6 pb-4 border-l-2 border-[#c2c6d4] last:pb-0">
                   <div className={`absolute left-[-5px] top-1 w-2 h-2 rounded-full ${
                     incident.severity === 'critical' ? 'bg-red-500' : incident.severity === 'warning' ? 'bg-yellow-500' : 'bg-slate-400'
                   }`} />
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-slate-400">{incident.time}</span>
+                    <span className="text-xs text-[#424752]">{incident.time}</span>
                     <Badge variant={severityVariant(incident.severity)}>
                       {incident.severity === 'critical' ? 'Crítico' : incident.severity === 'warning' ? 'Advertencia' : 'Info'}
                     </Badge>
                   </div>
-                  <h4 className="font-medium text-slate-900 text-sm">{incident.title}</h4>
-                  <p className="text-sm text-slate-500 mt-1">{incident.description}</p>
+                  <h4 className="font-medium text-[#141b2b] text-sm">{incident.title}</h4>
+                  <p className="text-sm text-[#424752] mt-1">{incident.description}</p>
                 </div>
               ))}
             </div>
@@ -110,11 +110,11 @@ const CriticalAlertsPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha inicio</label>
+                <label className="block text-sm font-medium text-[#424752] mb-1">Fecha inicio</label>
                 <Input type="date" value={exportForm.startDate} onChange={(e) => setExportForm((p) => ({ ...p, startDate: e.target.value }))} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha fin</label>
+                <label className="block text-sm font-medium text-[#424752] mb-1">Fecha fin</label>
                 <Input type="date" value={exportForm.endDate} onChange={(e) => setExportForm((p) => ({ ...p, endDate: e.target.value }))} />
               </div>
             </div>

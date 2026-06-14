@@ -66,8 +66,8 @@ const AuditDashboardPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Auditoría y Logs de Seguridad</h1>
-            <p className="text-sm text-slate-500 mt-1">Registro de actividades del sistema</p>
+            <h1 className="text-2xl font-bold text-[#141b2b]">Auditoría y Logs de Seguridad</h1>
+            <p className="text-sm text-[#424752] mt-1">Registro de actividades del sistema</p>
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => { setExporting(true); exportAuditLogs({ ...filters, formato: 'csv' }).finally(() => setExporting(false)) }} disabled={exporting}>
@@ -84,42 +84,42 @@ const AuditDashboardPage: React.FC = () => {
 
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Fecha inicio</label>
+            <label className="block text-xs font-medium text-[#424752] mb-1">Fecha inicio</label>
             <Input type="date" value={filters.fecha_desde || ''} onChange={(e) => setFilters((p) => ({ ...p, fecha_desde: e.target.value }))} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Fecha fin</label>
+            <label className="block text-xs font-medium text-[#424752] mb-1">Fecha fin</label>
             <Input type="date" value={filters.fecha_hasta || ''} onChange={(e) => setFilters((p) => ({ ...p, fecha_hasta: e.target.value }))} />
           </div>
           <div className="w-48">
-            <label className="block text-xs font-medium text-slate-500 mb-1">Tipo de acción</label>
+            <label className="block text-xs font-medium text-[#424752] mb-1">Tipo de acción</label>
             <Select options={TIPO_ACCION_OPTIONS} value={filters.tipo_accion || ''} onChange={(e) => setFilters((p) => ({ ...p, tipo_accion: e.target.value }))} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Usuario</label>
+            <label className="block text-xs font-medium text-[#424752] mb-1">Usuario</label>
             <Input type="text" placeholder="Filtrar por correo" value={filters.usuario || ''} onChange={(e) => setFilters((p) => ({ ...p, usuario: e.target.value }))} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <span className="text-sm text-slate-500">Accesos Totales</span>
-            <span className="text-3xl font-bold text-slate-900 mt-1">{totalAccesses}</span>
+            <span className="text-sm text-[#424752]">Accesos Totales</span>
+            <span className="text-3xl font-bold text-[#141b2b] mt-1">{totalAccesses}</span>
             <Badge variant="success">Registros en bitácora</Badge>
           </Card>
           <Card>
-            <span className="text-sm text-slate-500">Modificaciones</span>
-            <span className="text-3xl font-bold text-slate-900 mt-1">{modifications}</span>
+            <span className="text-sm text-[#424752]">Modificaciones</span>
+            <span className="text-3xl font-bold text-[#141b2b] mt-1">{modifications}</span>
             <Badge variant="success">Cambios y registros</Badge>
           </Card>
           <Card>
-            <span className="text-sm text-slate-500">Intentos Bloqueados</span>
-            <span className="text-3xl font-bold text-slate-900 mt-1">{blockedAttempts}</span>
+            <span className="text-sm text-[#424752]">Intentos Bloqueados</span>
+            <span className="text-3xl font-bold text-[#141b2b] mt-1">{blockedAttempts}</span>
             <Badge variant="danger">Fallidos</Badge>
           </Card>
           <Card>
-            <span className="text-sm text-slate-500">Actividades Sospechosas</span>
-            <span className="text-3xl font-bold text-slate-900 mt-1">{suspicious}</span>
+            <span className="text-sm text-[#424752]">Actividades Sospechosas</span>
+            <span className="text-3xl font-bold text-[#141b2b] mt-1">{suspicious}</span>
             <Badge variant="warning">Requiere revisión</Badge>
           </Card>
         </div>
@@ -163,7 +163,7 @@ const AuditDashboardPage: React.FC = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-slate-400">
+                  <TableCell colSpan={6} className="text-center text-[#424752]">
                     {loading ? 'Cargando registros...' : isAuthenticated ? 'No hay registros de auditoría' : 'Inicia sesión para ver los registros'}
                   </TableCell>
                 </TableRow>
