@@ -11,6 +11,10 @@ import PermissionAssignmentPage from './ui/seguridad/views/PermissionAssignmentP
 import CriticalAlertsPage from './ui/seguridad/views/CriticalAlertsPage';
 import AuditLogDetailPage from './ui/seguridad/views/AuditLogDetailPage';
 import ForbiddenPage from './ui/seguridad/views/ForbiddenPage';
+import GestionHistoriasClinicasPage from "./ui/historias-clinicas/pages/GestionHistoriasClinicasPage";
+import NuevaHistoriaClinicaPage from "./ui/historias-clinicas/pages/NuevaHistoriaClinicaPage";
+import {DetalleHistoriaClinicaPage} from "./ui/historias-clinicas/pages/DetalleHistoriaClinicaPage";
+import EditarHistoriaClinicaPage from "./ui/historias-clinicas/pages/EditarHistoriaClinicaPage";
 
 // Importaciones Globales y Reportes
 import LandingPage from './ui/global/LandingPage';
@@ -22,7 +26,7 @@ export default function App() {
   return (
     <BrowserRouter>
       {/* Contenedor principal a pantalla completa */}
-      <div className="w-full h-screen min-h-screen bg-[#faf9ff] overflow-hidden">
+      <div className="w-full min-h-screen bg-[#faf9ff] overflow-y-auto">
         <Routes>
           {/* Rutas Públicas */}
           <Route path="/" element={<LandingPage />} />
@@ -35,8 +39,14 @@ export default function App() {
           {/* Redirecciones de rutas antiguas de reportes */}
           <Route path="/reportes/generales" element={<Navigate to="/reportes" replace />} />
           <Route path="/reportes/servicio/:servicioId" element={<Navigate to="/reportes" replace />} />
-          <Route path="/reportes/genero" element={<Navigate to="/reportes" replace />} />
 
+          <Route path="/historias" element={<GestionHistoriasClinicasPage />} />
+          <Route path="/historias/nueva" element={<NuevaHistoriaClinicaPage/>} />
+          <Route path="/historias/:id" element={<DetalleHistoriaClinicaPage />} />
+          <Route path="/historias/:id/editar" element={<EditarHistoriaClinicaPage/>} />
+
+
+          <Route path="/reportes/genero" element={<Navigate to="/reportes" replace />} />
           {/* Rutas de Seguridad */}
           <Route path="/seguridad/login" element={<LoginPage />} />
           <Route path="/seguridad/register" element={<RegisterPage />} />
