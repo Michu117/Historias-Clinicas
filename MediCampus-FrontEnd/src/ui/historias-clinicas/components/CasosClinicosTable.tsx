@@ -1,48 +1,112 @@
-import React from 'react'
-import { CasoClinico } from "../types";
+import React, { useState } from 'react'
+import { Button } from '../../../ui/components/Button'
+import { Modal } from '../../../ui/components/Modal'
+import type { CasoClinico } from '../types/casoClinico.types'
+import CasoClinicoForm from './CasoClinicoForm'
 
-type Props = {
-  historiaClinicaId: string
-  casos?: CasoClinico[]
+const ESTADO_LABELS: Record<string, string> = {
+  ABIERTO: 'Abierto',
+  EN_SEGUIMIENTO: 'En seguimiento',
+  CERRADO: 'Cerrado',
 }
 
-const CasosClinicosTable: React.FC<Props> = ({ historiaClinicaId, casos = [] }) => {
+const PRIORIDAD_LABELS: Record<string, string> = {
+  ALTA: 'Alta',
+  MEDIA: 'Media',
+  BAJA: 'Baja',
+}
+
+interface Props {
+  items: CasoClinico[]
+  onCreate: (payload: Partial<CasoClinico>) => Promise<void>
+  onUpdate: (id: string, payload: Partial<CasoClinico>) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+}
+
+const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelete }) => {
+  const [editing, setEditing] = useState<CasoClinico | null>(null)
+  const [deleting, setDeleting] = useState<CasoClinico | null>(null)
+
   return (
-    <section>
-      <h2>Casos Clínicos</h2>
-      <p><strong>Historia Clínica:</strong> {historiaClinicaId}</p>
+    <div className="space-y-4">
+      <div className="rounded-global border border-slate-200 bg-white p-4">
+        <h3 className="mb-3 text-sm font-semibold text-slate-800">Nuevo caso clínico</h3>
+        <CasoClinicoForm onSubmit={onCreate} />
+      </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Descripción</th>
-            <th>Prioridad</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {casos.length === 0 ? (
-            <tr>
-              <td colSpan={4}>No hay casos clínicos registrados.</td>
-            </tr>
-          ) : (
-            casos.map((caso) => (
-              <tr key={caso.id}>
-                <td>{caso.descripcion || 'Sin descripción'}</td>
-                <td>{caso.prioridad || 'Sin prioridad'}</td>
-                <td>{caso.estado || 'Sin estado'}</td>
-                <td>
-                  <button type="button">Editar</button>
-                </td>
+      {items.length === 0 ? (
+        <p className="text-sm text-slate-500">No hay casos clínicos registrados.</p>
+      ) : (
+        <div className="overflow-hidden rounded-global border border-slate-200">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-600">
+                <th className="px-4 py-3">Fecha apertura</th>
+                <th className="px-4 py-3">Fecha cierre</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3">Prioridad</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </section>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {items.map((c) => (
+                <tr key={c.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 font-medium text-slate-800">{c.fechaApertura}</td>
+                  <td className="px-4 py-3 text-slate-600">{c.fechaCierre || '—'}</td>
+                  <td className="px-4 py-3 text-slate-600">{ESTADO_LABELS[c.estado] ?? c.estado}</td>
+                  <td className="px-4 py-3 text-slate-600">{PRIORIDAD_LABELS[c.prioridad] ?? c.prioridad}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button type="button" variant="tertiary" size="sm" onClick={() => setEditing(c)}>
+                        Editar
+                      </Button>
+                      <Button type="button" variant="danger" size="sm" onClick={() => setDeleting(c)}>
+                        Eliminar
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Modal open={editing !== null} onClose={() => setEditing(null)} title="Editar caso clínico">
+        {editing && (
+          <CasoClinicoForm
+            initial={editing}
+            onSubmit={async (payload) => {
+              await onUpdate(editing.id, payload)
+              setEditing(null)
+            }}
+            onCancel={() => setEditing(null)}
+          />
+        )}
+      </Modal>
+
+      <Modal open={deleting !== null} onClose={() => setDeleting(null)} title="Confirmar eliminación">
+        {deleting && (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              ¿Está seguro de eliminar este caso clínico? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="secondary" onClick={() => setDeleting(null)}>
+                Cancelar
+              </Button>
+              <Button type="button" variant="danger" onClick={async () => {
+                await onDelete(deleting.id)
+                setDeleting(null)
+              }}>
+                Eliminar
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
   )
 }
 
-export default CasosClinicosTable
+export default CasosClinicosList

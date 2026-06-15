@@ -19,11 +19,11 @@ export const HistoriaClinicaForm = ({
   onCancel,
   isSubmitting = false
 }: HistoriaClinicaFormProps) => {
-  const submitLabel = mode === 'create' ? 'Guardar historia' : 'Actualizar historia';
+  const submitLabel = mode === 'create' ? 'Guardar' : 'Guardar cambios';
 
   return (
     <form
-      className="grid gap-4"
+      className="mx-auto grid max-w-[960px] gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
@@ -84,62 +84,8 @@ export const HistoriaClinicaForm = ({
           onChange={(event) => onChange('factorRiesgo', event.target.value)}
         />
       </div>
-      <div className="grid gap-1">
-        <label htmlFor="historia-antecedentes" className="text-sm font-medium text-slate-700">
-          Antecedentes
-        </label>
-        <textarea
-          id="historia-antecedentes"
-          className="w-full px-3 py-2 border border-slate-300 rounded-global text-sm focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-          rows={3}
-          value={values.antecedentes}
-          placeholder="Antecedentes relevantes"
-          onChange={(event) => onChange('antecedentes', event.target.value)}
-        />
-      </div>
-      <div className="grid gap-1">
-        <label htmlFor="historia-casos" className="text-sm font-medium text-slate-700">
-          Casos
-        </label>
-        <textarea
-          id="historia-casos"
-          className="w-full px-3 py-2 border border-slate-300 rounded-global text-sm focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-          rows={3}
-          value={values.casos}
-          placeholder="Casos asociados"
-          onChange={(event) => onChange('casos', event.target.value)}
-        />
-      </div>
-      <div className="grid gap-1">
-        <label htmlFor="historia-documentos" className="text-sm font-medium text-slate-700">
-          Documentos
-        </label>
-        <textarea
-          id="historia-documentos"
-          className="w-full px-3 py-2 border border-slate-300 rounded-global text-sm focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-          rows={3}
-          value={values.documentos}
-          placeholder="Documentos adjuntos"
-          onChange={(event) => onChange('documentos', event.target.value)}
-        />
-      </div>
-      <div className="grid gap-1">
-        <label htmlFor="historia-consultas" className="text-sm font-medium text-slate-700">
-          Consultas
-        </label>
-        <textarea
-          id="historia-consultas"
-          className="w-full px-3 py-2 border border-slate-300 rounded-global text-sm focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-          rows={3}
-          value={values.consultas}
-          placeholder="Resumen de consultas"
-          onChange={(event) => onChange('consultas', event.target.value)}
-        />
-      </div>
-      <div className="flex flex-wrap items-center gap-4 justify-end pt-4 border-t border-slate-100">
-        <button type="button" onClick={onCancel} className="cursor-pointer text-sm">
-          Cancelar
-        </button>
+
+      <div className="flex justify-end pt-4 border-t border-slate-100">
         <Button type="submit" disabled={isSubmitting} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white">
           {submitLabel}
         </Button>

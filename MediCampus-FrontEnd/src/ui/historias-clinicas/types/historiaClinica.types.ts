@@ -15,10 +15,6 @@ export interface HistoriaClinica {
   estado: EstadoHistoriaClinica;
   usuario: UsuarioHistoriaClinica;
   responsable?: string;
-  antecedentes: string;
-  casos: string;
-  documentos: string;
-  consultas: string;
 }
 
 export interface HistoriaClinicaFormValues {
@@ -27,8 +23,4 @@ export interface HistoriaClinicaFormValues {
   alergia: string;
   condicionPreexistente: string;
   factorRiesgo: string;
-  antecedentes: string;
-  casos: string;
-  documentos: string;
-  consultas: string;
 }

@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 interface HistoriasClinicasDashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -5,6 +7,7 @@ interface HistoriasClinicasDashboardLayoutProps {
 export const HistoriasClinicasDashboardLayout = ({
   children,
 }: HistoriasClinicasDashboardLayoutProps) => {
+  const navigate = useNavigate();
   return (
     <main className="h-screen overflow-hidden bg-[#faf9ff] text-[#141b2b] font-['Inter']">
       <div className="grid h-screen lg:grid-cols-[280px,1fr]">
@@ -27,47 +30,18 @@ export const HistoriasClinicasDashboardLayout = ({
           </div>
 
           <nav className="flex flex-1 flex-col gap-2 px-6 py-6">
-            <a className="flex cursor-pointer items-center gap-3 rounded-lg border-l-4 border-[#003f87] bg-[#d7e2ff] px-4 py-3 text-[14px] font-semibold text-[#001a40]">
+            <a onClick={() => navigate('/historias')} className="flex cursor-pointer items-center gap-3 rounded-lg border-l-4 border-[#003f87] bg-[#d7e2ff] px-4 py-3 text-[14px] font-semibold text-[#001a40]">
               <span className="material-symbols-outlined text-[20px] text-[#003f87]">
                 clinical_notes
               </span>
               Historias Clínicas
             </a>
-            <a className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-[14px] font-semibold text-[#424752] transition-all duration-200 hover:bg-[#e1e8fe]">
-              <span className="material-symbols-outlined text-[20px]">
-                history
-              </span>
-              Antecedentes
-              </a>
-
-            <a
-                className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-[14px] font-semibold text-[#424752] transition-all duration-200 hover:bg-[#e1e8fe]"
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                folder_shared
-              </span>
-              Casos clínicos
-              </a>
-            <a
-                className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-[14px] font-semibold text-[#424752] transition-all duration-200 hover:bg-[#e1e8fe]"
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                description
-              </span>
-              Documentos
-              </a>
-
           </nav>
 
-          <div className="mt-auto border-t border-[#c2c6d4] px-6 py-6">
-            <div className="space-y-1">
-              <button type="button" className="flex w-full cursor-pointer items-center gap-3">
-                <span className="material-symbols-outlined text-[20px]">help</span>
-                Soporte
-              </button>
-
-              <button type="button" className="flex w-full cursor-pointer items-center gap-3">
-                <span className="material-symbols-outlined text-[20px]">logout</span>
+          <div className="mt-auto border-t border-[#c2c6d4] px-6 pt-5 pb-3">
+            <div className="flex flex-col gap-0.5">
+              <button type="button" onClick={() => navigate('/')} className="flex w-full items-center gap-3 bg-transparent p-0 text-[16px] font-bold text-red-600 hover:text-red-700">
+                <span className="material-symbols-outlined text-[22px] text-red-600">logout</span>
                 Cerrar sesión
               </button>
             </div>
@@ -88,7 +62,7 @@ export const HistoriasClinicasDashboardLayout = ({
             </div>
           </header>
 
-          <div className="flex-1 overflow-hidden px-8 py-6">
+          <div className="flex-1 overflow-y-auto px-8 py-6">
             <section className="mx-auto flex h-full w-full max-w-[1760px] flex-col gap-5">
               {children}
             </section>
@@ -100,7 +74,6 @@ export const HistoriasClinicasDashboardLayout = ({
 
               <div className="flex gap-4">
                 <span>Políticas de Privacidad</span>
-                <span>Soporte Técnico</span>
                 <span>Términos de Uso</span>
               </div>
             </div>

@@ -1,8 +1,8 @@
 export type TipoAntecedenteClinico =
-  | 'FAMILIAR'
-  | 'PERSONAL_PATOLOGICO'
-  | 'PERSONAL_NO_PATOLOGICO'
-  | 'GINECO_OBSTETRICO'
+  | 'HEREDOFAMILIARES'
+  | 'PERSONALES_NO_PATOLOGICOS'
+  | 'PERSONALES_PATOLOGICOS'
+  | 'GINECO_OBSTETRICOS'
 
 export interface AntecedenteClinico {
   id: string
@@ -15,4 +15,3 @@ export interface AntecedenteClinico {
 }
 
 export type AntecedenteClinicoModel = AntecedenteClinico
-

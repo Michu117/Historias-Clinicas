@@ -9,6 +9,7 @@ import { HistoriasClinicasPagination } from '../components/HistoriasClinicasPagi
 import { HistoriasClinicasStatsCards } from '../components/HistoriasClinicasStatsCards';
 import { HistoriasClinicasTable } from '../components/HistoriasClinicasTable';
 import { MessageBanner } from '../components/MessageBanner';
+import { ConfirmarCierreHistoriaModal } from '../components/ConfirmarCierreHistoriaModal';
 import { useHistoriasClinicas } from '../hooks/useHistoriasClinicas';
 import { useHistoriasClinicasAuth } from '../hooks/useHistoriasClinicasAuth';
 
@@ -34,6 +35,7 @@ const AuthorizedContent = () => {
   const navigate = useNavigate();
   const [actionMessage, setActionMessage] = useState('');
   const [page, setPage] = useState(1);
+  const [closeTarget, setCloseTarget] = useState<HistoriaClinica | null>(null);
 
   const {
     historias,
@@ -74,15 +76,18 @@ const AuthorizedContent = () => {
   };
 
   const handleClose = (historia: HistoriaClinica) => {
-    const confirmar = window.confirm(
-      `¿Deseas cerrar la historia clínica del paciente ${historia.usuario.nombre}?`
-    );
+    setCloseTarget(historia);
+  };
 
-    if (!confirmar) return;
-
+  const handleConfirmCierre = () => {
     setActionMessage(
       'El cierre de la historia clínica se conectará al backend autenticado en una fase posterior.'
     );
+    setCloseTarget(null);
+  };
+
+  const handleCancelCierre = () => {
+    setCloseTarget(null);
   };
 
   const handleStatusChange = (value: string) => {
@@ -159,6 +164,13 @@ const AuthorizedContent = () => {
       />
 
       {actionMessage && <MessageBanner type="info" message={actionMessage} />}
+
+      <ConfirmarCierreHistoriaModal
+        isOpen={closeTarget !== null}
+        historia={closeTarget}
+        onConfirm={handleConfirmCierre}
+        onCancel={handleCancelCierre}
+      />
 
       <section className="min-h-0 flex-1">
         {loading && (

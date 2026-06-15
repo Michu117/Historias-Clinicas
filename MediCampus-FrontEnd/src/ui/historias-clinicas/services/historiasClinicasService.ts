@@ -1,7 +1,7 @@
 import { apiClient } from './api';
 import type { EstadoHistoriaClinica, HistoriaClinica, HistoriaClinicaFormValues } from '../types/historiaClinica.types';
-import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
-import type { CasoClinico } from '../types/casoClinico.types';
+import type { AntecedenteClinico, TipoAntecedenteClinico } from '../types/antecedenteClinico.types';
+import type { CasoClinico, PrioridadCasoClinico, EstadoCasoClinico } from '../types/casoClinico.types';
 
 const mapApiHistoriaToModel = (api: any): HistoriaClinica => {
   // Mapea de la respuesta del API (snake_case) a nuestro modelo frontend (camelCase)
@@ -19,17 +19,13 @@ const mapApiHistoriaToModel = (api: any): HistoriaClinica => {
     estado: (api.estado as EstadoHistoriaClinica) ?? 'ACTIVA',
     usuario,
     responsable: api.responsable ?? undefined,
-    antecedentes: Array.isArray(api.antecedentes) ? '' : (api.antecedentes ?? ''),
-    casos: Array.isArray(api.casos) ? '' : (api.casos ?? ''),
-    documentos: Array.isArray(api.documentos) ? '' : (api.documentos ?? ''),
-    consultas: api.consultas ?? ''
   };
 };
 
 const mapApiAntecedenteToModel = (api: any): AntecedenteClinico => ({
   id: String(api.id ?? api.pk ?? ''),
-  historiaClinicaId: String(api.historia_clinica ?? api.historiaClinica ?? ''),
-  tipo: (api.tipo_antecedente ?? api.tipo ?? '').toUpperCase(),
+  historiaClinicaId: String(api.historia_clinica ?? ''),
+  tipo: (api.tipo_antecedente ?? '').toUpperCase() as TipoAntecedenteClinico,
   descripcion: api.descripcion ?? '',
   fecha: api.fecha ?? '',
   creadoEn: api.created_at ?? undefined,
@@ -38,13 +34,11 @@ const mapApiAntecedenteToModel = (api: any): AntecedenteClinico => ({
 
 const mapApiCasoToModel = (api: any): CasoClinico => ({
   id: String(api.id ?? api.pk ?? ''),
-  historiaClinicaId: String(api.historia_clinica ?? api.historiaClinica ?? ''),
-  descripcion: api.descripcion ?? api.descripcion_caso ?? '',
-  prioridad: (api.prioridad ?? 'MEDIA') as any,
-  estado: (api.estado_caso ?? api.estado ?? 'ABIERTO') as any,
-  responsable: api.responsable ?? undefined,
-  fechaApertura: api.fecha_apertura ?? undefined,
-  ultimaActualizacion: api.updated_at ?? undefined,
+  historiaClinicaId: String(api.historia_clinica ?? ''),
+  prioridad: (api.prioridad ?? 'MEDIA') as PrioridadCasoClinico,
+  estado: (api.estado_caso ?? 'ABIERTO') as EstadoCasoClinico,
+  fechaApertura: api.fecha_apertura ?? '',
+  fechaCierre: api.fecha_cierre ?? null,
   creadoEn: api.created_at ?? undefined,
   actualizadoEn: api.updated_at ?? undefined,
 });
@@ -95,8 +89,6 @@ export const historiasClinicasService = {
       alergia: payload.alergia,
       condicion_preexistente: payload.condicionPreexistente,
       factor_riesgo: payload.factorRiesgo,
-      consultas: payload.consultas,
-      // El API asigna el usuario desde la sesión en backend; si fuera necesario, ajustar aquí.
     };
     const response = await apiClient.post<any>('/historias/historias_clinicas/', body);
     const data = response.data ?? response;
@@ -111,15 +103,28 @@ export const historiasClinicasService = {
   },
 
   crearAntecedenteClinico: async (payload: Partial<AntecedenteClinico>): Promise<AntecedenteClinico> => {
-    // El backend asocia la historia clínica a partir de la sesión; pero si acepta campo, usar 'historia_clinica'
+    const body: any = {
+      historia_clinica: payload.historiaClinicaId,
+      descripcion: payload.descripcion,
+      fecha: payload.fecha,
+      tipo_antecedente: payload.tipo,
+    };
+    const data = await apiClient.post<any>('/historias/antecedentes/', body);
+    return mapApiAntecedenteToModel(data);
+  },
+
+  actualizarAntecedente: async (id: string, payload: Partial<AntecedenteClinico>): Promise<AntecedenteClinico> => {
     const body: any = {
       descripcion: payload.descripcion,
       fecha: payload.fecha,
       tipo_antecedente: payload.tipo,
     };
-    if (payload.historiaClinicaId) body.historia_clinica = payload.historiaClinicaId;
-    const data = await apiClient.post<any>('/historias/antecedentes/', body);
+    const data = await apiClient.patch<any>(`/historias/antecedentes/${id}/`, body);
     return mapApiAntecedenteToModel(data);
+  },
+
+  eliminarAntecedente: async (id: string): Promise<void> => {
+    await apiClient.delete<void>(`/historias/antecedentes/${id}/`);
   },
 
   listarCasosPorHistoria: async (historiaId: string): Promise<CasoClinico[]> => {
@@ -131,14 +136,29 @@ export const historiasClinicasService = {
 
   crearCasoClinico: async (payload: Partial<CasoClinico>): Promise<CasoClinico> => {
     const body: any = {
-      descripcion: payload.descripcion,
+      historia_clinica: payload.historiaClinicaId,
+      fecha_apertura: payload.fechaApertura,
+      fecha_cierre: payload.fechaCierre || null,
+      estado_caso: payload.estado ?? 'ABIERTO',
       prioridad: payload.prioridad ?? 'MEDIA',
-      fecha_apertura: payload.fechaApertura ?? undefined,
-      estado_caso: payload.estado ?? 'ABIERTO'
     };
-    if (payload.historiaClinicaId) body.historia_clinica = payload.historiaClinicaId;
     const data = await apiClient.post<any>('/historias/casos/', body);
     return mapApiCasoToModel(data);
+  },
+
+  actualizarCaso: async (id: string, payload: Partial<CasoClinico>): Promise<CasoClinico> => {
+    const body: any = {
+      fecha_apertura: payload.fechaApertura,
+      fecha_cierre: payload.fechaCierre,
+      estado_caso: payload.estado,
+      prioridad: payload.prioridad,
+    };
+    const data = await apiClient.patch<any>(`/historias/casos/${id}/`, body);
+    return mapApiCasoToModel(data);
+  },
+
+  eliminarCaso: async (id: string): Promise<void> => {
+    await apiClient.delete<void>(`/historias/casos/${id}/`);
   },
   
   actualizarHistoriaClinica: async (
@@ -147,16 +167,12 @@ export const historiasClinicasService = {
     alergia: string;
     condicionPreexistente: string;
     factorRiesgo: string;
-    consultas: string;
-    responsable?: string;
   }
 ): Promise<HistoriaClinica> => {
   const body = {
     alergia: payload.alergia,
     condicion_preexistente: payload.condicionPreexistente,
     factor_riesgo: payload.factorRiesgo,
-    consultas: payload.consultas,
-    responsable: payload.responsable,
   };
 
   const response = await apiClient.patch<any>(

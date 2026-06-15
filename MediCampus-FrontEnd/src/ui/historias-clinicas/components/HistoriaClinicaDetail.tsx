@@ -43,22 +43,7 @@ export const HistoriaClinicaDetail = ({ historia }: HistoriaClinicaDetailProps) 
           <dt className="font-medium text-slate-900">Factor de riesgo</dt>
           <dd>{historia.factorRiesgo}</dd>
         </div>
-        <div>
-          <dt className="font-medium text-slate-900">Antecedentes</dt>
-          <dd>{historia.antecedentes}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-slate-900">Casos</dt>
-          <dd>{historia.casos}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-slate-900">Documentos</dt>
-          <dd>{historia.documentos}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-slate-900">Consultas</dt>
-          <dd>{historia.consultas}</dd>
-        </div>
+
       </dl>
     </Card>
   );

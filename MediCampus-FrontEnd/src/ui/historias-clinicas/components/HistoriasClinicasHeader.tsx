@@ -44,14 +44,14 @@ export const HistoriasClinicasHeader = ({
 
       <div className="flex items-center gap-5">
         {backTo !== undefined && (
-          <button type="button" onClick={handleBack} className="flex cursor-pointer items-center gap-1">
+          <button type="button" onClick={handleBack} className="flex items-center gap-1 bg-transparent p-0 text-[14px] font-medium text-[#424752] hover:text-[#003f87]">
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Volver
           </button>
         )}
 
         {secondaryAction && (
-          <button type="button" onClick={secondaryAction.onClick} className="cursor-pointer">
+          <button type="button" onClick={secondaryAction.onClick} className="bg-transparent p-0 text-[14px] font-medium text-[#424752] hover:text-[#003f87]">
             {secondaryAction.label}
           </button>
         )}
@@ -60,7 +60,7 @@ export const HistoriasClinicasHeader = ({
           <button
             type="button"
             onClick={action.onClick}
-            className="rounded-lg bg-[#2563eb] px-5 py-2 text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#1d4ed8]"
+            className="rounded-lg bg-[#2563eb] px-8 py-3 text-[17px] font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
           >
             {action.label}
           </button>

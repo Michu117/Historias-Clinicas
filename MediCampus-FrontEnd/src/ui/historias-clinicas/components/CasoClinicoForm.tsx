@@ -1,113 +1,125 @@
 import React, { useState } from 'react'
-import type { CasoClinico } from '../types/casoClinico.types'
+import { Button } from '../../../ui/components/Button'
+import type { CasoClinico, EstadoCasoClinico, PrioridadCasoClinico } from '../types/casoClinico.types'
 
-type PrioridadCaso = 'ALTA' | 'MEDIA' | 'BAJA'
-type EstadoCaso = 'ABIERTO' | 'EN_SEGUIMIENTO' | 'CERRADO'
-
-interface CasoClinicoFormProps {
-  historiaClinicaId: string
-  casos?: CasoClinico[]
-  onSubmit?: (payload: Partial<CasoClinico>) => Promise<any>
+interface Props {
+  initial?: CasoClinico
+  onSubmit: (payload: Partial<CasoClinico>) => Promise<void>
+  onCancel?: () => void
 }
 
-const CasoClinicoForm: React.FC<CasoClinicoFormProps> = ({
-  historiaClinicaId,
-  casos = [],
-  onSubmit,
-}) => {
-  const [descripcion, setDescripcion] = useState('')
-  const [prioridad, setPrioridad] = useState<PrioridadCaso | ''>('')
-  const [estado, setEstado] = useState<EstadoCaso | ''>('')
+const ESTADO_OPTIONS: { value: EstadoCasoClinico; label: string }[] = [
+  { value: 'ABIERTO', label: 'Abierto' },
+  { value: 'EN_SEGUIMIENTO', label: 'En seguimiento' },
+  { value: 'CERRADO', label: 'Cerrado' },
+]
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+const PRIORIDAD_OPTIONS: { value: PrioridadCasoClinico; label: string }[] = [
+  { value: 'ALTA', label: 'Alta' },
+  { value: 'MEDIA', label: 'Media' },
+  { value: 'BAJA', label: 'Baja' },
+]
+
+const CasoClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }) => {
+  const [fechaApertura, setFechaApertura] = useState(initial?.fechaApertura ?? '')
+  const [fechaCierre, setFechaCierre] = useState(initial?.fechaCierre ?? '')
+  const [estado, setEstado] = useState<EstadoCasoClinico>(initial?.estado ?? 'ABIERTO')
+  const [prioridad, setPrioridad] = useState<PrioridadCasoClinico>(initial?.prioridad ?? 'MEDIA')
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!onSubmit) return
-
+    if (!fechaApertura) return
+    setSaving(true)
     await onSubmit({
-      historiaClinicaId,
-      descripcion,
-      prioridad: prioridad || 'MEDIA',
-      estado: estado || 'ABIERTO',
+      fechaApertura,
+      fechaCierre: fechaCierre || null,
+      estado,
+      prioridad,
     })
-
-    setDescripcion('')
-    setPrioridad('')
-    setEstado('')
+    setSaving(false)
+    if (!initial) {
+      setFechaApertura('')
+      setFechaCierre('')
+      setEstado('ABIERTO')
+      setPrioridad('MEDIA')
+    }
   }
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="description">Descripción</label>
-          <textarea
-            id="description"
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Fecha de apertura
+          </label>
+          <input
+            type="date"
             required
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
+            value={fechaApertura}
+            onChange={(e) => setFechaApertura(e.target.value)}
+            className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
           />
         </div>
-
         <div>
-          <label htmlFor="priority">Prioridad</label>
-          <select
-            id="priority"
-            required
-            value={prioridad}
-            onChange={(e) => setPrioridad(e.target.value as PrioridadCaso | '')}
-          >
-            <option value="">Seleccione</option>
-            <option value="ALTA">ALTA</option>
-            <option value="MEDIA">MEDIA</option>
-            <option value="BAJA">BAJA</option>
-          </select>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Fecha de cierre <span className="text-slate-400">(opcional)</span>
+          </label>
+          <input
+            type="date"
+            value={fechaCierre}
+            onChange={(e) => setFechaCierre(e.target.value)}
+            className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          />
         </div>
-
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="state">Estado</label>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Estado del caso
+          </label>
           <select
-            id="state"
             required
             value={estado}
-            onChange={(e) => setEstado(e.target.value as EstadoCaso | '')}
+            onChange={(e) => {
+              const val = e.target.value as EstadoCasoClinico
+              setEstado(val)
+              if (val !== 'CERRADO') setFechaCierre('')
+            }}
+            className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
           >
-            <option value="">Seleccione</option>
-            <option value="ABIERTO">ABIERTO</option>
-            <option value="EN_SEGUIMIENTO">EN_SEGUIMIENTO</option>
-            <option value="CERRADO">CERRADO</option>
+            {ESTADO_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
         </div>
-
-        <button type="submit">Crear Caso</button>
-      </form>
-
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold">Casos registrados</h3>
-
-        {casos.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            No hay casos clínicos registrados.
-          </p>
-        ) : (
-          casos.map((caso) => (
-            <div
-              key={caso.id}
-              className="rounded-global border border-slate-200 p-3"
-            >
-              <p className="text-sm font-medium">
-                {caso.descripcion || 'Caso clínico sin descripción'}
-              </p>
-
-              <p className="text-xs text-slate-500">
-                Estado: {caso.estado || 'Sin estado'} | Prioridad:{' '}
-                {caso.prioridad || 'Sin prioridad'}
-              </p>
-            </div>
-          ))
-        )}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Prioridad
+          </label>
+          <select
+            required
+            value={prioridad}
+            onChange={(e) => setPrioridad(e.target.value as PrioridadCasoClinico)}
+            className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          >
+            {PRIORIDAD_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
-    </div>
+      <div className="flex justify-end gap-2">
+        {onCancel && (
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            Cancelar
+          </Button>
+        )}
+        <Button type="submit" variant="primary" disabled={saving || !fechaApertura}>
+          {saving ? 'Guardando...' : initial ? 'Actualizar' : 'Agregar caso clínico'}
+        </Button>
+      </div>
+    </form>
   )
 }
 
