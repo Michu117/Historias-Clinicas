@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
@@ -9,10 +10,16 @@ export default defineConfig({
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/backend/, '')
+      },
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
       }
     }
   },
   test: {
-    environment: 'node'
+    environment: 'jsdom', 
+    globals: true,        
+    setupFiles: './src/setupTests.ts', 
   }
 });

@@ -1,11 +1,20 @@
+import csv
+from io import BytesIO
+
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
-from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
 
 from .models import Bitacora, Cuenta, Rol, Usuario
 from .permissions import IsAdmin, IsOwnerOrAdmin
@@ -22,7 +31,20 @@ from .serializers import (
     UserListSerializer,
     UserUpdateSerializer,
 )
-from .services import generar_tokens, obtener_cuenta_por_correo, obtener_bitacoras_recientes, registrar_bitacora
+from .services import (
+    generar_tokens,
+    obtener_bitacoras,
+    obtener_cuenta_por_correo,
+    obtener_usuarios,
+    registrar_bitacora,
+)
+
+
+def _get_client_ip(request):
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        return xff.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
 
 
 class RegistroView(APIView):
@@ -62,6 +84,7 @@ class RegistroView(APIView):
             tipo_accion=Bitacora.TipoAccion.REGISTRO,
             modulo_afectado='autenticacion',
             detalle='Registro de cuenta exitoso.',
+            direccion_ip=_get_client_ip(request),
         )
         return Response(
             {
@@ -109,6 +132,7 @@ class LoginView(APIView):
                     tipo_accion=Bitacora.TipoAccion.INICIO_SESION_FALLIDO,
                     modulo_afectado='autenticacion',
                     detalle='Intento de inicio de sesión fallido.',
+                    direccion_ip=_get_client_ip(request),
                 )
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
@@ -118,6 +142,7 @@ class LoginView(APIView):
             tipo_accion=Bitacora.TipoAccion.INICIO_SESION,
             modulo_afectado='autenticacion',
             detalle='Inicio de sesión exitoso.',
+            direccion_ip=_get_client_ip(request),
         )
         return Response(
             {
@@ -166,6 +191,7 @@ class RefreshView(TokenRefreshView):
                     tipo_accion=Bitacora.TipoAccion.REFRESCO_TOKEN,
                     modulo_afectado='autenticacion',
                     detalle='Refresco de token exitoso.',
+                    direccion_ip=_get_client_ip(request),
                 )
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
@@ -177,10 +203,20 @@ class UserListCreateView(APIView):
     @extend_schema(
         operation_id='user_list',
         summary='Listar todos los usuarios',
+        parameters=[
+            OpenApiParameter(name='rol', description='Filtrar por nombre de rol', required=False, type=str),
+            OpenApiParameter(name='activo', description='Filtrar por estado (true/false)', required=False, type=str),
+            OpenApiParameter(name='busqueda', description='Buscar por correo, nombre, apellido o cédula', required=False, type=str),
+        ],
         responses={200: UserListSerializer(many=True)},
     )
     def get(self, request):
-        users = Cuenta.objects.all()
+        params = request.query_params
+        users = obtener_usuarios(
+            rol_nombre=params.get('rol'),
+            activo={'true': True, 'false': False, '1': True, '0': False}.get(params.get('activo', '').lower()) if params.get('activo') else None,
+            busqueda=params.get('busqueda'),
+        )
         serializer = UserListSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -332,6 +368,7 @@ class RoleCreateView(APIView):
             tipo_accion=Bitacora.TipoAccion.CAMBIO_ROL,
             modulo_afectado='roles',
             detalle=f'Creación de nuevo rol: {rol.nombre}',
+            direccion_ip=_get_client_ip(request),
         )
         
         return Response(
@@ -346,6 +383,13 @@ class BitacoraListView(APIView):
     @extend_schema(
         operation_id='bitacora_list',
         summary='Listar registros de auditoría (solo administradores)',
+        parameters=[
+            OpenApiParameter(name='fecha_desde', description='Fecha inicio (YYYY-MM-DD)', required=False, type=str),
+            OpenApiParameter(name='fecha_hasta', description='Fecha fin (YYYY-MM-DD)', required=False, type=str),
+            OpenApiParameter(name='tipo_accion', description='Filtrar por tipo de acción', required=False, type=str),
+            OpenApiParameter(name='usuario', description='Filtrar por correo de usuario', required=False, type=str),
+            OpenApiParameter(name='limite', description='Máximo de registros (default 100)', required=False, type=int),
+        ],
         responses={
             200: BitacoraListSerializer(many=True),
             403: OpenApiResponse(description='Solo administradores pueden ver los registros.'),
@@ -359,6 +403,114 @@ class BitacoraListView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         
-        bitacoras = obtener_bitacoras_recientes()
+        params = request.query_params
+        bitacoras = obtener_bitacoras(
+            fecha_desde=params.get('fecha_desde'),
+            fecha_hasta=params.get('fecha_hasta'),
+            tipo_accion=params.get('tipo_accion'),
+            usuario_correo=params.get('usuario'),
+            limite=int(params.get('limite', '100')),
+        )
         serializer = BitacoraListSerializer(bitacoras, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+def _export_csv(bitacoras):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="auditoria_logs.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Fecha/Hora', 'Tipo Acción', 'Módulo', 'Usuario', 'IP', 'Detalle'])
+    for b in bitacoras:
+        writer.writerow([
+            b.id,
+            b.fecha_hora.strftime('%Y-%m-%d %H:%M:%S'),
+            b.get_tipo_accion_display(),
+            b.modulo_afectado,
+            b.cuenta.correo if b.cuenta else '',
+            b.direccion_ip or '',
+            b.detalle,
+        ])
+    return response
+
+
+def _export_pdf(bitacoras):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), title='Auditoría de Seguridad')
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('Title2', parent=styles['Title'], fontSize=16, spaceAfter=20)
+    normal = styles['Normal']
+
+    elements = []
+    elements.append(Paragraph('Reporte de Auditoría de Seguridad', title_style))
+    elements.append(Spacer(1, 0.5 * cm))
+
+    headers = ['ID', 'Fecha/Hora', 'Tipo Acción', 'Módulo', 'Usuario', 'IP', 'Detalle']
+    data = [headers]
+    for b in bitacoras:
+        data.append([
+            str(b.id),
+            b.fecha_hora.strftime('%Y-%m-%d %H:%M:%S'),
+            b.get_tipo_accion_display(),
+            b.modulo_afectado,
+            b.cuenta.correo if b.cuenta else '',
+            b.direccion_ip or '',
+            b.detalle,
+        ])
+
+    col_widths = [30, 130, 100, 80, 130, 90, 140]
+    table = Table(data, colWidths=col_widths, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f1f5f9')]),
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 0.5 * cm))
+    elements.append(Paragraph(f'Total de registros: {len(bitacoras)}', normal))
+
+    doc.build(elements)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="auditoria_logs.pdf"'
+    return response
+
+
+class BitacoraExportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        operation_id='bitacora_export',
+        summary='Exportar registros de auditoría (solo administradores)',
+        parameters=[
+            OpenApiParameter(name='fecha_desde', required=False, type=str),
+            OpenApiParameter(name='fecha_hasta', required=False, type=str),
+            OpenApiParameter(name='tipo_accion', required=False, type=str),
+            OpenApiParameter(name='formato', description='Formato: csv o pdf (default csv)', required=False, type=str),
+        ],
+        responses={200: OpenApiResponse(description='Archivo de auditoría.')},
+    )
+    def get(self, request):
+        permission = IsAdmin()
+        if not permission.has_permission(request, self):
+            return Response(
+                {'detail': 'Solo administradores pueden exportar los registros.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        params = request.query_params
+        bitacoras = obtener_bitacoras(
+            fecha_desde=params.get('fecha_desde'),
+            fecha_hasta=params.get('fecha_hasta'),
+            tipo_accion=params.get('tipo_accion'),
+            limite=10000,
+        )
+
+        formato = params.get('formato', 'csv').lower()
+        if formato == 'pdf':
+            return _export_pdf(bitacoras)
+        return _export_csv(bitacoras)
