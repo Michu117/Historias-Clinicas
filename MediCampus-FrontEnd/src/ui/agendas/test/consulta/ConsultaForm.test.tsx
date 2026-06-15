@@ -41,15 +41,20 @@ vi.mock('../../component/consulta/ConsultaSocialForm', () => ({
 }));
 
 describe('ConsultaForm', () => {
-  const mockCita: Cita = {
+  const mockCita: any = {
     id: 1,
-    usuario_id: 1,
-    fecha_hora: '2026-06-15T10:00:00Z',
+    paciente_id: 1,
+    profesional_id: 0,
+    servicio_id: 1,
+    fecha: '2026-06-15',
+    hora: '10:00',
+    duracion_minutos: 30,
+    margen_minutos: 30,
     estado: 'AGENDADA',
     motivo: 'Control anual',
     servicios: [{ id: 1, nombre: 'Medicina General', descripcion: '', es_activo: true, fecha_creacion: '2026-01-01T00:00:00Z' }],
-    fecha_creacion: '2026-06-14T08:00:00Z',
-    fecha_actualizacion: '2026-06-14T08:00:00Z',
+    created_at: '2026-06-14T08:00:00Z',
+    updated_at: '2026-06-14T08:00:00Z',
   };
 
   const mockOnSave = vi.fn();

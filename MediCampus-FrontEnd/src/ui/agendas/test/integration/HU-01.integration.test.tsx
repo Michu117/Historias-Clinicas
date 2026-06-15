@@ -20,15 +20,15 @@ function HU01IntegrationTest() {
 const mockServicios: Servicio[] = [
   {
     id: 1,
-    nombre: 'Cardiología',
-    descripcion: 'Especialidad del corazón',
+    nombre: 'Medicina',
+    descripcion: 'Atención médica general',
     es_activo: true,
     profesionales: [
       {
         id: 101,
         nombre: 'Dr. Carlos García',
         email: 'carlos.garcia@hospital.com',
-        especialidad: 'Cardiología',
+        especialidad: 'Medicina',
         rol: 'PROFESIONAL',
         is_activo: true,
       },
@@ -41,7 +41,7 @@ const mockProfesionales: Profesional[] = [
     id: 101,
     nombre: 'Dr. Carlos García',
     email: 'carlos.garcia@hospital.com',
-    especialidad: 'Cardiología',
+    especialidad: 'Medicina',
     rol: 'PROFESIONAL',
     is_activo: true,
   },

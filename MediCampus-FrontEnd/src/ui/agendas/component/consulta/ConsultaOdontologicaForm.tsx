@@ -33,7 +33,7 @@ export const ConsultaOdontologicaForm: React.FC<ConsultaOdontologicaFormProps> =
 
   const getFormData = () => ({
     cita: cita.id,
-    historia_clinica_id: cita.usuario_id,
+    historia_clinica_id: cita.paciente_id,
     odontograma,
     procedimientos,
     observaciones,

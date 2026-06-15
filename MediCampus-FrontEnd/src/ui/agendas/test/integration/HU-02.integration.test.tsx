@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { MiAgenda } from '../../component/pages/MiAgenda';
 import { useAgenda } from '../../hooks/useAgenda';
 
@@ -14,20 +15,19 @@ describe('HU-02: Visualizar Agenda - Integration', () => {
     expect(typeof useAgenda).toBe('function');
   });
 
-  it('debe renderizar la página MiAgenda con tabla', () => {
-    render(<MiAgenda />);
-    expect(screen.getByText(/mi agenda/i)).toBeInTheDocument();
+  it('debe renderizar la página MiAgenda con título Agenda Diaria', () => {
+    render(<MemoryRouter><MiAgenda /></MemoryRouter>);
+    expect(screen.getByText(/agenda diaria/i)).toBeInTheDocument();
   });
 
-  it('debe renderizar filtros de fecha en MiAgenda', () => {
-    render(<MiAgenda />);
-    expect(screen.getByLabelText(/desde/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/hasta/i)).toBeInTheDocument();
+  it('debe renderizar filtros de estado en MiAgenda', () => {
+    render(<MemoryRouter><MiAgenda /></MemoryRouter>);
+    expect(screen.getByText(/todos/i)).toBeInTheDocument();
+    expect(screen.getByText(/programados/i)).toBeInTheDocument();
   });
 
   it('debe cargar agenda del profesional actual', () => {
-    const { getByText } = render(<MiAgenda />);
-    // La página debe renderizar sin errores y mostrar el título
-    expect(getByText(/mi agenda/i)).toBeInTheDocument();
+    const { getByText } = render(<MemoryRouter><MiAgenda /></MemoryRouter>);
+    expect(getByText(/agenda diaria/i)).toBeInTheDocument();
   });
 });

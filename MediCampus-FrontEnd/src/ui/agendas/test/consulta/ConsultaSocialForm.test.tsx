@@ -6,15 +6,17 @@ import * as consultaValidators from '../../utils/validators/consultaValidators';
 describe('ConsultaSocialForm', () => {
   const mockCita: Cita = {
     id: 1,
-    usuario_id: 1,
-    fecha_hora: '2026-06-15T10:00:00Z',
-    estado: 'AGENDADA',
+    paciente_id: 1,
+    profesional_id: 0,
+    servicio_id: 4,
+    fecha: '2026-06-15',
+    hora: '10:00',
+    duracion_minutos: 30,
+    margen_minutos: 30,
+    estado: 'AGENDADA' as any,
     motivo: 'Evaluación social',
-    servicios: [
-      { id: 4, nombre: 'Trabajo Social', descripcion: '', es_activo: true, fecha_creacion: '2026-01-01T00:00:00Z' },
-    ],
-    fecha_creacion: '2026-06-14T08:00:00Z',
-    fecha_actualizacion: '2026-06-14T08:00:00Z',
+    created_at: '2026-06-14T08:00:00Z',
+    updated_at: '2026-06-14T08:00:00Z',
   };
   const mockOnSave = vi.fn();
 

@@ -6,7 +6,7 @@
 import axios, { AxiosInstance, AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { ApiError, ApiErrorResponse } from '../../types';
 
-const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /**
  * Obtiene la URL base del API desde variables de entorno o default
@@ -42,7 +42,7 @@ export const createAxiosInstance = (): AxiosInstance => {
    */
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
         logApiDebug('JWT agregado al header', { url: config.url });
@@ -68,8 +68,8 @@ export const createAxiosInstance = (): AxiosInstance => {
       if (error.response?.status === 401) {
         logApiDebug('401 Unauthorized - Limpiando token', { url: error.config?.url });
         localStorage.removeItem('access_token');
+        localStorage.removeItem('token');
         localStorage.removeItem('user');
-        // Aquí se puede disparar un evento para redirigir al login
       }
 
       // Convertir AxiosError a ApiError

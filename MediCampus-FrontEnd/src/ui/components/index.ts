@@ -1,5 +1,5 @@
 export { Button } from './Button'
-export { Card } from './Card'
+export { Card, CardTitle } from './Card'
 export { Input } from './Input'
 export { Select } from './Select'
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Table'

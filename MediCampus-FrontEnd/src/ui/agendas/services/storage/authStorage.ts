@@ -37,7 +37,7 @@ export const saveToken = (token: string): void => {
  */
 export const getToken = (): string | null => {
   try {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem('token');
 
     if (!token) {
       return null;
@@ -71,6 +71,7 @@ export const isTokenValid = (): boolean => {
 export const clearToken = (): void => {
   try {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('token');
     localStorage.removeItem(USER_KEY);
   } catch (error) {
     console.error('Error al limpiar tokens de localStorage:', error);
@@ -98,12 +99,22 @@ export const getTokenPayload = (): JWTPayload | null => {
 };
 
 /**
- * Obtiene el user_id del token actual
- * @returns user_id si el token es válido, null si no existe o está expirado
+ * Obtiene el user_id del token actual o del currentUser almacenado
+ * @returns user_id si se encuentra, null si no existe
  */
 export const getUserId = (): number | null => {
   const payload = getTokenPayload();
-  return payload?.user_id ?? null;
+  if (payload?.user_id) return payload.user_id;
+
+  try {
+    const raw = localStorage.getItem('currentUser');
+    if (raw) {
+      const user = JSON.parse(raw);
+      if (user?.id) return user.id;
+    }
+  } catch { /* noop */ }
+
+  return null;
 };
 
 /**

@@ -5,7 +5,7 @@ Controladores que exponen JSON y delegan lógica a services.py.
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Cita, Servicio, Derivacion, Certificado
@@ -23,10 +23,11 @@ class BaseAgendasViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class CitaViewSet(BaseAgendasViewSet):
+class CitaViewSet(viewsets.ModelViewSet):
     queryset = Cita.objects.all()
     serializer_class = CitaSerializer
-    filterset_fields = ['usuario_id', 'estado']
+    permission_classes = [AllowAny]
+    filterset_fields = ['usuario_id', 'profesional_id', 'estado']
     ordering_fields = ['fecha_hora', 'fecha_creacion']
     ordering = ['-fecha_hora']
 
@@ -69,9 +70,10 @@ class CitaViewSet(BaseAgendasViewSet):
         return Response(historial, status=status.HTTP_200_OK)
 
 
-class ServicioViewSet(BaseAgendasViewSet):
+class ServicioViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Servicio.objects.filter(es_activo=True)
     serializer_class = ServicioSerializer
+    permission_classes = [AllowAny]
     ordering_fields = ['nombre', 'fecha_creacion']
     ordering = ['nombre']
 
@@ -79,6 +81,56 @@ class ServicioViewSet(BaseAgendasViewSet):
 class AtencionViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+
+    SERIALIZER_MAP = {
+        'medica': ConsultaMedicaSerializer,
+        'odontologica': ConsultaOdontologicaSerializer,
+        'psicologica': ConsultaPsicologicaSerializer,
+        'social': ConsultaSocialSerializer,
+    }
+
+    def _get_serializer(self, tipo_consulta):
+        return self.SERIALIZER_MAP.get(tipo_consulta.lower())
+
+    def _get_tipo_consulta(self, consulta):
+        mapping = {
+            'ConsultaMedica': 'medica',
+            'ConsultaOdontologica': 'odontologica',
+            'ConsultaPsicologica': 'psicologica',
+            'ConsultaSocial': 'social',
+        }
+        return mapping.get(consulta.__class__.__name__)
+
+    def list(self, request):
+        cita_id = request.query_params.get('cita_id')
+        if not cita_id:
+            return Response(
+                {'error': 'Debe proporcionar cita_id como parámetro de consulta.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        consulta = services.obtener_atencion_por_cita(cita_id=cita_id)
+        if consulta is None:
+            return Response({'data': None}, status=status.HTTP_200_OK)
+
+        tipo = self._get_tipo_consulta(consulta)
+        serializer_class = self._get_serializer(tipo)
+        if serializer_class is None:
+            return Response({'error': 'Tipo de consulta desconocido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'data': serializer_class(consulta).data}, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, pk=None):
+        for tipo, modelo_cls in [('medica', ConsultaMedica), ('odontologica', ConsultaOdontologica),
+                                  ('psicologica', ConsultaPsicologica), ('social', ConsultaSocial)]:
+            try:
+                consulta = modelo_cls.objects.get(id=pk)
+                serializer = self._get_serializer(tipo)
+                return Response(serializer(consulta).data, status=status.HTTP_200_OK)
+            except modelo_cls.DoesNotExist:
+                continue
+
+        return Response({'error': 'Consulta no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
     def create(self, request):
         cita_id = request.data.get('cita_id')
@@ -98,12 +150,7 @@ class AtencionViewSet(viewsets.ViewSet):
                 datos_consulta=datos_consulta,
             )
 
-            serializer = {
-                'medica': ConsultaMedicaSerializer,
-                'odontologica': ConsultaOdontologicaSerializer,
-                'psicologica': ConsultaPsicologicaSerializer,
-                'social': ConsultaSocialSerializer,
-            }.get(tipo_consulta.lower())
+            serializer = self._get_serializer(tipo_consulta)
 
             if serializer is None:
                 return Response(
@@ -115,6 +162,29 @@ class AtencionViewSet(viewsets.ViewSet):
 
         except services.EstadoCitaInvalidoError as exc:
             return Response({'error': str(exc)}, status=status.HTTP_409_CONFLICT)
+        except services.DatosInvalidosError as exc:
+            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk=None):
+        tipo_consulta = request.data.get('tipo_consulta')
+        datos_consulta = request.data.get('datos_consulta', {})
+
+        if not tipo_consulta:
+            return Response(
+                {'error': 'Debe proporcionar tipo_consulta.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            consulta = services.actualizar_atencion(
+                consulta_id=pk,
+                tipo_consulta=tipo_consulta,
+                datos_consulta=datos_consulta,
+            )
+
+            serializer = self._get_serializer(tipo_consulta)
+            return Response(serializer(consulta).data, status=status.HTTP_200_OK)
+
         except services.DatosInvalidosError as exc:
             return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 

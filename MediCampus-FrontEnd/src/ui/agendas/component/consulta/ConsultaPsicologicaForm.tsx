@@ -39,7 +39,7 @@ export const ConsultaPsicologicaForm: React.FC<ConsultaPsicologicaFormProps> = (
 
   const getFormData = () => ({
     cita: cita.id,
-    historia_clinica_id: cita.usuario_id,
+    historia_clinica_id: cita.paciente_id,
     notas_evolucion: notasEvolucion,
     estado_humor: estadoHumor,
     nivel_ansiedad: nivelAnsiedad,

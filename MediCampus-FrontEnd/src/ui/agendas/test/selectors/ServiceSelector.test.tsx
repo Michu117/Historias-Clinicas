@@ -12,22 +12,29 @@ import { Servicio } from '../../types';
 const mockServicios: Servicio[] = [
   {
     id: 1,
-    nombre: 'Cardiología',
-    descripcion: 'Especialidad del corazón',
+    nombre: 'Medicina',
+    descripcion: 'Atención médica general',
     es_activo: true,
     profesionales: [{ id: 101, nombre: 'Dr. García', email: 'dr.garcia@hospital.com', is_activo: true, rol: 'PROFESIONAL' }],
   },
   {
     id: 2,
-    nombre: 'Dermatología',
-    descripcion: 'Especialidad de la piel',
+    nombre: 'Odontologia',
+    descripcion: 'Atención odontológica',
     es_activo: true,
     profesionales: [{ id: 102, nombre: 'Dra. López', email: 'dra.lopez@hospital.com', is_activo: true, rol: 'PROFESIONAL' }],
   },
   {
     id: 3,
-    nombre: 'Oftalmología',
-    descripcion: 'Especialidad de los ojos',
+    nombre: 'Trabajo Social',
+    descripcion: 'Atención de trabajo social',
+    es_activo: false,
+    profesionales: [],
+  },
+  {
+    id: 4,
+    nombre: 'Psicologia',
+    descripcion: 'Atención psicológica',
     es_activo: false,
     profesionales: [],
   },
@@ -64,9 +71,10 @@ describe('ServiceSelector Component', () => {
         />
       );
 
-      expect(screen.getByText('Cardiología')).toBeInTheDocument();
-      expect(screen.getByText('Dermatología')).toBeInTheDocument();
-      expect(screen.queryByText('Oftalmología')).not.toBeInTheDocument();
+      expect(screen.getByText('Medicina')).toBeInTheDocument();
+      expect(screen.getByText('Odontologia')).toBeInTheDocument();
+      expect(screen.queryByText('Trabajo Social')).not.toBeInTheDocument();
+      expect(screen.queryByText('Psicologia')).not.toBeInTheDocument();
     });
 
     it('debe mostrar loading spinner cuando isLoading=true', () => {

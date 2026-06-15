@@ -22,6 +22,7 @@ import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
 import { AgendarCita } from './ui/agendas/component/pages/AgendarCita';
 import { MiAgenda } from './ui/agendas/component/pages/MiAgenda';
 import { Derivaciones } from './ui/agendas/component/pages/Derivaciones';
+import { Consulta } from './ui/agendas/component/pages/Consulta';
 import { getToken } from './ui/agendas/services/storage/authStorage';
 import { validateTokenRole } from './ui/agendas/utils/auth/jwtValidator';
 
@@ -30,15 +31,7 @@ function ProfessionalGuard({ children }: { children: React.ReactNode }) {
   const isProfessional = token ? validateTokenRole(token, 'PROFESIONAL') : false;
 
   if (!isProfessional) {
-    return (
-      <main className="shell">
-        <section className="card hero">
-          <p className="eyebrow">Acceso restringido</p>
-          <h1>Mi Agenda</h1>
-          <p>Debes iniciar sesión como profesional para acceder a esta página.</p>
-        </section>
-      </main>
-    );
+    return <Navigate to="/seguridad/login" replace />;
   }
 
   return <>{children}</>;
@@ -49,41 +42,42 @@ export default function App() {
     <BrowserRouter>
       <div className="w-full h-screen min-h-screen bg-[#faf9ff] overflow-hidden">
         <Routes>
-          {/* Rutas Públicas */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<HomePage />} />
+        {/* Rutas Públicas */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<HomePage />} />
 
-          {/* Rutas de Reportes */}
-          <Route path="/reportes" element={<ReportesDashboardPage />} />
-          <Route path="/reportes/rango" element={<ReportesRangoPage />} />
+        {/* Rutas de Reportes */}
+        <Route path="/reportes" element={<ReportesDashboardPage />} />
+        <Route path="/reportes/rango" element={<ReportesRangoPage />} />
 
-          {/* Redirecciones de rutas antiguas de reportes */}
-          <Route path="/reportes/generales" element={<Navigate to="/reportes" replace />} />
-          <Route path="/reportes/servicio/:servicioId" element={<Navigate to="/reportes" replace />} />
-          <Route path="/reportes/genero" element={<Navigate to="/reportes" replace />} />
+        {/* Redirecciones de rutas antiguas de reportes */}
+        <Route path="/reportes/generales" element={<Navigate to="/reportes" replace />} />
+        <Route path="/reportes/servicio/:servicioId" element={<Navigate to="/reportes" replace />} />
+        <Route path="/reportes/genero" element={<Navigate to="/reportes" replace />} />
 
-          {/* Rutas de Seguridad */}
-          <Route path="/seguridad/login" element={<LoginPage />} />
-          <Route path="/seguridad/register" element={<RegisterPage />} />
-          <Route path="/seguridad/403" element={<ForbiddenPage />} />
+        {/* Rutas de Seguridad */}
+        <Route path="/seguridad/login" element={<LoginPage />} />
+        <Route path="/seguridad/register" element={<RegisterPage />} />
+        <Route path="/seguridad/403" element={<ForbiddenPage />} />
 
-          <Route path="/seguridad" element={<SecurityLayout />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<SecurityDashboard />} />
-            <Route path="users" element={<UserManagementPage />} />
-            <Route path="permissions" element={<PermissionAssignmentPage />} />
-            <Route path="audit" element={<AuditDashboardPage />} />
-            <Route path="audit/:logId" element={<AuditLogDetailPage />} />
-            <Route path="alerts" element={<CriticalAlertsPage />} />
-          </Route>
+        <Route path="/seguridad" element={<SecurityLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<SecurityDashboard />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="permissions" element={<PermissionAssignmentPage />} />
+          <Route path="audit" element={<AuditDashboardPage />} />
+          <Route path="audit/:logId" element={<AuditLogDetailPage />} />
+          <Route path="alerts" element={<CriticalAlertsPage />} />
+        </Route>
 
-          {/* Rutas de Agendas */}
-          <Route path="/AgendarCita" element={<AgendarCita />} />
-          <Route path="/agendas/mi-agenda" element={<ProfessionalGuard><MiAgenda /></ProfessionalGuard>} />
-          <Route path="/agendas/derivaciones" element={<ProfessionalGuard><Derivaciones /></ProfessionalGuard>} />
+        {/* Rutas de Agendas */}
+        <Route path="/AgendarCita" element={<AgendarCita />} />
+        <Route path="/agendas/mi-agenda" element={<ProfessionalGuard><MiAgenda /></ProfessionalGuard>} />
+        <Route path="/agendas/consulta/:citaId?" element={<ProfessionalGuard><Consulta /></ProfessionalGuard>} />
+        <Route path="/agendas/derivaciones" element={<ProfessionalGuard><Derivaciones /></ProfessionalGuard>} />
 
-          {/* Fallback para rutas no encontradas */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Fallback para rutas no encontradas */}
+        <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </BrowserRouter>

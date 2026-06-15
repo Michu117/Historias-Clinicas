@@ -18,13 +18,17 @@ vi.mock('../../component/consulta/SignosVitalesInput', () => ({
 describe('ConsultaMedicaForm', () => {
   const mockCita: Cita = {
     id: 1,
-    usuario_id: 1,
-    fecha_hora: '2026-06-15T10:00:00Z',
-    estado: 'AGENDADA',
+    paciente_id: 1,
+    profesional_id: 0,
+    servicio_id: 1,
+    fecha: '2026-06-15',
+    hora: '10:00',
+    duracion_minutos: 30,
+    margen_minutos: 30,
+    estado: 'AGENDADA' as any,
     motivo: 'Control anual',
-    servicios: [{ id: 1, nombre: 'Medicina General', descripcion: '', es_activo: true, fecha_creacion: '2026-01-01T00:00:00Z' }],
-    fecha_creacion: '2026-06-14T08:00:00Z',
-    fecha_actualizacion: '2026-06-14T08:00:00Z',
+    created_at: '2026-06-14T08:00:00Z',
+    updated_at: '2026-06-14T08:00:00Z',
   };
   const mockOnSave = vi.fn();
 
@@ -34,14 +38,13 @@ describe('ConsultaMedicaForm', () => {
     vi.spyOn(consultaValidators, 'isConsultaEditable').mockReturnValue(true);
   });
 
-  // Campos: Anamnesis, Diagnóstico, Tratamiento, SignosVitales
+  // Campos: Anamnesis, Tratamiento, Observaciones, SignosVitales
   it('should render all required fields for ConsultaMedicaForm', () => {
     render(<ConsultaMedicaForm cita={mockCita} onSave={mockOnSave} isEditable={true} />);
     expect(screen.getByLabelText(/Anamnesis/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Diagnóstico/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Tratamiento/i)).toBeInTheDocument();
-    expect(screen.getByTestId('signos-vitales-input')).toBeInTheDocument();
     expect(screen.getByLabelText(/Observaciones/i)).toBeInTheDocument();
+    expect(screen.getByTestId('signos-vitales-input')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Guardar Consulta/i })).toBeInTheDocument();
   });
 
@@ -51,7 +54,6 @@ describe('ConsultaMedicaForm', () => {
     render(<ConsultaMedicaForm cita={mockCita} onSave={mockOnSave} isEditable={true} />);
 
     fireEvent.change(screen.getByLabelText(/Anamnesis/i), { target: { value: 'Some anamnesis' } });
-    fireEvent.change(screen.getByLabelText(/Diagnóstico/i), { target: { value: 'Some diagnosis' } });
     fireEvent.change(screen.getByLabelText(/Tratamiento/i), { target: { value: 'Some treatment' } });
     // Assume observations are left empty or too short, triggering validation failure
 
@@ -69,7 +71,6 @@ describe('ConsultaMedicaForm', () => {
     render(<ConsultaMedicaForm cita={mockCita} onSave={mockOnSave} initialData={{ observaciones: 'Saved' }} isEditable={false} />);
 
     expect(screen.getByLabelText(/Anamnesis/i)).toBeDisabled();
-    expect(screen.getByLabelText(/Diagnóstico/i)).toBeDisabled();
     expect(screen.getByLabelText(/Tratamiento/i)).toBeDisabled();
     expect(screen.getByLabelText(/Observaciones/i)).toBeDisabled();
     expect(screen.queryByRole('button', { name: /Guardar Consulta/i })).not.toBeInTheDocument();
@@ -79,7 +80,6 @@ describe('ConsultaMedicaForm', () => {
     render(<ConsultaMedicaForm cita={mockCita} onSave={mockOnSave} isEditable={true} />);
 
     fireEvent.change(screen.getByLabelText(/Anamnesis/i), { target: { value: 'Paciente con dolor de cabeza' } });
-    fireEvent.change(screen.getByLabelText(/Diagnóstico/i), { target: { value: 'Cefalea tensional' } });
     fireEvent.change(screen.getByLabelText(/Tratamiento/i), { target: { value: 'Reposo y analgésicos' } });
     fireEvent.change(screen.getByLabelText(/Observaciones/i), { target: { value: 'Se recomienda seguimiento en 3 días.' } });
 
@@ -94,7 +94,7 @@ describe('ConsultaMedicaForm', () => {
       expect(mockOnSave).toHaveBeenCalledWith({
         anamnesis: 'Paciente con dolor de cabeza',
         tratamiento: 'Reposo y analgésicos',
-        diagnostico: 'Cefalea tensional',
+        diagnostico: '',
         observaciones: 'Se recomienda seguimiento en 3 días.',
         signos_vitales: {
           peso_kg: 75,

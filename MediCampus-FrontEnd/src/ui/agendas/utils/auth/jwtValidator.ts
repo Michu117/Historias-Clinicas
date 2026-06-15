@@ -27,9 +27,9 @@ export const parseJWT = (token: string): JWTPayload => {
     const decoded = atob(padded); // Base64 decode
     const parsed = JSON.parse(decoded);
 
-    // Validar que tenga las propiedades necesarias
-    if (!parsed.user_id || !parsed.email || !parsed.rol || !parsed.exp) {
-      throw new Error('JWT inválido: faltan propiedades obligatorias (user_id, email, rol, exp)');
+    // Validar que tenga exp (mínimo necesario)
+    if (!parsed.exp) {
+      throw new Error('JWT inválido: falta exp');
     }
 
     return parsed as JWTPayload;
@@ -81,24 +81,38 @@ export const getTokenExpiresIn = (token: string): number => {
   }
 };
 
+const PROFESSIONAL_ROLES = new Set(['PROFESIONAL', 'medico', 'psicologo']);
+const ADMIN_ROLES = new Set(['ADMIN', 'admin', 'Administrador']);
+
 /**
- * Verifica que el rol del token coincida con el esperado (case-sensitive)
- * Implementa RN-005: Validación de rol con zero-trust
+ * Verifica que el rol del token coincida con el esperado
+ * Acepta tanto roles del frontend (PROFESIONAL/ADMIN) como del backend (medico/psicologo/admin)
  * @param token - JWT a verificar
- * @param expectedRole - Rol esperado (case-sensitive)
- * @returns true si el rol coincide exactamente
+ * @param expectedRole - Rol esperado
+ * @returns true si el rol coincide
  */
+export const getTokenRole = (token: string): string | null => {
+  try {
+    const payload = parseJWT(token);
+    return payload.rol || null;
+  } catch {
+    return null;
+  }
+};
+
 export const validateTokenRole = (token: string, expectedRole: string): boolean => {
   try {
     const payload = parseJWT(token);
 
-    // Validación case-sensitive (RN-005: zero-trust)
-    if (payload.rol !== expectedRole) {
-      console.warn(`Rol inválido: esperado '${expectedRole}', obtuvo '${payload.rol}'`);
-      return false;
+    const expectedUpper = expectedRole.toUpperCase();
+    if (expectedUpper === 'PROFESIONAL') {
+      return PROFESSIONAL_ROLES.has(payload.rol);
+    }
+    if (expectedUpper === 'ADMIN') {
+      return ADMIN_ROLES.has(payload.rol);
     }
 
-    return true;
+    return payload.rol === expectedRole;
   } catch (error) {
     console.error('Error al validar rol del token:', error);
     return false;

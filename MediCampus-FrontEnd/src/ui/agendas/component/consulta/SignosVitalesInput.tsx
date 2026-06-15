@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { SignosVitales } from '../../types';
-import { messages } from '../../utils/constants/messages';
 
 interface SignosVitalesInputProps {
   initialData?: SignosVitales | null;
@@ -28,7 +27,6 @@ export const SignosVitalesInput: React.FC<SignosVitalesInputProps> = ({
   }, [initialData]);
 
   useEffect(() => {
-    // Llama a onUpdate cada vez que los valores cambian internamente
     onUpdate({
       peso_kg: pesoKg,
       temperatura: temperatura,
@@ -46,64 +44,56 @@ export const SignosVitalesInput: React.FC<SignosVitalesInputProps> = ({
     setter(isNaN(value) ? 0 : value);
   };
 
+  const inputClass = `w-full h-11 px-4 bg-[#f1f3ff] border border-[#c4c6d0] rounded-xl text-sm focus:ring-2 focus:ring-[#0056b3] focus:bg-white outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`;
+
   return (
-    <div className="space-y-4 rounded-md border p-4 bg-gray-50">
-      <h3 className="text-lg font-semibold">{messages.titles.registrarSignosVitales}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="peso_kg" className="block text-sm font-medium text-gray-700">
-            Peso (kg)
-          </label>
-          <input
-            type="number"
-            id="peso_kg"
-            value={pesoKg}
-            onChange={handleNumericChange(setPesoKg)}
-            disabled={!isEditable}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-            step="0.01"
-          />
-        </div>
-        <div>
-          <label htmlFor="temperatura" className="block text-sm font-medium text-gray-700">
-            Temperatura (°C)
-          </label>
-          <input
-            type="number"
-            id="temperatura"
-            value={temperatura}
-            onChange={handleNumericChange(setTemperatura)}
-            disabled={!isEditable}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-            step="0.1"
-          />
-        </div>
-        <div>
-          <label htmlFor="presion_arterial" className="block text-sm font-medium text-gray-700">
-            Presión Arterial (Ej. 120/80)
-          </label>
-          <input
-            type="text"
-            id="presion_arterial"
-            value={presionArterial}
-            onChange={handleValueChange(setPresionArterial)}
-            disabled={!isEditable}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-        </div>
-        <div>
-          <label htmlFor="frecuencia_cardiaca" className="block text-sm font-medium text-gray-700">
-            Frecuencia Cardíaca (bpm)
-          </label>
-          <input
-            type="number"
-            id="frecuencia_cardiaca"
-            value={frecuenciaCardiaca}
-            onChange={handleNumericChange(setFrecuenciaCardiaca)}
-            disabled={!isEditable}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-        </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="space-y-2">
+        <label htmlFor="peso_kg" className="text-[11px] font-black text-[#44474e] uppercase tracking-[0.1em]">Peso (kg)</label>
+        <input
+          type="number"
+          id="peso_kg"
+          value={pesoKg}
+          onChange={handleNumericChange(setPesoKg)}
+          disabled={!isEditable}
+          className={inputClass}
+          step="0.01"
+        />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="temperatura" className="text-[11px] font-black text-[#44474e] uppercase tracking-[0.1em]">Temperatura (°C)</label>
+        <input
+          type="number"
+          id="temperatura"
+          value={temperatura}
+          onChange={handleNumericChange(setTemperatura)}
+          disabled={!isEditable}
+          className={inputClass}
+          step="0.1"
+        />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="presion_arterial" className="text-[11px] font-black text-[#44474e] uppercase tracking-[0.1em]">Presión Arterial</label>
+        <input
+          type="text"
+          id="presion_arterial"
+          value={presionArterial}
+          onChange={handleValueChange(setPresionArterial)}
+          disabled={!isEditable}
+          className={inputClass}
+          placeholder="Ej. 120/80"
+        />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="frecuencia_cardiaca" className="text-[11px] font-black text-[#44474e] uppercase tracking-[0.1em]">Frecuencia Cardíaca (bpm)</label>
+        <input
+          type="number"
+          id="frecuencia_cardiaca"
+          value={frecuenciaCardiaca}
+          onChange={handleNumericChange(setFrecuenciaCardiaca)}
+          disabled={!isEditable}
+          className={inputClass}
+        />
       </div>
     </div>
   );

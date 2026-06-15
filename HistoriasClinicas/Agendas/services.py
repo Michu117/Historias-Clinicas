@@ -166,6 +166,95 @@ def registrar_atencion_integral(cita_id, tipo_consulta, datos_consulta):
         raise DatosInvalidosError(f'Error al registrar la atención: {str(exc)}')
 
 
+def obtener_atencion_por_cita(cita_id):
+    """Obtiene la consulta/atención asociada a una cita."""
+    modelos = [ConsultaMedica, ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial]
+    for modelo in modelos:
+        try:
+            return modelo.objects.get(cita_id=cita_id)
+        except modelo.DoesNotExist:
+            continue
+    return None
+
+
+def actualizar_atencion(consulta_id, tipo_consulta, datos_consulta):
+    """Actualiza una consulta existente con nuevos datos."""
+    tipo_consulta = tipo_consulta.lower()
+    modelos = {
+        'medica': ConsultaMedica,
+        'odontologica': ConsultaOdontologica,
+        'psicologica': ConsultaPsicologica,
+        'social': ConsultaSocial,
+    }
+    modelo = modelos.get(tipo_consulta)
+    if not modelo:
+        raise DatosInvalidosError(f'Tipo de consulta inválido: {tipo_consulta}')
+
+    try:
+        consulta = modelo.objects.get(id=consulta_id)
+    except modelo.DoesNotExist:
+        raise DatosInvalidosError(f'No existe consulta {tipo_consulta} con ID {consulta_id}')
+
+    with transaction.atomic():
+        historia_clinica_id = datos_consulta.get('historia_clinica_id')
+        if historia_clinica_id:
+            consulta.historia_clinica_id = historia_clinica_id
+
+        if 'observaciones' in datos_consulta:
+            consulta.observaciones = datos_consulta['observaciones']
+
+        if tipo_consulta == 'medica':
+            if 'anamnesis' in datos_consulta:
+                consulta.anamnesis = datos_consulta['anamnesis']
+            if 'tratamiento' in datos_consulta:
+                consulta.tratamiento = datos_consulta['tratamiento']
+            if 'diagnostico' in datos_consulta:
+                consulta.diagnostico = datos_consulta['diagnostico']
+            if 'signos_vitales' in datos_consulta:
+                signos = datos_consulta['signos_vitales']
+                sv = consulta.signos_vitales
+                if 'peso_kg' in signos:
+                    sv.peso_kg = signos['peso_kg']
+                if 'temperatura' in signos:
+                    sv.temperatura = signos['temperatura']
+                if 'presion_arterial' in signos:
+                    sv.presion_arterial = signos['presion_arterial']
+                if 'frecuencia_cardiaca' in signos:
+                    sv.frecuencia_cardiaca = signos['frecuencia_cardiaca']
+                sv.save()
+
+        elif tipo_consulta == 'odontologica':
+            if 'odontograma' in datos_consulta:
+                consulta.odontograma = datos_consulta['odontograma']
+            if 'procedimientos' in datos_consulta:
+                consulta.procedimientos = datos_consulta['procedimientos']
+
+        elif tipo_consulta == 'psicologica':
+            if 'diagnostico' in datos_consulta:
+                consulta.diagnostico = datos_consulta['diagnostico']
+            if 'notas_evolucion' in datos_consulta:
+                consulta.notas_evolucion = datos_consulta['notas_evolucion']
+            if 'estado_humor' in datos_consulta:
+                consulta.estado_humor = datos_consulta['estado_humor']
+            if 'nivel_ansiedad' in datos_consulta:
+                consulta.nivel_ansiedad = datos_consulta['nivel_ansiedad']
+            if 'nivel_autoestima' in datos_consulta:
+                consulta.nivel_autoestima = datos_consulta['nivel_autoestima']
+
+        elif tipo_consulta == 'social':
+            if 'nivel_socioeconomico' in datos_consulta:
+                consulta.nivel_socioeconomico = datos_consulta['nivel_socioeconomico']
+            if 'descripcion_vivienda' in datos_consulta:
+                consulta.descripcion_vivienda = datos_consulta['descripcion_vivienda']
+
+        servicios = datos_consulta.get('servicios')
+        if servicios:
+            consulta.servicios.set(validar_servicios_cita(servicios))
+
+        consulta.save()
+        return consulta
+
+
 def gestionar_derivacion(usuario_id, remitente_id, destinatario, tipo_derivacion, motivo):
     """Crea una derivación interna o externa para un usuario."""
     if not usuario_id:

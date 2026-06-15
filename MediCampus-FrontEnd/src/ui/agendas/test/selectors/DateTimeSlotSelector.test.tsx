@@ -37,7 +37,7 @@ describe('DateTimeSlotSelector Component', () => {
   });
 
   describe('Rendering', () => {
-    it('debe renderizar selector de fecha y hora', () => {
+    it('debe renderizar selector de fecha', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -51,10 +51,25 @@ describe('DateTimeSlotSelector Component', () => {
       );
 
       expect(screen.getByText(/selecciona una fecha/i)).toBeInTheDocument();
-      expect(screen.getByText(/selecciona una hora/i)).toBeInTheDocument();
     });
 
-    it('debe mostrar loading spinner cuando isLoading=true', () => {
+    it('debe mostrar hint para seleccionar hora cuando no hay fecha', () => {
+      render(
+        <DateTimeSlotSelector
+          profesionalId={101}
+          servicioId={1}
+          citasExistentes={[]}
+          selectedDate={null}
+          selectedTime={null}
+          onSelect={mockOnSelect}
+          isLoading={false}
+        />
+      );
+
+      expect(screen.getByText(/seleccione primero una fecha/i)).toBeInTheDocument();
+    });
+
+    it('debe mostrar loading cuando isLoading=true', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -71,7 +86,7 @@ describe('DateTimeSlotSelector Component', () => {
     });
   });
 
-  describe('Validación de Fechas (RN-001)', () => {
+  describe('Validaci\u00f3n de Fechas (RN-001)', () => {
     it('debe deshabilitar fechas pasadas', () => {
       render(
         <DateTimeSlotSelector
@@ -85,14 +100,13 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // Fecha pasada debería estar deshabilitada
       const pastDate = screen.queryByTestId('date-2026-05-26');
       if (pastDate) {
         expect((pastDate as HTMLInputElement).disabled).toBe(true);
       }
     });
 
-    it('debe permitir fechas futuras (mínimo 1 día adelante)', () => {
+    it('debe permitir fechas futuras (m\u00ednimo 1 d\u00eda adelante)', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -105,12 +119,11 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // Fecha mañana debería estar habilitada
       const futureDate = screen.getByTestId('date-2026-05-28');
       expect((futureDate as HTMLInputElement).disabled).toBe(false);
     });
 
-    it('debe permitir agendar hasta 90 días adelante', () => {
+    it('debe permitir agendar hasta 90 d\u00edas adelante', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -123,12 +136,11 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // Fecha dentro del rango (90 días) debería estar habilitada
       const validDate = screen.getByTestId('date-2026-08-25');
       expect((validDate as HTMLInputElement).disabled).toBe(false);
     });
 
-    it('debe deshabilitar fechas fuera del rango de 90 días', () => {
+    it('debe deshabilitar fechas fuera del rango de 90 d\u00edas', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -141,7 +153,6 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // Fecha muy lejana debería estar deshabilitada
       const tooFarDate = screen.queryByTestId('date-2026-09-01');
       if (tooFarDate) {
         expect((tooFarDate as HTMLInputElement).disabled).toBe(true);
@@ -163,20 +174,16 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // Horario con conflicto (10:00 - cita existente) debe estar deshabilitado
       const conflictTime = screen.queryByTestId('time-10:00');
       if (conflictTime) {
-        expect((conflictTime as HTMLOptionElement).disabled).toBe(true);
+        expect((conflictTime as HTMLButtonElement).disabled).toBe(true);
       }
 
-      // Horario sin conflicto (14:00) debe estar habilitado
       const availableTime = screen.getByTestId('time-14:00');
-      expect((availableTime as HTMLOptionElement).disabled).toBe(false);
+      expect((availableTime as HTMLButtonElement).disabled).toBe(false);
     });
 
     it('debe considerar margen de tiempo entre citas (RN-002)', () => {
-      // Cita existente: 10:00-10:30 (duracion: 30) con margen 30 minutos
-      // Próxima cita disponible desde: 11:00
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -189,14 +196,13 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // 10:30 (fin de cita + margen) debe estar deshabilitado
       const marginTime = screen.queryByTestId('time-10:30');
       if (marginTime) {
-        expect((marginTime as HTMLOptionElement).disabled).toBe(true);
+        expect((marginTime as HTMLButtonElement).disabled).toBe(true);
       }
     });
 
-    it('debe respetar horario de atención (08:00 - 18:00)', () => {
+    it('debe respetar horario de atenci\u00f3n (08:00 - 18:00)', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -209,12 +215,11 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // Horas fuera del rango deben estar deshabilitadas
       const beforeStart = screen.queryByTestId('time-07:00');
       const afterEnd = screen.queryByTestId('time-19:00');
 
-      if (beforeStart) expect((beforeStart as HTMLOptionElement).disabled).toBe(true);
-      if (afterEnd) expect((afterEnd as HTMLOptionElement).disabled).toBe(true);
+      if (beforeStart) expect((beforeStart as HTMLButtonElement).disabled).toBe(true);
+      if (afterEnd) expect((afterEnd as HTMLButtonElement).disabled).toBe(true);
     });
 
     it('debe excluir descanso (12:00 - 13:00)', () => {
@@ -230,15 +235,14 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      // Horarios en descanso deben estar deshabilitados
       const breakTime = screen.queryByTestId('time-12:30');
       if (breakTime) {
-        expect((breakTime as HTMLOptionElement).disabled).toBe(true);
+        expect((breakTime as HTMLButtonElement).disabled).toBe(true);
       }
     });
   });
 
-  describe('Selección', () => {
+  describe('Selecci\u00f3n', () => {
     it('debe ejecutar onSelect cuando se selecciona fecha y hora', async () => {
       render(
         <DateTimeSlotSelector
@@ -253,10 +257,10 @@ describe('DateTimeSlotSelector Component', () => {
       );
 
       const dateInput = screen.getByTestId('date-picker');
-      const timeSelect = screen.getByTestId('time-picker');
-
       fireEvent.change(dateInput, { target: { value: '2026-05-28' } });
-      fireEvent.change(timeSelect, { target: { value: '14:00' } });
+
+      const timeButton = await screen.findByTestId('time-14:00');
+      fireEvent.click(timeButton);
 
       await waitFor(() => {
         expect(mockOnSelect).toHaveBeenCalledWith({
@@ -280,10 +284,10 @@ describe('DateTimeSlotSelector Component', () => {
       );
 
       const dateInput = screen.getByTestId('date-picker') as HTMLInputElement;
-      const timeSelect = screen.getByTestId('time-picker') as HTMLSelectElement;
-
       expect(dateInput.value).toBe('2026-05-28');
-      expect(timeSelect.value).toBe('14:00');
+
+      const selectedButton = screen.getByTestId('time-14:00') as HTMLButtonElement;
+      expect(selectedButton).toBeInTheDocument();
     });
   });
 });

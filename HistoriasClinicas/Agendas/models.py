@@ -25,6 +25,7 @@ class EstadoCita(models.TextChoices):
 
 class Cita(models.Model):
     usuario_id = models.IntegerField()
+    profesional_id = models.IntegerField(null=True, blank=True)
     fecha_hora = models.DateTimeField()
     estado = models.CharField(
         max_length=16,

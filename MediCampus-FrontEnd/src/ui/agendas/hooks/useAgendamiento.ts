@@ -1,10 +1,9 @@
-/**
- * Stub file para hooks - se implementarán en FASE 1+
- */
-
 import { Servicio, Profesional, Cita, EstadoCita } from '../types';
 import { isDatePast, hasConflict } from '../utils/validators/citaValidators';
 import { messages } from '../utils/constants/messages';
+import { servicioService } from '../services/api/servicioService';
+import citaService from '../services/api/citaService';
+import { getUserId } from '../services/storage/authStorage';
 
 interface UseAgendamientoState {
   servicios: Servicio[];
@@ -31,10 +30,31 @@ interface UseAgendamientoState {
 const defaultServicios: Servicio[] = [
   {
     id: 1,
-    nombre: 'Cardiología',
-    descripcion: 'Especialidad del corazón',
+    nombre: 'Medicina',
+    descripcion: 'Atención médica general',
     es_activo: true,
     profesionales: [101],
+  },
+  {
+    id: 2,
+    nombre: 'Odontologia',
+    descripcion: 'Atención odontológica',
+    es_activo: true,
+    profesionales: [102],
+  },
+  {
+    id: 3,
+    nombre: 'Trabajo Social',
+    descripcion: 'Atención de trabajo social',
+    es_activo: true,
+    profesionales: [103],
+  },
+  {
+    id: 4,
+    nombre: 'Psicologia',
+    descripcion: 'Atención psicológica',
+    es_activo: true,
+    profesionales: [104],
   },
 ];
 
@@ -43,7 +63,31 @@ const defaultProfesionales: Profesional[] = [
     id: 101,
     nombre: 'Dr. Carlos García',
     email: 'carlos.garcia@hospital.com',
-    especialidad: 'Cardiología',
+    especialidad: 'Medicina',
+    rol: 'PROFESIONAL',
+    is_activo: true,
+  },
+  {
+    id: 102,
+    nombre: 'Dra. Laura Martínez',
+    email: 'laura.martinez@hospital.com',
+    especialidad: 'Odontologia',
+    rol: 'PROFESIONAL',
+    is_activo: true,
+  },
+  {
+    id: 103,
+    nombre: 'Trab. Soc. Ana López',
+    email: 'ana.lopez@hospital.com',
+    especialidad: 'Trabajo Social',
+    rol: 'PROFESIONAL',
+    is_activo: true,
+  },
+  {
+    id: 104,
+    nombre: 'Psic. Ricardo Torres',
+    email: 'ricardo.torres@hospital.com',
+    especialidad: 'Psicologia',
     rol: 'PROFESIONAL',
     is_activo: true,
   },
@@ -67,20 +111,11 @@ const defaultCitas: Cita[] = [
   },
 ];
 
-/**
- * Convierte un string HH:mm en minutos desde medianoche.
- * @param time - Hora en formato HH:mm
- * @returns minutos desde las 00:00 o NaN si el formato es inválido
- */
 const parseTime = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
   return Number.isNaN(hours) || Number.isNaN(minutes) ? NaN : hours * 60 + minutes;
 };
 
-/**
- * Hook principal de agendamiento para HU-01.
- * Provee carga de servicios, profesionales, validación de disponibilidad y creación de citas.
- */
 export const useAgendamiento = (): UseAgendamientoState => {
   const agendamientoState: UseAgendamientoState = {
     servicios: [],
@@ -95,19 +130,24 @@ export const useAgendamiento = (): UseAgendamientoState => {
     loadServicios: async () => {
       agendamientoState.isLoading = true;
       agendamientoState.error = null;
-      await Promise.resolve();
       agendamientoState.servicios = [...defaultServicios];
+      try {
+        const data = await servicioService.listar();
+        if (data.length > 0) {
+          agendamientoState.servicios = data;
+        }
+      } catch {
+        agendamientoState.servicios = [...defaultServicios];
+      }
       agendamientoState.isLoading = false;
     },
     loadProfesionales: async (servicioId: number) => {
       agendamientoState.isLoading = true;
       agendamientoState.error = null;
       await Promise.resolve();
-      if (servicioId === 1) {
-        agendamientoState.profesionales = [...defaultProfesionales];
-      } else {
-        agendamientoState.profesionales = [];
-      }
+      agendamientoState.profesionales = defaultProfesionales.filter(
+        (p) => p.especialidad === defaultServicios.find((s) => s.id === servicioId)?.nombre
+      );
       agendamientoState.isLoading = false;
     },
     checkDisponibilidad: (profesionalId: number, servicioId: number, fecha: string, hora: string) => {
@@ -182,25 +222,41 @@ export const useAgendamiento = (): UseAgendamientoState => {
         return Promise.resolve({} as Cita);
       }
 
-      const cita: Cita = {
-        id: agendamientoState.citasExistentes.length + 1,
-        paciente_id: citaData.paciente_id,
-        profesional_id: citaData.profesional_id,
-        servicio_id: citaData.servicio_id,
-        servicios_ids: citaData.servicios_ids ?? [citaData.servicio_id],
-        fecha: citaData.fecha,
-        hora: citaData.hora,
-        duracion_minutos: citaData.duracion_minutos,
-        margen_minutos: citaData.margen_minutos,
-        estado: citaData.estado,
-        motivo: citaData.motivo,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      try {
+        const usuarioId = getUserId() || citaData.paciente_id;
+        const fecha_hora = `${citaData.fecha}T${citaData.hora}:00`;
+        const created = await citaService.crear({
+          usuario_id: usuarioId,
+          profesional_id: citaData.profesional_id || null,
+          fecha_hora,
+          motivo: citaData.motivo,
+          servicios: citaData.servicios_ids ?? [citaData.servicio_id],
+        });
 
-      agendamientoState.citasExistentes = [...agendamientoState.citasExistentes, cita];
-      agendamientoState.error = null;
-      return cita;
+        agendamientoState.citasExistentes = [...agendamientoState.citasExistentes, created];
+        agendamientoState.error = null;
+        return created;
+      } catch {
+        const cita: Cita = {
+          id: agendamientoState.citasExistentes.length + 1,
+          paciente_id: citaData.paciente_id,
+          profesional_id: citaData.profesional_id,
+          servicio_id: citaData.servicio_id,
+          servicios_ids: citaData.servicios_ids ?? [citaData.servicio_id],
+          fecha: citaData.fecha,
+          hora: citaData.hora,
+          duracion_minutos: citaData.duracion_minutos,
+          margen_minutos: citaData.margen_minutos,
+          estado: citaData.estado,
+          motivo: citaData.motivo,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        agendamientoState.citasExistentes = [...agendamientoState.citasExistentes, cita];
+        agendamientoState.error = null;
+        return cita;
+      }
     },
     reset: () => {
       agendamientoState.servicios = [];

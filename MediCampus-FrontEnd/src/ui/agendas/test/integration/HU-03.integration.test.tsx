@@ -6,6 +6,14 @@ vi.mock('../../hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({ user: { id: 1, rol: 'profesional' } })),
 }));
 
+vi.mock('../../services/api/citaService', () => ({
+  citaService: {
+    obtener: vi.fn().mockResolvedValue({ id: 123, paciente_id: 1, profesional_id: 0, servicio_id: 1, fecha: '2026-06-15', hora: '10:00', estado: 'AGENDADA', motivo: 'Control' }),
+    listar: vi.fn().mockResolvedValue([]),
+    crear: vi.fn(),
+  },
+}));
+
 vi.mock('../../services/api/consultaService', () => ({
   consultaService: {
     obtenerConsulta: vi.fn(),
@@ -85,12 +93,13 @@ describe('HU-03: Registro de Datos en Consulta Digital (Integration)', () => {
     await waitFor(() => expect(result.current.consulta).toBeNull());
   });
 
-  it('should validate observations length before creating consulta', async () => {
+  it('should call crearConsulta even with short observaciones (backend accepts optional)', async () => {
     const mockCitaId = 123;
     const mockTipoServicio = 'medica';
     const mockConsultaData = { historia_clinica_id: 1, observaciones: 'short' };
 
     consultaService.obtenerConsulta.mockResolvedValue({ data: null });
+    consultaService.crearConsulta.mockResolvedValue({ data: null });
 
     const { result } = renderHook(() => useConsulta(mockCitaId));
 
@@ -98,8 +107,9 @@ describe('HU-03: Registro de Datos en Consulta Digital (Integration)', () => {
       await result.current.crearConsulta(mockCitaId, mockTipoServicio, mockConsultaData as any);
     });
 
-    await waitFor(() => expect(consultaService.crearConsulta).not.toHaveBeenCalled());
-    await waitFor(() => expect(result.current.error).toBe('Las observaciones deben tener al menos 10 caracteres.'));
+    await waitFor(() => expect(consultaService.crearConsulta).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.error).toBeNull());
+    await waitFor(() => expect(result.current.consulta).toBeNull());
   });
 
   it('should not allow saving an already saved consultation', async () => {
@@ -113,7 +123,7 @@ describe('HU-03: Registro de Datos en Consulta Digital (Integration)', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => {
-      await result.current.guardarConsulta(1, { observaciones: 'Attempt to edit' } as any);
+      await result.current.guardarConsulta(1, 'medica', { observaciones: 'Attempt to edit' } as any);
     });
 
     await waitFor(() => expect(consultaService.guardarConsulta).not.toHaveBeenCalled());

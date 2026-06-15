@@ -38,7 +38,7 @@ const HomePage: React.FC = () => {
           <Card>
             <h3 className="font-semibold text-slate-900">Mis Citas Médicas</h3>
             <p className="text-sm text-slate-500 mt-1">Programa y consulta tus citas médicas.</p>
-            <Button variant="primary" className="mt-3" onClick={() => navigate('/seguridad/login')}>
+            <Button variant="primary" className="mt-3" onClick={() => navigate('/AgendarCita')}>
               Ir a Citas
             </Button>
           </Card>

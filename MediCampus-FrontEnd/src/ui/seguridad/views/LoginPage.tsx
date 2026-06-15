@@ -6,6 +6,8 @@ import { Card, CardTitle } from '../../components/Card'
 import { login } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
 
+const PROFESSIONAL_ROLES = new Set(['medico', 'psicologo']);
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
   const { saveSession } = useSession()
@@ -21,7 +23,17 @@ const LoginPage: React.FC = () => {
     try {
       const res = await login({ correo, clave })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      navigate(res.usuario.rol?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
+
+      localStorage.setItem('access_token', res.tokens.access);
+
+      const roleName = res.usuario.rol?.nombre?.toLowerCase() || '';
+      if (PROFESSIONAL_ROLES.has(roleName)) {
+        navigate('/agendas/mi-agenda');
+      } else if (roleName === 'admin' || roleName === 'administrador') {
+        navigate('/seguridad/dashboard');
+      } else {
+        navigate('/home');
+      }
     } catch (err: any) {
       if (err.status === 400) {
         setError('Credenciales inválidas. Verifica tu correo y contraseña.')

@@ -25,7 +25,7 @@ class CitaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cita
         fields = [
-            'id', 'usuario_id', 'fecha_hora', 'estado',
+            'id', 'usuario_id', 'profesional_id', 'fecha_hora', 'estado',
             'motivo', 'servicios', 'fecha_creacion', 'fecha_actualizacion'
         ]
         read_only_fields = ['fecha_creacion', 'fecha_actualizacion']

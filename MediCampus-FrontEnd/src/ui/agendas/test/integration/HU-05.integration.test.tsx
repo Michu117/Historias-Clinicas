@@ -3,6 +3,15 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useDerivacion } from '../../hooks/useDerivacion';
 import { Derivacion, EstadoDerivacion } from '../../types';
 
+vi.mock('../../services/api/derivacionService', () => ({
+  derivacionService: {
+    crearDerivacion: vi.fn().mockResolvedValue({ success: true, data: { id: 1 } }),
+    loadPendientes: vi.fn().mockResolvedValue({ success: true, data: [] }),
+    aceptarDerivacion: vi.fn().mockResolvedValue({ success: true, data: { id: 1, estado: 'ACEPTADA', notas_respuesta: 'Aceptada' } }),
+    rechazarDerivacion: vi.fn().mockResolvedValue({ success: true, data: { id: 1, estado: 'RECHAZADA', notas_respuesta: '' } }),
+  },
+}));
+
 describe('HU-05: Derivaciones - Integration Test', () => {
   describe('Hook useDerivacion - crearDerivacion()', () => {
     it('debe llamar a crearDerivacion con datos válidos (RN-010, RN-011)', async () => {

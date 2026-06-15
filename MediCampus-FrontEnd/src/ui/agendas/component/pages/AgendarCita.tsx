@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { Button } from '../../../components/Button';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button, Card, CardTitle } from '../../../components';
 import { ServiceSelector } from '../selectors/ServiceSelector';
 import { ProfessionalSelector } from '../selectors/ProfessionalSelector';
 import { DateTimeSlotSelector } from '../selectors/DateTimeSlotSelector';
 import { useAgendamiento } from '../../hooks/useAgendamiento';
 import { EstadoCita } from '../../types';
 import { messages } from '../../utils/constants/messages';
+import { getUserId } from '../../services/storage/authStorage';
 
 export const AgendarCita: React.FC = () => {
+  const navigate = useNavigate();
   const agendamiento = useAgendamiento();
   const [servicios, setServicios] = useState(agendamiento.servicios);
   const [profesionales, setProfesionales] = useState(agendamiento.profesionales);
@@ -20,6 +23,8 @@ export const AgendarCita: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const currentUserId = useMemo(() => getUserId() ?? 0, []);
 
   useEffect(() => {
     const fetchServicios = async () => {
@@ -65,7 +70,7 @@ export const AgendarCita: React.FC = () => {
     setError(null);
 
     const citaData = {
-      paciente_id: 1,
+      paciente_id: currentUserId,
       profesional_id: selectedProfessionalId ?? 0,
       servicio_id: selectedServiceId ?? 0,
       servicios_ids: selectedServiceId ? [selectedServiceId] : [],
@@ -77,7 +82,7 @@ export const AgendarCita: React.FC = () => {
       motivo: motivo.trim(),
     };
 
-    const cita = await agendamiento.crearCita(citaData as any);
+    await agendamiento.crearCita(citaData as any);
     if (agendamiento.error) {
       setError(agendamiento.error);
       return;
@@ -93,74 +98,165 @@ export const AgendarCita: React.FC = () => {
     setProfesionales([]);
   };
 
+  const canSubmit = selectedServiceId && selectedProfessionalId && selectedDate && selectedTime && motivo.trim().length > 0;
+
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{messages.titles.agendarCita}</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Selecciona servicio, profesional, fecha y hora para agendar una nueva cita.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <ServiceSelector
-          servicios={servicios}
-          selectedServiceId={selectedServiceId}
-          onSelect={handleServiceSelect}
-          isLoading={isLoading}
-        />
-
-        <ProfessionalSelector
-          profesionales={profesionales}
-          selectedProfessionalId={selectedProfessionalId}
-          onSelect={handleProfessionalSelect}
-          isLoading={isLoading}
-        />
-
-        <DateTimeSlotSelector
-          profesionalId={selectedProfessionalId ?? 0}
-          servicioId={selectedServiceId ?? 0}
-          citasExistentes={citasExistentes}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          onSelect={handleDateTimeSelect}
-          isLoading={isLoading}
-        />
-
-        <div>
-          <label htmlFor="motivo" className="block text-sm font-medium text-slate-700">
-            Motivo de la cita
-          </label>
-          <textarea
-            id="motivo"
-            value={motivo}
-            onChange={(event) => setMotivo(event.target.value)}
-            className="mt-1 w-full min-h-[120px] rounded-global border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            placeholder="Describe brevemente el motivo de la consulta"
-          />
+    <div className="h-screen flex flex-col bg-hc-bg">
+      <header className="bg-hc-primary text-hc-primaryText px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+            <span className="font-bold text-sm sm:text-base">M</span>
+          </div>
+          <h1 className="text-base sm:text-lg font-semibold truncate">MediCampus</h1>
         </div>
+        <button
+          onClick={() => navigate('/home')}
+          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-hc-primaryText/80 hover:text-hc-primaryText transition-colors shrink-0"
+        >
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Inicio
+        </button>
+      </header>
 
-        {error ? <div className="rounded-global border border-red-300 bg-red-50 p-3 text-red-700">{error}</div> : null}
-        {message ? <div className="rounded-global border border-green-300 bg-green-50 p-3 text-green-700">{message}</div> : null}
+      <main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
+        <Card>
+          <CardTitle>{messages.titles.agendarCita}</CardTitle>
+          <p className="mt-2 text-xs sm:text-sm text-slate-500">
+            Complete los detalles para programar una nueva atenci&oacute;n m&eacute;dica.
+          </p>
+        </Card>
 
-        <div className="flex items-center gap-4">
-          <Button onClick={handleSubmit} disabled={isLoading || !selectedServiceId || !selectedProfessionalId || !selectedDate || !selectedTime || motivo.trim().length === 0}>
-            {messages.actions.guardar}
-          </Button>
-          <Button variant="secondary" onClick={() => {
-            setSelectedServiceId(null);
-            setSelectedProfessionalId(null);
-            setSelectedDate(null);
-            setSelectedTime(null);
-            setMotivo('');
-            setError(null);
-            setMessage(null);
-            setProfesionales([]);
-          }}>
-            {messages.actions.cancelar}
-          </Button>
-        </div>
-      </div>
+        <Card className="space-y-6 sm:space-y-10">
+          {/* Sección 1: Detalles del Servicio */}
+          <section aria-labelledby="service-details">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <h3 id="service-details" className="text-base sm:text-lg font-bold text-slate-900">1. Detalles del Servicio</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-700">Especialidad</label>
+                <ServiceSelector
+                  servicios={servicios}
+                  selectedServiceId={selectedServiceId}
+                  onSelect={handleServiceSelect}
+                  isLoading={isLoading}
+                />
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-700">Profesional Asignado</label>
+                <ProfessionalSelector
+                  profesionales={profesionales}
+                  selectedProfessionalId={selectedProfessionalId}
+                  onSelect={handleProfessionalSelect}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Sección 2: Fecha y Hora */}
+          <section aria-labelledby="date-time">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <h3 id="date-time" className="text-base sm:text-lg font-bold text-slate-900">2. Fecha y Hora</h3>
+            </div>
+            <DateTimeSlotSelector
+              profesionalId={selectedProfessionalId ?? 0}
+              servicioId={selectedServiceId ?? 0}
+              citasExistentes={citasExistentes}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              onSelect={handleDateTimeSelect}
+              isLoading={isLoading}
+            />
+          </section>
+
+          {/* Sección 3: Motivo */}
+          <section aria-labelledby="additional-details">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <h3 id="additional-details" className="text-base sm:text-lg font-bold text-slate-900">3. Detalles Adicionales</h3>
+            </div>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="motivo" className="text-xs sm:text-sm font-bold text-slate-700">
+                Motivo de la cita <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="motivo"
+                value={motivo}
+                onChange={(event) => setMotivo(event.target.value)}
+                className="w-full min-h-[80px] sm:min-h-[100px] px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all resize-y"
+                placeholder="Describe brevemente el motivo de la consulta..."
+              />
+            </div>
+          </section>
+
+          {/* Alertas */}
+          {(error || message) && (
+            <div className="space-y-2 sm:space-y-3">
+              {error ? (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 sm:p-4 text-red-700 text-xs sm:text-sm flex items-center gap-2 font-medium">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {error}
+                </div>
+              ) : null}
+              {message ? (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 sm:p-4 text-green-700 text-xs sm:text-sm flex items-center gap-2 font-medium">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {message}
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="pt-6 sm:pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 bg-blue-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-blue-100">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--primary, #2563eb)' }}>
+                Estado: EN CREACI&Oacute;N
+              </span>
+            </div>
+
+            <div className="flex gap-3 sm:gap-4 w-full sm:w-auto">
+              <Button variant="secondary" onClick={() => {
+                setSelectedServiceId(null);
+                setSelectedProfessionalId(null);
+                setSelectedDate(null);
+                setSelectedTime(null);
+                setMotivo('');
+                setError(null);
+                setMessage(null);
+              }}>
+                {messages.actions.cancelar}
+              </Button>
+              <Button onClick={handleSubmit} disabled={isLoading || !canSubmit}>
+                {messages.actions.guardar}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </main>
+
+      <footer className="text-center text-[10px] sm:text-xs text-slate-400 py-3 sm:py-4 border-t border-slate-200">
+        Universidad Nacional de Loja &copy; {new Date().getFullYear()}
+      </footer>
     </div>
   );
-};
+}; 
+
