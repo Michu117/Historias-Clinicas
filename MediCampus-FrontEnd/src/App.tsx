@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Importaciones de Seguridad
 import SecurityLayout from './ui/seguridad/components/SecurityLayout';
@@ -20,8 +20,7 @@ import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      {/* Contenedor principal a pantalla completa */}
+    <>
       <div className="w-full h-screen min-h-screen bg-[#faf9ff] overflow-hidden">
         <Routes>
           {/* Rutas Públicas */}
@@ -56,6 +55,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
-    </BrowserRouter>
+    </>
   );
 }
