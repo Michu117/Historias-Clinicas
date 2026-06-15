@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Importaciones de Seguridad
 import SecurityLayout from './ui/seguridad/components/SecurityLayout';
@@ -11,6 +11,10 @@ import PermissionAssignmentPage from './ui/seguridad/views/PermissionAssignmentP
 import CriticalAlertsPage from './ui/seguridad/views/CriticalAlertsPage';
 import AuditLogDetailPage from './ui/seguridad/views/AuditLogDetailPage';
 import ForbiddenPage from './ui/seguridad/views/ForbiddenPage';
+import GestionHistoriasClinicasPage from "./ui/historias-clinicas/pages/GestionHistoriasClinicasPage";
+import NuevaHistoriaClinicaPage from "./ui/historias-clinicas/pages/NuevaHistoriaClinicaPage";
+import {DetalleHistoriaClinicaPage} from "./ui/historias-clinicas/pages/DetalleHistoriaClinicaPage";
+import EditarHistoriaClinicaPage from "./ui/historias-clinicas/pages/EditarHistoriaClinicaPage";
 
 // Importaciones Globales y Reportes
 import LandingPage from './ui/global/LandingPage';
@@ -39,8 +43,7 @@ function ProfessionalGuard({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="w-full h-screen min-h-screen bg-[#faf9ff] overflow-hidden">
+      <div className="w-full min-h-screen bg-[#faf9ff] overflow-y-auto">
         <Routes>
         {/* Rutas Públicas */}
         <Route path="/" element={<LandingPage />} />
@@ -50,15 +53,21 @@ export default function App() {
         <Route path="/reportes" element={<ReportesDashboardPage />} />
         <Route path="/reportes/rango" element={<ReportesRangoPage />} />
 
-        {/* Redirecciones de rutas antiguas de reportes */}
-        <Route path="/reportes/generales" element={<Navigate to="/reportes" replace />} />
-        <Route path="/reportes/servicio/:servicioId" element={<Navigate to="/reportes" replace />} />
-        <Route path="/reportes/genero" element={<Navigate to="/reportes" replace />} />
+          {/* Redirecciones de rutas antiguas de reportes */}
+          <Route path="/reportes/generales" element={<Navigate to="/reportes" replace />} />
+          <Route path="/reportes/servicio/:servicioId" element={<Navigate to="/reportes" replace />} />
 
-        {/* Rutas de Seguridad */}
-        <Route path="/seguridad/login" element={<LoginPage />} />
-        <Route path="/seguridad/register" element={<RegisterPage />} />
-        <Route path="/seguridad/403" element={<ForbiddenPage />} />
+          <Route path="/historias" element={<GestionHistoriasClinicasPage />} />
+          <Route path="/historias/nueva" element={<NuevaHistoriaClinicaPage/>} />
+          <Route path="/historias/:id" element={<DetalleHistoriaClinicaPage />} />
+          <Route path="/historias/:id/editar" element={<EditarHistoriaClinicaPage/>} />
+
+
+          <Route path="/reportes/genero" element={<Navigate to="/reportes" replace />} />
+          {/* Rutas de Seguridad */}
+          <Route path="/seguridad/login" element={<LoginPage />} />
+          <Route path="/seguridad/register" element={<RegisterPage />} />
+          <Route path="/seguridad/403" element={<ForbiddenPage />} />
 
         <Route path="/seguridad" element={<SecurityLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
@@ -80,6 +89,5 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
-    </BrowserRouter>
   );
 }

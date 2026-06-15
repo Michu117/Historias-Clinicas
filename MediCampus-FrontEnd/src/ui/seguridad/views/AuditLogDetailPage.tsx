@@ -29,7 +29,7 @@ const AuditLogDetailPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400">Cargando detalle del registro...</p>
+        <p className="text-[#424752]">Cargando detalle del registro...</p>
       </div>
     )
   }
@@ -37,8 +37,8 @@ const AuditLogDetailPage: React.FC = () => {
   if (!log) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-slate-700">Registro no encontrado</h2>
-        <p className="text-slate-500 mt-2">El registro de auditoría solicitado no existe.</p>
+        <h2 className="text-xl font-semibold text-[#424752]">Registro no encontrado</h2>
+        <p className="text-[#424752] mt-2">El registro de auditoría solicitado no existe.</p>
         <Button variant="primary" className="mt-4" onClick={() => navigate('/seguridad/audit')}>
           Volver a Auditoría
         </Button>
@@ -57,7 +57,7 @@ const AuditLogDetailPage: React.FC = () => {
           <div className="flex items-start justify-between mb-6">
             <div>
               <CardTitle>Detalle del Registro de Auditoría</CardTitle>
-              <p className="text-sm text-slate-500 mt-1">ID: {log.id}</p>
+              <p className="text-sm text-[#424752] mt-1">ID: {log.id}</p>
             </div>
             <Badge variant="success">Protegido e Inalterable</Badge>
           </div>
@@ -71,34 +71,34 @@ const AuditLogDetailPage: React.FC = () => {
 
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg font-semibold text-slate-900">{log.tipoAccion}</span>
+              <span className="text-lg font-semibold text-[#141b2b]">{log.tipoAccion}</span>
               <Badge variant="success">HTTP 200</Badge>
             </div>
-            <p className="text-sm text-slate-600">{log.detalle}</p>
+            <p className="text-sm text-[#424752]">{log.detalle}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <span className="text-xs text-slate-400 block">Timestamp (UTC)</span>
-              <span className="text-sm font-medium text-slate-900">{new Date(log.fechaHora).toLocaleString()}</span>
+              <span className="text-xs text-[#424752] block">Timestamp (UTC)</span>
+              <span className="text-sm font-medium text-[#141b2b]">{new Date(log.fechaHora).toLocaleString()}</span>
             </div>
             <div>
-              <span className="text-xs text-slate-400 block">Resultado de Operación</span>
+              <span className="text-xs text-[#424752] block">Resultado de Operación</span>
               <Badge variant="success">Success</Badge>
             </div>
             <div>
-              <span className="text-xs text-slate-400 block">Actor</span>
-              <span className="text-sm font-medium text-slate-900">{log.correo}</span>
+              <span className="text-xs text-[#424752] block">Actor</span>
+              <span className="text-sm font-medium text-[#141b2b]">{log.correo}</span>
             </div>
             <div>
-              <span className="text-xs text-slate-400 block">Módulo Afectado</span>
-              <span className="text-sm font-medium text-slate-900">{log.moduloAfectado}</span>
+              <span className="text-xs text-[#424752] block">Módulo Afectado</span>
+              <span className="text-sm font-medium text-[#141b2b]">{log.moduloAfectado}</span>
             </div>
           </div>
 
-          <div className="border-t border-slate-200 pt-4">
-            <h4 className="text-sm font-medium text-slate-700 mb-3">Payload / Datos Afectados</h4>
-            <pre className="bg-slate-50 border border-slate-200 rounded-global p-4 text-xs font-mono text-slate-700 overflow-auto">
+          <div className="border-t border-[#c2c6d4] pt-4">
+            <h4 className="text-sm font-medium text-[#424752] mb-3">Payload / Datos Afectados</h4>
+            <pre className="bg-[#faf9ff] border border-[#c2c6d4] rounded-global p-4 text-xs font-mono text-[#424752] overflow-auto">
 {JSON.stringify({
   id: log.id,
   accion: log.tipoAccion,

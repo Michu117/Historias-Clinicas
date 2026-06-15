@@ -13,6 +13,7 @@ const LoginPage: React.FC = () => {
   const { saveSession } = useSession()
   const [correo, setCorreo] = useState('')
   const [clave, setClave] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -46,19 +47,19 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-hc-bg p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#faf9ff] p-4">
       <Card className="w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="mx-auto w-12 h-12 bg-hc-primary rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-[#0056b3] rounded-full flex items-center justify-center mb-4">
             <span className="text-hc-primaryText text-xl font-bold">M</span>
           </div>
           <CardTitle>Iniciar Sesión</CardTitle>
-          <p className="text-sm text-slate-500 mt-1">Accede al panel de seguridad de MediCampus</p>
+          <p className="text-sm text-[#424752] mt-1">Accede al panel de seguridad de MediCampus</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Correo electrónico <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[#424752] mb-1">Correo electrónico <span className="text-red-500">*</span></label>
             <Input
               type="email"
               placeholder="tu@correo.com"
@@ -70,14 +71,24 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña <span className="text-red-500">*</span></label>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              value={clave}
-              onChange={(e) => setClave(e.target.value)}
-              required
-            />
+            <label className="block text-sm font-medium text-[#424752] mb-1">Contraseña <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={clave}
+                onChange={(e) => setClave(e.target.value)}
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-transparent border-none outline-none text-[#424752] hover:text-[#141b2b] cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px] leading-none">{showPassword ? 'visibility_off' : 'visibility'}</span>
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -91,7 +102,7 @@ const LoginPage: React.FC = () => {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-slate-500 mt-4">
+        <p className="text-center text-sm text-[#424752] mt-4">
           ¿No tienes cuenta?{' '}
           <Link to="/seguridad/register" className="text-hc-primary font-medium hover:underline">
             Registrarse

@@ -94,8 +94,8 @@ const PermissionAssignmentPage: React.FC = () => {
     <ProtectedRoute permission="security.permissions">
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Asignación de Permisos</h1>
-          <p className="text-sm text-slate-500 mt-1">Configura los permisos diferenciados para cada rol del sistema.</p>
+          <h1 className="text-2xl font-bold text-[#141b2b]">Asignación de Permisos</h1>
+          <p className="text-sm text-[#424752] mt-1">Configura los permisos diferenciados para cada rol del sistema.</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -107,7 +107,7 @@ const PermissionAssignmentPage: React.FC = () => {
               onChange={(e) => setSelectedRole(e.target.value)}
             />
           </div>
-          <span className="text-sm text-slate-400 mt-6">
+          <span className="text-sm text-[#424752] mt-6">
             {selectedRole ? `${roles.find((r) => r.nombre === selectedRole)?.descripcion || ''}` : 'Selecciona un rol'}
           </span>
         </div>
@@ -134,7 +134,7 @@ const PermissionAssignmentPage: React.FC = () => {
                     {mod.permissions.map((perm) => (
                       <div key={perm.key} className="flex items-center justify-between py-1">
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm ${perm.disabled ? 'text-slate-300' : 'text-slate-700'}`}>
+                          <span className={`text-sm ${perm.disabled ? 'text-slate-300' : 'text-[#424752]'}`}>
                             {perm.label}
                           </span>
                           {perm.warning && (
