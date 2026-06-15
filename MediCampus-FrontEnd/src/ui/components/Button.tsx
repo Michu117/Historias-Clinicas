@@ -14,11 +14,11 @@ export const Button: React.FC<ButtonProps> = ({ variant = 'primary', size = 'md'
   const baseClasses = `rounded-global font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${sizeClasses[size]}`;
   
   const variants = {
-    primary: "bg-hc-primary hover:bg-hc-primaryHover text-hc-primaryText focus:ring-slate-500",
-    secondary: "bg-hc-secondary hover:bg-hc-secondaryHover text-hc-secondaryText focus:ring-slate-300",
-    tertiary: "bg-hc-tertiary hover:bg-hc-tertiaryHover text-hc-tertiaryText focus:ring-slate-200",
-    danger: "bg-hc-danger hover:bg-hc-dangerHover text-hc-dangerText focus:ring-red-500",
-    success: "bg-hc-success hover:bg-hc-successHover text-hc-successText focus:ring-green-500",
+    primary: "bg-[#0056b3] hover:bg-[#003f87] text-white focus:ring-blue-500",
+    secondary: "bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#334155] focus:ring-slate-300",
+    tertiary: "bg-transparent hover:bg-[#f1f5f9] text-[#475569] focus:ring-slate-200",
+    danger: "bg-[#ef4444] hover:bg-[#dc2626] text-white focus:ring-red-500",
+    success: "bg-[#22c55e] hover:bg-[#16a34a] text-white focus:ring-green-500",
   };
 
   return (
