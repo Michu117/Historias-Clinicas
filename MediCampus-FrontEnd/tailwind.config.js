@@ -5,8 +5,8 @@ export default {
     extend: {
       colors: {
         hc: {
-          primary: '#0056b3',
-          primaryHover: '#003f87',
+          primary: '#475569',
+          primaryHover: '#334155',
           primaryText: '#ffffff',
           secondary: '#e2e8f0',
           secondaryHover: '#cbd5e1',
@@ -20,12 +20,6 @@ export default {
           success: '#22c55e',
           successHover: '#16a34a',
           successText: '#ffffff',
-          bg: '#faf9ff',
-          text: '#141b2b',
-          muted: '#424752',
-          border: '#c2c6d4',
-          sidebar: '#f1f3ff',
-          accent: '#003f87',
         },
       },
       borderRadius: {

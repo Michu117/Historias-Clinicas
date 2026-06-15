@@ -4,13 +4,13 @@ import { Button } from '../components/Button'
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf9ff]">
+    <div className="min-h-screen flex flex-col bg-hc-bg">
       <header className="px-6 py-4 flex items-center justify-between max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#0056b3] rounded-full flex items-center justify-center">
-            <span className="text-white font-bold">M</span>
+          <div className="w-8 h-8 bg-hc-primary rounded-full flex items-center justify-center">
+            <span className="text-hc-primaryText font-bold">M</span>
           </div>
-          <span className="font-semibold text-[#141b2b]">MediCampus</span>
+          <span className="font-semibold text-slate-900">MediCampus</span>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/seguridad/login">
@@ -24,13 +24,13 @@ const LandingPage: React.FC = () => {
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 text-center">
         <div className="max-w-2xl">
-          <div className="w-16 h-16 bg-[#003f87] rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-white text-2xl font-bold">M</span>
+          <div className="w-16 h-16 bg-hc-primary rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-hc-primaryText text-2xl font-bold">M</span>
           </div>
-          <h1 className="text-4xl font-bold text-[#141b2b] mb-4">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
             Bienestar Universitario
           </h1>
-          <p className="text-lg text-[#424752] mb-8 leading-relaxed">
+          <p className="text-lg text-slate-500 mb-8 leading-relaxed">
             Sistema integral de Bienestar Universitario de la Universidad Nacional de Loja.
             Gestiona citas médicas, permisos, exámenes y más.
           </p>
@@ -53,27 +53,27 @@ const LandingPage: React.FC = () => {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             </div>
-            <h3 className="font-semibold text-[#141b2b]">Citas Médicas</h3>
-            <p className="text-sm text-[#424752] mt-1">Programa y gestiona tus citas en línea.</p>
+            <h3 className="font-semibold text-slate-900">Citas Médicas</h3>
+            <p className="text-sm text-slate-500 mt-1">Programa y gestiona tus citas en línea.</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
             </div>
-            <h3 className="font-semibold text-[#141b2b]">Resultados</h3>
-            <p className="text-sm text-[#424752] mt-1">Consulta resultados de exámenes médicos.</p>
+            <h3 className="font-semibold text-slate-900">Resultados</h3>
+            <p className="text-sm text-slate-500 mt-1">Consulta resultados de exámenes médicos.</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
             </div>
-            <h3 className="font-semibold text-[#141b2b]">Permisos</h3>
-            <p className="text-sm text-[#424752] mt-1">Solicita permisos médicos en línea.</p>
+            <h3 className="font-semibold text-slate-900">Permisos</h3>
+            <p className="text-sm text-slate-500 mt-1">Solicita permisos médicos en línea.</p>
           </div>
         </div>
       </main>
 
-      <footer className="text-center text-xs text-[#424752] py-4 border-t border-[#c2c6d4]">
+      <footer className="text-center text-xs text-slate-400 py-4 border-t border-slate-200">
         Universidad Nacional de Loja &copy; {new Date().getFullYear()}
       </footer>
     </div>
