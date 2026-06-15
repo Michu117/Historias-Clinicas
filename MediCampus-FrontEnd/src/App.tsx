@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Importaciones de Seguridad
@@ -19,62 +18,35 @@ import HomePage from './ui/global/HomePage';
 import ReportesDashboardPage from './ui/reportes/ReportesDashboardPage';
 import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
 
-export default function App() {
-=======
-import { useState } from 'react';
-import { fetchApiRoot, getApiRootUrl } from './api';
+// Importaciones de Agendas
 import { AgendarCita } from './ui/agendas/component/pages/AgendarCita';
 import { MiAgenda } from './ui/agendas/component/pages/MiAgenda';
+import { Derivaciones } from './ui/agendas/component/pages/Derivaciones';
 import { getToken } from './ui/agendas/services/storage/authStorage';
 import { validateTokenRole } from './ui/agendas/utils/auth/jwtValidator';
 
-const getCurrentPath = () => window.location.pathname || '/';
+function ProfessionalGuard({ children }: { children: React.ReactNode }) {
+  const token = getToken();
+  const isProfessional = token ? validateTokenRole(token, 'PROFESIONAL') : false;
+
+  if (!isProfessional) {
+    return (
+      <main className="shell">
+        <section className="card hero">
+          <p className="eyebrow">Acceso restringido</p>
+          <h1>Mi Agenda</h1>
+          <p>Debes iniciar sesión como profesional para acceder a esta página.</p>
+        </section>
+      </main>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 export default function App() {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-  const currentPath = getCurrentPath();
-
-  const handleCheckBackend = async () => {
-    setStatus('loading');
-    setMessage('');
-
-    try {
-      const data = await fetchApiRoot();
-      setStatus('ready');
-      setMessage(data.message);
-    } catch (error) {
-      setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Error desconocido');
-    }
-  };
-
-  if (currentPath === '/agendas/mi-agenda') {
-    const token = getToken();
-    const isProfessional = token ? validateTokenRole(token, 'PROFESIONAL') : false;
-
-    if (!isProfessional) {
-      return (
-        <main className="shell">
-          <section className="card hero">
-            <p className="eyebrow">Acceso restringido</p>
-            <h1>Mi Agenda</h1>
-            <p>Debes iniciar sesión como profesional para acceder a esta página.</p>
-          </section>
-        </main>
-      );
-    }
-
-    return <MiAgenda />;
-  }
-
-  if (currentPath === '/AgendarCita') {
-    return <AgendarCita />;
-  }
-
   return (
     <BrowserRouter>
-      {/* Contenedor principal a pantalla completa */}
       <div className="w-full h-screen min-h-screen bg-[#faf9ff] overflow-hidden">
         <Routes>
           {/* Rutas Públicas */}
@@ -104,6 +76,11 @@ export default function App() {
             <Route path="audit/:logId" element={<AuditLogDetailPage />} />
             <Route path="alerts" element={<CriticalAlertsPage />} />
           </Route>
+
+          {/* Rutas de Agendas */}
+          <Route path="/AgendarCita" element={<AgendarCita />} />
+          <Route path="/agendas/mi-agenda" element={<ProfessionalGuard><MiAgenda /></ProfessionalGuard>} />
+          <Route path="/agendas/derivaciones" element={<ProfessionalGuard><Derivaciones /></ProfessionalGuard>} />
 
           {/* Fallback para rutas no encontradas */}
           <Route path="*" element={<Navigate to="/" replace />} />
