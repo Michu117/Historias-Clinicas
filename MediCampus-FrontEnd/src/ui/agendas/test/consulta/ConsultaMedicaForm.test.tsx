@@ -48,21 +48,16 @@ describe('ConsultaMedicaForm', () => {
     expect(screen.getByRole('button', { name: /Guardar Consulta/i })).toBeInTheDocument();
   });
 
-  // Observaciones obligatorias (RN-007)
-  it('should not call onSave if observations are invalid (RN-007)', async () => {
-    vi.spyOn(consultaValidators, 'validateObservaciones').mockReturnValue(false);
+  // Validación de campos obligatorios (RN-007)
+  it('should not call onSave if required fields (anamnesis, tratamiento, signos vitales) are missing', async () => {
     render(<ConsultaMedicaForm cita={mockCita} onSave={mockOnSave} isEditable={true} />);
-
-    fireEvent.change(screen.getByLabelText(/Anamnesis/i), { target: { value: 'Some anamnesis' } });
-    fireEvent.change(screen.getByLabelText(/Tratamiento/i), { target: { value: 'Some treatment' } });
-    // Assume observations are left empty or too short, triggering validation failure
 
     fireEvent.click(screen.getByRole('button', { name: /Guardar Consulta/i }));
 
     await waitFor(() => {
       expect(mockOnSave).not.toHaveBeenCalled();
     });
-    expect(screen.getByText('Las observaciones deben tener al menos 10 caracteres.')).toBeInTheDocument();
+    expect(screen.getByText('El campo Anamnesis es obligatorio.')).toBeInTheDocument();
   });
 
   // Campos deshabilitados post-guardado (RN-008)

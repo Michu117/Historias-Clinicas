@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Cita, ConsultaMedica, SignosVitales } from '../../types';
 import { SignosVitalesInput } from './SignosVitalesInput';
-import { validateObservaciones } from '../../utils/validators/consultaValidators';
 
 interface ConsultaMedicaFormProps {
   cita: Cita;
@@ -47,8 +46,16 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateObservaciones(observaciones)) {
-      setValidationError('Las observaciones deben tener al menos 10 caracteres.');
+    if (!anamnesis.trim()) {
+      setValidationError('El campo Anamnesis es obligatorio.');
+      return;
+    }
+    if (!tratamiento.trim()) {
+      setValidationError('El campo Tratamiento es obligatorio.');
+      return;
+    }
+    if (!signosVitales || !signosVitales.peso_kg || !signosVitales.temperatura || !signosVitales.frecuencia_cardiaca || !signosVitales.presion_arterial) {
+      setValidationError('Todos los Signos Vitales son obligatorios.');
       return;
     }
     setValidationError(null);
@@ -65,9 +72,9 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <section className="bg-white border border-[#d3d9f0] rounded-2xl p-8 shadow-sm">
+      <section className="bg-white border border-[#c2c6d4] rounded-2xl p-8 shadow-sm">
         <div className="flex items-center gap-2 mb-6">
-          <h3 className="text-sm font-black text-[#44474e] uppercase tracking-[0.1em]">Anamnesis y Evolución *</h3>
+          <h3 className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Anamnesis y Evolución *</h3>
         </div>
 
         <label htmlFor="anamnesis" className="sr-only">Anamnesis</label>
@@ -79,10 +86,10 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
           className="w-full h-48 p-4 bg-[#f1f3ff] border border-[#c4c6d0] rounded-xl text-sm focus:ring-2 focus:ring-[#0056b3] focus:bg-white outline-none transition-all placeholder:text-[#74777f] disabled:opacity-60 disabled:cursor-not-allowed"
           placeholder="Ingrese los detalles de la consulta, síntomas, evolución..."
         />
-        <p className="text-[12px] text-[#44474e] mt-2 font-medium">Este campo es obligatorio.</p>
+        <p className="text-[12px] text-[#424752] mt-2 font-medium">Este campo es obligatorio.</p>
 
         <div className="mt-6 space-y-4">
-          <label htmlFor="tratamiento" className="text-sm font-black text-[#44474e] uppercase tracking-[0.1em]">Tratamiento / Indicaciones</label>
+          <label htmlFor="tratamiento" className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Tratamiento / Indicaciones</label>
           <textarea
             id="tratamiento"
             value={tratamiento}
@@ -94,7 +101,7 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
         </div>
 
         <div className="mt-6 space-y-4">
-          <label htmlFor="observaciones" className="text-sm font-black text-[#44474e] uppercase tracking-[0.1em]">Observaciones</label>
+          <label htmlFor="observaciones" className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Observaciones</label>
           <textarea
             id="observaciones"
             value={observaciones}
@@ -106,9 +113,9 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
         </div>
       </section>
 
-      <section className="bg-white border border-[#d3d9f0] rounded-2xl p-8 shadow-sm">
+      <section className="bg-white border border-[#c2c6d4] rounded-2xl p-8 shadow-sm">
         <div className="flex items-center gap-2 mb-6">
-          <h3 className="text-sm font-black text-[#44474e] uppercase tracking-[0.1em]">Signos Vitales</h3>
+          <h3 className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Signos Vitales</h3>
         </div>
         <SignosVitalesInput onUpdate={handleSignosVitalesUpdate} initialData={signosVitales} isEditable={isEditable} />
       </section>

@@ -14,6 +14,7 @@ export enum EstadoCita {
 export interface Cita {
   id: number;
   paciente_id: number;
+  paciente_nombre?: string;
   profesional_id: number;
   servicio_id: number;
   servicios_ids?: number[]; // M2M para validar RN-003

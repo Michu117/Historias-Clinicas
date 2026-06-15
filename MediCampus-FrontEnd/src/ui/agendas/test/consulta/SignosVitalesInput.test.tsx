@@ -46,9 +46,9 @@ describe('SignosVitalesInput', () => {
     };
     render(<SignosVitalesInput onUpdate={mockOnUpdate} initialData={initialData} />);
 
-    expect(screen.getByLabelText(/Peso/i)).toHaveValue(65.5);
-    expect(screen.getByLabelText(/Temperatura/i)).toHaveValue(37.2);
+    expect(screen.getByLabelText(/Peso/i)).toHaveValue('65.5');
+    expect(screen.getByLabelText(/Temperatura/i)).toHaveValue('37.2');
     expect(screen.getByLabelText(/Presión Arterial/i)).toHaveValue('110/70');
-    expect(screen.getByLabelText(/Frecuencia Cardíaca/i)).toHaveValue(68);
+    expect(screen.getByLabelText(/Frecuencia Cardíaca/i)).toHaveValue('68');
   });
 });

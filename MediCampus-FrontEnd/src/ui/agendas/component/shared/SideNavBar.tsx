@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface NavItem {
   label: string;
@@ -18,25 +18,28 @@ const navItems: NavItem[] = [
 
 export const SideNavBar: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const isActive = (match: string) => location.pathname.startsWith(match);
+  const isActive = (match: string) => window.location.pathname.startsWith(match);
+
+  const handleNavigate = (path: string) => {
+    window.location.href = path;
+  };
 
   return (
     <nav
       className="fixed left-0 top-0 h-full w-60 border-r flex flex-col p-5 gap-5 z-40"
-      style={{ backgroundColor: 'var(--surface, #ffffff)', borderColor: 'var(--outline-variant, #cbd5e1)' }}
+      style={{ backgroundColor: '#f1f3ff', borderColor: '#c2c6d4' }}
     >
       <div className="flex items-center gap-3 mb-3 px-2">
         <div
           className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-          style={{ backgroundColor: 'var(--primary, #2563eb)' }}
+          style={{ backgroundColor: '#003f87' }}
         >
           MC
         </div>
         <div>
-          <p className="font-bold text-sm" style={{ color: 'var(--primary, #2563eb)' }}>MediCampus</p>
-          <p className="text-xs" style={{ color: 'var(--on-surface-variant, #64748b)' }}>Gesti&oacute;n M&eacute;dica</p>
+          <p className="font-bold text-sm" style={{ color: '#003f87' }}>MediCampus</p>
+          <p className="text-xs" style={{ color: '#424752' }}>Gesti&oacute;n M&eacute;dica</p>
         </div>
       </div>
 
@@ -46,17 +49,17 @@ export const SideNavBar: React.FC = () => {
           return (
             <button
               key={item.label}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavigate(item.path)}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all ${
-                active
-                  ? 'font-bold'
-                  : 'hover:bg-slate-100'
+                active ? 'font-bold' : ''
               }`}
               style={
                 active
-                  ? { backgroundColor: 'var(--primary-container, #dbeafe)', color: 'var(--on-primary-container, #1e40af)', borderLeft: '3px solid var(--primary, #2563eb)' }
-                  : { color: 'var(--on-surface-variant, #64748b)' }
+                  ? { backgroundColor: '#d7e2ff', color: '#001a40', borderLeft: '3px solid #003f87' }
+                  : { color: '#424752', backgroundColor: 'transparent' }
               }
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = '#e1e8fe'; }}
+              onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {renderIcon(item.icon)}
@@ -70,8 +73,10 @@ export const SideNavBar: React.FC = () => {
       <div className="mt-auto">
         <button
           onClick={() => { localStorage.clear(); navigate('/'); }}
-          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-sm transition-all hover:bg-slate-100"
-          style={{ color: 'var(--on-surface-variant, #64748b)' }}
+          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-sm transition-all"
+          style={{ color: '#424752' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e1e8fe'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

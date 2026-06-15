@@ -13,6 +13,7 @@ export interface CitaBackendDTO {
   servicios: number[];
   fecha_creacion: string;
   fecha_actualizacion: string;
+  paciente_nombre?: string;
 }
 
 export interface CrearCitaDTO {
@@ -31,6 +32,7 @@ function mapBackendToFrontend(dto: CitaBackendDTO): Cita {
   return {
     id: dto.id,
     paciente_id: dto.usuario_id,
+    paciente_nombre: dto.paciente_nombre || undefined,
     profesional_id: dto.profesional_id ?? 0,
     servicio_id: dto.servicios[0] || 0,
     servicios_ids: dto.servicios,

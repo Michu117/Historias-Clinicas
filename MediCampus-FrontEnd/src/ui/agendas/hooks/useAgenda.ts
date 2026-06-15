@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Cita, Servicio } from '../types';
 import { agendaService } from '../services/api/agendaService';
-import { getUserId, getToken } from '../services/storage/authStorage';
+import { getToken } from '../services/storage/authStorage';
 import { getTokenRole } from '../utils/auth/jwtValidator';
 import { servicioService } from '../services/api/servicioService';
 
@@ -51,8 +51,7 @@ export const useAgenda = (): UseAgendaState => {
     setLoading(true);
     setError(null);
     try {
-      const profesionalId = getUserId();
-      const data = await agendaService.getAgenda(profesionalId ? { profesional_id: profesionalId } : undefined);
+      const data = await agendaService.getAgenda();
       const filtered = await filterCitasByRole(data || []);
       setCitas(filtered);
     } catch (err) {
@@ -66,8 +65,7 @@ export const useAgenda = (): UseAgendaState => {
     setLoading(true);
     setError(null);
     try {
-      const profesionalId = getUserId();
-      const data = await agendaService.getAgenda(profesionalId ? { profesional_id: profesionalId } : undefined);
+      const data = await agendaService.getAgenda();
       const filtered = (data || []).filter((cita) => {
         if (desde && cita.fecha < desde) return false;
         if (hasta && cita.fecha > hasta) return false;
