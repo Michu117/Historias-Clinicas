@@ -14,13 +14,6 @@ interface ChartConsultasFechaProps {
   error?: string | null;
 }
 
-const MAPA_ETIQUETAS: Record<string, string> = {
-  medica: 'Médica',
-  psicologica: 'Psicológica',
-  odontologica: 'Odontológica',
-  social: 'Trabajo Social',
-};
-
 export default function ChartConsultasFecha({
   data,
   loading = false,
@@ -45,14 +38,14 @@ export default function ChartConsultasFecha({
         title="Consultas por Tipo de Servicio"
         type="bar"
         data={{
-          labels: ['Médica', 'Psicología', 'Odontología', 'T. Social'],
+          labels: ['Médica', 'Psicológica', 'Odontológica', 'Trabajo Social'],
           datasets: [{ label: 'Consultas', data: [0, 0, 0, 0], backgroundColor: '#e2e8f0' }],
         }}
       />
     );
   }
 
-  const labels = data.map(d => MAPA_ETIQUETAS[d.servicio] || d.servicio);
+  const labels = data.map(d => d.servicio);
   const values = data.map(d => d.total);
   const colors = data.map((_, i) => PALETA[i % PALETA.length]);
 
