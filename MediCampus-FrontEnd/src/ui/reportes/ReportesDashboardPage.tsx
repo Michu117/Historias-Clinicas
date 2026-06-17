@@ -157,9 +157,9 @@ const buildDynamicMetrics = (): MetricDef[] => {
         </nav>
 
         <div className="mt-auto pt-6 border-t border-[#c2c6d4] space-y-1">
-          <a className="flex items-center gap-3 text-[#424752] px-4 py-3 hover:bg-[#e1e8fe] transition-all rounded-lg cursor-pointer duration-200">
-            <span className="material-symbols-outlined">logout</span>
-            <span className="text-[14px] font-semibold">Cerrar Sesión</span>
+          <a className="flex items-center gap-3 text-red-600 px-4 py-3 hover:bg-red-50 transition-all rounded-lg cursor-pointer duration-200">
+            <span className="material-symbols-outlined text-red-600">logout</span>
+            <span className="text-[16px] font-bold">Cerrar Sesión</span>
           </a>
         </div>
       </aside>
