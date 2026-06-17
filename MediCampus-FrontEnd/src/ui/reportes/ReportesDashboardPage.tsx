@@ -23,6 +23,8 @@ function defaultDateRange(): { fecha_inicio: string; fecha_fin: string } {
   return { fecha_inicio: fmt(ayer), fecha_fin: fmt(hoy) };
 }
 
+type ReportType = 'general' | 'servicio';
+
 const TABLE_COLUMNS = [
   { key: 'servicio', label: 'Servicio', align: 'left' as const },
   { key: 'total_consultas', label: 'Consultas', align: 'center' as const },
@@ -36,6 +38,8 @@ export default function ReportesDashboardPage(): JSX.Element {
   });
   const [isExporting, setIsExporting] = useState<'idle' | 'csv' | 'pdf' | 'done' | 'error'>('idle');
   const [exportMsg, setExportMsg] = useState<string | null>(null);
+
+  const reportType: ReportType = filters.servicioId ? 'servicio' : 'general';
 
   const {
     loading,
@@ -75,7 +79,7 @@ export default function ReportesDashboardPage(): JSX.Element {
 
     try {
       const payload = {
-        tipo: 'general',
+        tipo: reportType,
         fecha_inicio: filters.fecha_inicio,
         fecha_fin: filters.fecha_fin,
         servicio: filters.servicioId || undefined,
@@ -105,12 +109,11 @@ const buildDynamicMetrics = (): MetricDef[] => {
   const totalConsultasGlobal = kpis.totalConsultas ?? 0;
 
   // 1. Si hay filtro de servicio, retornamos SOLO la tarjeta del servicio resaltada
+  // Usamos kpis.totalConsultas porque viene del backend con el filtro de servicio aplicado
   if (filters.servicioId) {
-    const servicioSeleccionado = tableRows[0];
-
     return [
       {
-        value: servicioSeleccionado ? (servicioSeleccionado.total_consultas ?? servicioSeleccionado.cantidad ?? 0) : 0,
+        value: totalConsultasGlobal,
         label: `Total de consultas`,
         trend: 'neutral',
         highlight: true
@@ -235,9 +238,9 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- Gráfico de Género (Ocupa ancho completo o media pantalla según prefieras) --- */}
+              {/* --- Gráfico de Género (siempre visible) --- */}
               {!loading && !error && (
-                <div className="col-span-12 lg:col-span-6">
+                <div className={`${reportType === 'servicio' ? 'col-span-12' : 'col-span-12 lg:col-span-6'}`}>
                   <ChartConsultasGenero
                     data={byGenderData}
                     loading={loading}
@@ -246,11 +249,9 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* El gráfico de fechas se queda abajo en col-span-12 o col-span-6 si quieres balancearlo con Género */}
-
-              {/* --- Gráfico de Consultas por Servicio --- */}
-              {!loading && !error && (
-                <div className="col-span-12">
+              {/* --- Gráfico de Consultas por Servicio (solo en vista general) --- */}
+              {!loading && !error && reportType === 'general' && (
+                <div className="col-span-12 lg:col-span-6">
                   <ChartConsultasFecha
                     data={serviciosData}
                     loading={loading}
@@ -259,8 +260,8 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- Tabla de detalle de Atenciones (Ancho Completo) --- */}
-              {!loading && !error && tableRows.length > 0 && (
+              {/* --- Tabla de detalle de Atenciones (solo en vista general) --- */}
+              {!loading && !error && reportType === 'general' && tableRows.length > 0 && (
                 <div className="col-span-12">
                   <DataTable
                     title="Detalle de Atenciones"

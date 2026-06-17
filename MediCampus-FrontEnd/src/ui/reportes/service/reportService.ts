@@ -173,7 +173,7 @@ class ReportService {
       const servicios = Array.isArray(data) ? data : [];
       const total_consultas = servicios.reduce((sum: number, s: any) => sum + (s.total || 0), 0);
       const medicinaEntry = servicios.find((s: any) =>
-        s.servicio?.toLowerCase() === 'medica'
+        s.servicio === 'Médica'
       );
       return {
         success: true,
