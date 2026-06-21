@@ -48,7 +48,7 @@ describe('NotificationCenter', () => {
       />
     );
 
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByLabelText('2 notificaciones')).toBeInTheDocument();
   });
 
   it('renderiza NotificationList con notificaciones', () => {
@@ -130,7 +130,7 @@ describe('NotificationCenter', () => {
       />
     );
 
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByLabelText('2 notificaciones')).toBeInTheDocument();
 
     const updatedNotifications = [
       { ...mockNotificationCita, estado: 'leido' as const },
@@ -145,6 +145,6 @@ describe('NotificationCenter', () => {
       />
     );
 
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByLabelText('1 notificaciones')).toBeInTheDocument();
   });
 });

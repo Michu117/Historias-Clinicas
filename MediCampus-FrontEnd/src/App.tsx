@@ -18,6 +18,7 @@ import EditarHistoriaClinicaPage from "./ui/historias-clinicas/pages/EditarHisto
 
 // Importaciones Globales y Reportes
 import LandingPage from './ui/global/LandingPage';
+import { NotificationCenter } from './ui/notificaciones';
 import HomePage from './ui/global/HomePage';
 import ReportesDashboardPage from './ui/reportes/ReportesDashboardPage';
 import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/historias/:id" element={<DetalleHistoriaClinicaPage />} />
           <Route path="/historias/:id/editar" element={<EditarHistoriaClinicaPage/>} />
 
+          <Route path="/notificaciones" element={<NotificationCenter />} />
 
           <Route path="/reportes/genero" element={<Navigate to="/reportes" replace />} />
           {/* Rutas de Seguridad */}
