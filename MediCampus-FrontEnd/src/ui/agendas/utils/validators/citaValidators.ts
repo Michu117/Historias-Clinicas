@@ -45,8 +45,7 @@ export const hasConflict = (
   }
 
   const duration = 30;
-  const margin = 30;
-  const requestedEnd = start + duration + margin;
+  const requestedEnd = start + duration;
 
   return citasExistentes.some((cita) => {
     if (cita.profesional_id !== profesionalId || cita.fecha !== fecha) {
@@ -54,7 +53,7 @@ export const hasConflict = (
     }
 
     const existingStart = parseTime(cita.hora);
-    const existingEnd = existingStart + cita.duracion_minutos + cita.margen_minutos;
+    const existingEnd = existingStart + cita.duracion_minutos;
 
     return start < existingEnd && requestedEnd > existingStart;
   });

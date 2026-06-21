@@ -9,6 +9,7 @@ export enum EstadoCita {
   COMPLETADA = 'COMPLETADA',
   CANCELADA = 'CANCELADA',
   NO_ASISTIO = 'NO_ASISTIO',
+  REAGENDADA = 'REAGENDADA',
 }
 
 export interface Cita {
@@ -16,6 +17,7 @@ export interface Cita {
   paciente_id: number;
   paciente_nombre?: string;
   profesional_id: number;
+  profesional_nombre?: string;
   servicio_id: number;
   servicios_ids?: number[]; // M2M para validar RN-003
   fecha: Date | string; // ISO 8601 en backend

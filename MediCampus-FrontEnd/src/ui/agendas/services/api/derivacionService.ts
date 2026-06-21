@@ -1,5 +1,6 @@
 import axiosInstance from './axiosConfig';
-import { Derivacion, DerivacionCreateDTO, DerivacionResponseDTO, EstadoDerivacion } from '../../types';
+import { Derivacion, DerivacionCreateDTO, DerivacionResponseDTO, EstadoDerivacion, Cita } from '../../types';
+import { CitaBackendDTO, mapBackendToFrontend as mapCitaBackendToFrontend } from './citaService';
 
 const API_PATH = '/v1/agendas/derivaciones/';
 
@@ -20,6 +21,11 @@ interface DerivacionBackendDTO {
   fecha_creacion: string;
 }
 
+interface DerivacionCreateResponseDTO {
+  derivacion: DerivacionBackendDTO;
+  cita_agendada: CitaBackendDTO | null;
+}
+
 function mapBackendToFrontend(dto: DerivacionBackendDTO): Derivacion {
   return {
     id: dto.id,
@@ -34,7 +40,7 @@ function mapBackendToFrontend(dto: DerivacionBackendDTO): Derivacion {
 }
 
 export const derivacionService = {
-  crearDerivacion: async (data: DerivacionCreateDTO): Promise<ApiResponse<Derivacion>> => {
+  crearDerivacion: async (data: DerivacionCreateDTO): Promise<ApiResponse<Derivacion & { cita_agendada?: Cita }>> => {
     const payload = {
       usuario_id: data.usuario_id || data.cita_origen_id,
       remitente_id: data.profesional_destino_id || 1,
@@ -42,10 +48,14 @@ export const derivacionService = {
       tipo: 'INTERNA',
       motivo: data.motivo,
     };
-    const response = await axiosInstance.post<DerivacionBackendDTO>(API_PATH, payload);
+    const response = await axiosInstance.post<DerivacionCreateResponseDTO>(API_PATH, payload);
+    const result: Derivacion & { cita_agendada?: Cita } = {
+      ...mapBackendToFrontend(response.data.derivacion),
+      cita_agendada: response.data.cita_agendada ? mapCitaBackendToFrontend(response.data.cita_agendada) : undefined,
+    };
     return {
       success: true,
-      data: mapBackendToFrontend(response.data),
+      data: result,
     };
   },
 

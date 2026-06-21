@@ -12,7 +12,8 @@ interface DateTimeSlotSelectorProps {
   isLoading: boolean;
 }
 
-const REFERENCE_DATE = new Date('2026-05-27T00:00:00Z');
+const TODAY_START = new Date();
+TODAY_START.setUTCHours(0, 0, 0, 0);
 
 const parseTime = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -43,8 +44,8 @@ const hasConflict = (citasExistentes: Cita[], profesionalId: number, fecha: stri
     }
 
     const existingStart = parseTime(cita.hora);
-    const existingEnd = existingStart + cita.duracion_minutos + cita.margen_minutos;
-    const requestedEnd = start + 30 + 30;
+    const existingEnd = existingStart + cita.duracion_minutos;
+    const requestedEnd = start + 30;
 
     return start < existingEnd && requestedEnd > existingStart;
   });
@@ -84,14 +85,16 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     setInternalTime(selectedTime);
   }, [selectedTime]);
 
-  const minDate = addDays(REFERENCE_DATE, 1);
-  const maxDate = addDays(REFERENCE_DATE, 90);
+  const minDate = addDays(TODAY_START, 1);
+  const maxDate = addDays(TODAY_START, 90);
   const availableDates: { fecha: string; disabled: boolean }[] = [];
 
   for (let dayOffset = -1; dayOffset <= 95; dayOffset += 1) {
-    const current = addDays(REFERENCE_DATE, dayOffset);
+    const current = addDays(TODAY_START, dayOffset);
     const fecha = formatDate(current);
-    const disabled = current < minDate || current > maxDate;
+    const isPast = current < minDate;
+    const isWeekend = current.getUTCDay() === 0 || current.getUTCDay() === 6;
+    const disabled = isPast || isWeekend || current > maxDate;
     availableDates.push({ fecha, disabled });
   }
 

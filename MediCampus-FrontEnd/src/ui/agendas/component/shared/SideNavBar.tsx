@@ -27,19 +27,19 @@ export const SideNavBar: React.FC = () => {
 
   return (
     <nav
-      className="fixed left-0 top-0 h-full w-60 border-r flex flex-col p-5 gap-5 z-40"
-      style={{ backgroundColor: '#f1f3ff', borderColor: '#c2c6d4' }}
+      className="fixed left-0 top-0 h-full w-60 flex flex-col p-5 gap-5 z-40"
+      style={{ backgroundColor: 'var(--surface-container-low)' }}
     >
       <div className="flex items-center gap-3 mb-3 px-2">
         <div
           className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-          style={{ backgroundColor: '#003f87' }}
+          style={{ backgroundColor: 'var(--on-primary-container)' }}
         >
           MC
         </div>
         <div>
-          <p className="font-bold text-sm" style={{ color: '#003f87' }}>MediCampus</p>
-          <p className="text-xs" style={{ color: '#424752' }}>Gesti&oacute;n M&eacute;dica</p>
+          <p className="font-bold text-sm" style={{ color: 'var(--on-primary-container)' }}>MediCampus</p>
+          <p className="text-xs" style={{ color: 'var(--on-surface-variant)' }}>Gesti&oacute;n M&eacute;dica</p>
         </div>
       </div>
 
@@ -55,10 +55,10 @@ export const SideNavBar: React.FC = () => {
               }`}
               style={
                 active
-                  ? { backgroundColor: '#d7e2ff', color: '#001a40', borderLeft: '3px solid #003f87' }
-                  : { color: '#424752', backgroundColor: 'transparent' }
+                  ? { backgroundColor: 'var(--primary-container)', color: 'var(--on-primary-container)', borderLeft: '3px solid var(--on-primary-container)' }
+                  : { color: 'var(--on-surface-variant)', backgroundColor: 'transparent' }
               }
-              onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = '#e1e8fe'; }}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = 'var(--btn-tertiary-hover)'; }}
               onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,10 +72,10 @@ export const SideNavBar: React.FC = () => {
 
       <div className="mt-auto">
         <button
-          onClick={() => { localStorage.clear(); navigate('/'); }}
-          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-sm transition-all"
-          style={{ color: '#424752' }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e1e8fe'}
+          onClick={() => { localStorage.clear(); window.location.href = '/'; }}
+          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-sm transition-all shadow-none outline-none ring-0"
+          style={{ color: 'var(--primary)', backgroundColor: 'transparent' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-tertiary-hover)'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

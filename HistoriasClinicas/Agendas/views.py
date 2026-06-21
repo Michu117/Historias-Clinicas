@@ -5,7 +5,7 @@ Controladores que exponen JSON y delegan lógica a services.py.
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Cita, Servicio, Derivacion, Certificado
@@ -23,13 +23,38 @@ class BaseAgendasViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class CitaViewSet(viewsets.ModelViewSet):
+class CitaViewSet(BaseAgendasViewSet):
     queryset = Cita.objects.all()
     serializer_class = CitaSerializer
-    permission_classes = [AllowAny]
-    filterset_fields = ['usuario_id', 'profesional_id', 'estado']
     ordering_fields = ['fecha_hora', 'fecha_creacion']
     ordering = ['-fecha_hora']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = self.request.query_params
+
+        usuario_id = params.get('usuario_id')
+        if usuario_id:
+            qs = qs.filter(usuario_id=usuario_id)
+
+        profesional_id = params.get('profesional_id')
+        if profesional_id:
+            qs = qs.filter(profesional_id=profesional_id)
+
+        estado = params.get('estado')
+        if estado:
+            estados = estado.split(',')
+            qs = qs.filter(estado__in=estados)
+
+        fecha_desde = params.get('fecha_desde')
+        if fecha_desde:
+            qs = qs.filter(fecha_hora__date__gte=fecha_desde)
+
+        fecha_hasta = params.get('fecha_hasta')
+        if fecha_hasta:
+            qs = qs.filter(fecha_hora__date__lte=fecha_hasta)
+
+        return qs
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -37,8 +62,9 @@ class CitaViewSet(viewsets.ModelViewSet):
 
         try:
             services.validar_choque_citas(
-                usuario_id=serializer.validated_data['usuario_id'],
-                fecha_hora=serializer.validated_data['fecha_hora']
+                profesional_id=serializer.validated_data.get('profesional_id'),
+                fecha_hora=serializer.validated_data['fecha_hora'],
+                usuario_id=serializer.validated_data.get('usuario_id'),
             )
 
             if 'servicios' in serializer.validated_data:
@@ -46,14 +72,25 @@ class CitaViewSet(viewsets.ModelViewSet):
                     serializer.validated_data['servicios']
                 )
                 serializer.validated_data['servicios'] = servicios
+                services.validar_misma_especialidad_mismo_dia(
+                    usuario_id=serializer.validated_data.get('usuario_id'),
+                    fecha_hora=serializer.validated_data['fecha_hora'],
+                    servicios_ids=serializer.validated_data['servicios'],
+                )
 
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         except services.ConflictoHorarioError as exc:
-            return Response({'error': str(exc)}, status=status.HTTP_409_CONFLICT)
+            return Response({
+                'success': False,
+                'error': {'code': 'CONFLICT', 'message': str(exc)},
+            }, status=status.HTTP_409_CONFLICT)
         except services.DatosInvalidosError as exc:
-            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'success': False,
+                'error': {'code': 'BAD_REQUEST', 'message': str(exc)},
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['get'], url_path='historial')
     def historial(self, request, pk=None):
@@ -70,10 +107,10 @@ class CitaViewSet(viewsets.ModelViewSet):
         return Response(historial, status=status.HTTP_200_OK)
 
 
-class ServicioViewSet(viewsets.ReadOnlyModelViewSet):
+class ServicioViewSet(BaseAgendasViewSet):
     queryset = Servicio.objects.filter(es_activo=True)
     serializer_class = ServicioSerializer
-    permission_classes = [AllowAny]
+    http_method_names = ['get', 'head', 'options']
     ordering_fields = ['nombre', 'fecha_creacion']
     ordering = ['nombre']
 
@@ -201,14 +238,26 @@ class DerivacionViewSet(BaseAgendasViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            derivacion = services.gestionar_derivacion(
+            result = services.gestionar_derivacion(
                 usuario_id=serializer.validated_data['usuario_id'],
                 remitente_id=serializer.validated_data['remitente_id'],
                 destinatario=serializer.validated_data['destinatario'],
                 tipo_derivacion=serializer.validated_data['tipo'],
                 motivo=serializer.validated_data['motivo'],
             )
-            return Response(DerivacionSerializer(derivacion).data, status=status.HTTP_201_CREATED)
+
+            if isinstance(result, tuple):
+                derivacion, cita = result
+                from .serializers import CitaSerializer
+                return Response({
+                    'derivacion': DerivacionSerializer(derivacion).data,
+                    'cita_agendada': CitaSerializer(cita).data,
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    'derivacion': DerivacionSerializer(result).data,
+                    'cita_agendada': None,
+                }, status=status.HTTP_201_CREATED)
         except services.DatosInvalidosError as exc:
             return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 

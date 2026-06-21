@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Derivacion, DerivacionCreateDTO } from '../types';
+import { Derivacion, DerivacionCreateDTO, Cita } from '../types';
 import { derivacionService } from '../services/api/derivacionService';
 import { validateDerivationDestiny, validateMotivo } from '../utils/validators/derivacionValidators';
 import { getErrorMessage } from '../utils/errors/ErrorHandler';
@@ -10,7 +10,8 @@ interface UseDerivacionResult {
   loading: boolean;
   error: string | null;
   nuevaCitaId: number | null;
-  crearDerivacion: (data: DerivacionCreateDTO) => Promise<void>;
+  citaAgendada: Cita | null;
+  crearDerivacion: (data: DerivacionCreateDTO) => Promise<Cita | null>;
   loadPendientes: (profesionalId: number) => Promise<void>;
   aceptarDerivacion: (derivacionId: number) => Promise<void>;
   rechazarDerivacion: (derivacionId: number, motivo?: string) => Promise<void>;
@@ -21,21 +22,27 @@ export const useDerivacion = (): UseDerivacionResult => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [nuevaCitaId, setNuevaCitaId] = useState<number | null>(null);
+  const [citaAgendada, setCitaAgendada] = useState<Cita | null>(null);
 
-  const crearDerivacion = useCallback(async (data: DerivacionCreateDTO) => {
+  const crearDerivacion = useCallback(async (data: DerivacionCreateDTO): Promise<Cita | null> => {
     setLoading(true);
     setError(null);
 
     if (!validateMotivo(data.motivo)) {
       setError(messages.derivacion.motivoMinLength);
       setLoading(false);
-      return;
+      return null;
     }
 
     try {
-      await derivacionService.crearDerivacion(data);
+      const response = await derivacionService.crearDerivacion(data);
+      const cita = response.data?.cita_agendada || null;
+      setCitaAgendada(cita);
+      return cita;
     } catch (err: any) {
-      setError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      setError(msg);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -85,5 +92,5 @@ export const useDerivacion = (): UseDerivacionResult => {
     }
   }, []);
 
-  return { pendientes, loading, error, nuevaCitaId, crearDerivacion, loadPendientes, aceptarDerivacion, rechazarDerivacion };
+  return { pendientes, loading, error, nuevaCitaId, citaAgendada, crearDerivacion, loadPendientes, aceptarDerivacion, rechazarDerivacion };
 };

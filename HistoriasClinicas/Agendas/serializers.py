@@ -22,20 +22,33 @@ class CitaSerializer(serializers.ModelSerializer):
         allow_empty=True,
     )
     paciente_nombre = serializers.SerializerMethodField()
+    profesional_nombre = serializers.SerializerMethodField()
 
     class Meta:
         model = Cita
         fields = [
             'id', 'usuario_id', 'profesional_id', 'fecha_hora', 'estado',
             'motivo', 'servicios', 'fecha_creacion', 'fecha_actualizacion',
-            'paciente_nombre',
+            'paciente_nombre', 'profesional_nombre',
         ]
-        read_only_fields = ['fecha_creacion', 'fecha_actualizacion', 'paciente_nombre']
+        read_only_fields = ['fecha_creacion', 'fecha_actualizacion', 'paciente_nombre', 'profesional_nombre']
 
     def get_paciente_nombre(self, obj):
         try:
             from Seguridad.models import Cuenta
             cuenta = Cuenta.objects.get(id=obj.usuario_id)
+            if hasattr(cuenta, 'perfil') and cuenta.perfil:
+                return f"{cuenta.perfil.nombres} {cuenta.perfil.apellidos}".strip()
+            return ''
+        except Cuenta.DoesNotExist:
+            return ''
+
+    def get_profesional_nombre(self, obj):
+        if not obj.profesional_id:
+            return ''
+        try:
+            from Seguridad.models import Cuenta
+            cuenta = Cuenta.objects.get(id=obj.profesional_id)
             if hasattr(cuenta, 'perfil') and cuenta.perfil:
                 return f"{cuenta.perfil.nombres} {cuenta.perfil.apellidos}".strip()
             return ''

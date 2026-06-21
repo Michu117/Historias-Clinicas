@@ -11,7 +11,7 @@ interface CertificateButtonProps {
 }
 
 export const CertificateButton: FC<CertificateButtonProps> = ({ citaId, estado, onSuccess, onError }) => {
-  const { generarCertificado, certificadoData, descargarPDF, loading } = useCertificado();
+  const { generarCertificado, descargarPDF, loading } = useCertificado();
   const [descargando, setDescargando] = useState(false);
 
   const puedeGenerar = canGenerateCertificate({ estado });
@@ -21,9 +21,9 @@ export const CertificateButton: FC<CertificateButtonProps> = ({ citaId, estado, 
   const handleClick = async () => {
     setDescargando(true);
     try {
-      await generarCertificado(citaId, estado);
-      if (certificadoData) {
-        await descargarPDF(certificadoData);
+      const data = await generarCertificado(citaId, estado);
+      if (data) {
+        await descargarPDF(data);
       }
       onSuccess?.();
     } catch {

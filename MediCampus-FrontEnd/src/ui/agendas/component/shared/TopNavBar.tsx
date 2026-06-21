@@ -26,15 +26,15 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   return (
     <header
       className="flex justify-between items-center h-16 px-6 border-b sticky top-0 z-50"
-      style={{ backgroundColor: '#ffffff', borderColor: '#c2c6d4' }}
+      style={{ backgroundColor: 'var(--surface-container-lowest)', borderColor: 'var(--outline)' }}
     >
       <div className="flex items-center gap-2">
-        <h1 className="text-lg font-black" style={{ color: '#003f87' }}>{productName}</h1>
+        <h1 className="text-lg font-black" style={{ color: 'var(--on-primary-container)' }}>{productName}</h1>
       </div>
       <div className="flex items-center gap-4">
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-          style={{ backgroundColor: '#d7e2ff', color: '#001a40' }}
+          style={{ backgroundColor: 'var(--primary-container)', color: 'var(--on-primary-container)' }}
         >
           {displayName.charAt(0).toUpperCase()}
         </div>

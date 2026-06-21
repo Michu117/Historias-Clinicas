@@ -2,6 +2,7 @@ import { Servicio, Profesional, Cita, EstadoCita } from '../types';
 import { isDatePast, hasConflict } from '../utils/validators/citaValidators';
 import { messages } from '../utils/constants/messages';
 import { servicioService } from '../services/api/servicioService';
+import { profesionalService } from '../services/api/profesionalService';
 import citaService from '../services/api/citaService';
 import { getUserId } from '../services/storage/authStorage';
 
@@ -16,13 +17,14 @@ interface UseAgendamientoState {
   isLoading: boolean;
   error: string | null;
   loadServicios: () => Promise<void>;
-  loadProfesionales: (servicioId: number) => Promise<void>;
+  loadProfesionales: (servicioId: number, servicioNombre?: string) => Promise<void>;
   checkDisponibilidad: (
     profesionalId: number,
     servicioId: number,
     fecha: string,
     hora: string
   ) => boolean;
+  loadCitasPorProfesional: (profesionalId: number) => Promise<void>;
   crearCita: (citaData: Omit<Cita, 'id' | 'created_at' | 'updated_at'>) => Promise<Cita>;
   reset: () => void;
 }
@@ -58,59 +60,6 @@ const defaultServicios: Servicio[] = [
   },
 ];
 
-const defaultProfesionales: Profesional[] = [
-  {
-    id: 101,
-    nombre: 'Dr. Carlos García',
-    email: 'carlos.garcia@hospital.com',
-    especialidad: 'Medicina',
-    rol: 'PROFESIONAL',
-    is_activo: true,
-  },
-  {
-    id: 102,
-    nombre: 'Dra. Laura Martínez',
-    email: 'laura.martinez@hospital.com',
-    especialidad: 'Odontologia',
-    rol: 'PROFESIONAL',
-    is_activo: true,
-  },
-  {
-    id: 103,
-    nombre: 'Trab. Soc. Ana López',
-    email: 'ana.lopez@hospital.com',
-    especialidad: 'Trabajo Social',
-    rol: 'PROFESIONAL',
-    is_activo: true,
-  },
-  {
-    id: 104,
-    nombre: 'Psic. Ricardo Torres',
-    email: 'ricardo.torres@hospital.com',
-    especialidad: 'Psicologia',
-    rol: 'PROFESIONAL',
-    is_activo: true,
-  },
-];
-
-const defaultCitas: Cita[] = [
-  {
-    id: 1,
-    paciente_id: 1,
-    profesional_id: 101,
-    servicio_id: 1,
-    servicios_ids: [1],
-    fecha: '2026-05-28',
-    hora: '10:00',
-    duracion_minutos: 30,
-    margen_minutos: 30,
-    estado: EstadoCita.AGENDADA,
-    motivo: 'Consulta inicial',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
 const parseTime = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
   return Number.isNaN(hours) || Number.isNaN(minutes) ? NaN : hours * 60 + minutes;
@@ -120,7 +69,7 @@ export const useAgendamiento = (): UseAgendamientoState => {
   const agendamientoState: UseAgendamientoState = {
     servicios: [],
     profesionales: [],
-    citasExistentes: [...defaultCitas],
+    citasExistentes: [],
     selectedService: null,
     selectedProfessional: null,
     selectedDate: null,
@@ -141,13 +90,18 @@ export const useAgendamiento = (): UseAgendamientoState => {
       }
       agendamientoState.isLoading = false;
     },
-    loadProfesionales: async (servicioId: number) => {
+    loadProfesionales: async (servicioId: number, servicioNombre?: string) => {
       agendamientoState.isLoading = true;
       agendamientoState.error = null;
-      await Promise.resolve();
-      agendamientoState.profesionales = defaultProfesionales.filter(
-        (p) => p.especialidad === defaultServicios.find((s) => s.id === servicioId)?.nombre
-      );
+      try {
+        const nombreServicio = servicioNombre
+          || agendamientoState.servicios.find((s) => s.id === servicioId)?.nombre
+          || '';
+        const data = await profesionalService.listarPorServicio(servicioId, nombreServicio);
+        agendamientoState.profesionales = data;
+      } catch {
+        agendamientoState.profesionales = [];
+      }
       agendamientoState.isLoading = false;
     },
     checkDisponibilidad: (profesionalId: number, servicioId: number, fecha: string, hora: string) => {
@@ -177,12 +131,23 @@ export const useAgendamiento = (): UseAgendamientoState => {
           return false;
         }
         const existingStart = parseTime(cita.hora);
-        const existingEnd = existingStart + cita.duracion_minutos + cita.margen_minutos;
-        const requestedEnd = timeMinutes + 30 + 30;
+        const existingEnd = existingStart + cita.duracion_minutos;
+        const requestedEnd = timeMinutes + 30;
         return timeMinutes < existingEnd && requestedEnd > existingStart;
       });
 
       return !conflict;
+    },
+    loadCitasPorProfesional: async (profesionalId: number) => {
+      try {
+        const data = await citaService.listar({
+          profesional_id: profesionalId,
+          estado: ['AGENDADA', 'CONFIRMADA', 'ATENDIDA'].join(','),
+        });
+        agendamientoState.citasExistentes = data;
+      } catch {
+        agendamientoState.citasExistentes = [];
+      }
     },
     crearCita: async (citaData) => {
       agendamientoState.error = null;
@@ -223,10 +188,9 @@ export const useAgendamiento = (): UseAgendamientoState => {
       }
 
       try {
-        const usuarioId = getUserId() || citaData.paciente_id;
         const fecha_hora = `${citaData.fecha}T${citaData.hora}:00`;
         const created = await citaService.crear({
-          usuario_id: usuarioId,
+          usuario_id: citaData.paciente_id,
           profesional_id: citaData.profesional_id || null,
           fecha_hora,
           motivo: citaData.motivo,
@@ -236,26 +200,10 @@ export const useAgendamiento = (): UseAgendamientoState => {
         agendamientoState.citasExistentes = [...agendamientoState.citasExistentes, created];
         agendamientoState.error = null;
         return created;
-      } catch {
-        const cita: Cita = {
-          id: agendamientoState.citasExistentes.length + 1,
-          paciente_id: citaData.paciente_id,
-          profesional_id: citaData.profesional_id,
-          servicio_id: citaData.servicio_id,
-          servicios_ids: citaData.servicios_ids ?? [citaData.servicio_id],
-          fecha: citaData.fecha,
-          hora: citaData.hora,
-          duracion_minutos: citaData.duracion_minutos,
-          margen_minutos: citaData.margen_minutos,
-          estado: citaData.estado,
-          motivo: citaData.motivo,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-
-        agendamientoState.citasExistentes = [...agendamientoState.citasExistentes, cita];
-        agendamientoState.error = null;
-        return cita;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Error al crear la cita';
+        agendamientoState.error = message;
+        return Promise.resolve({} as Cita);
       }
     },
     reset: () => {

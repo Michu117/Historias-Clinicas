@@ -17,23 +17,26 @@ export const useCertificado = (): UseCertificadoResult => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generarCertificado = useCallback(async (citaId: number, estado?: string | null) => {
+  const generarCertificado = useCallback(async (citaId: number, estado?: string | null): Promise<CertificadoData | null> => {
     setLoading(true);
     setError(null);
 
     if (estado && !canGenerateCertificate({ estado })) {
       setError(messages.certificados.soloAtendida);
       setLoading(false);
-      return;
+      return null;
     }
 
     try {
       const response = await certificadoService.getCertificadoData(citaId);
       if (response.data) {
         setCertificadoData(response.data);
+        return response.data;
       }
+      return null;
     } catch (err: any) {
       setError(getErrorMessage(err));
+      return null;
     } finally {
       setLoading(false);
     }
@@ -49,15 +52,30 @@ export const useCertificado = (): UseCertificadoResult => {
     }
 
     try {
-      const blob = new Blob([JSON.stringify(data)], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `certificado-${data.citaId}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const response = await certificadoService.downloadCertificadoPDF(data.citaId);
+      if (response.data) {
+        const html = await response.data.text();
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.write(html);
+          win.document.close();
+          win.focus();
+          setTimeout(() => {
+            win.print();
+          }, 500);
+        } else {
+          const url = window.URL.createObjectURL(response.data);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `certificado-${data.citaId}.html`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+        }
+      }
     } catch (err: any) {
-      setError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }

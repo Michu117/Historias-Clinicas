@@ -21,6 +21,7 @@ class EstadoCita(models.TextChoices):
     ATENDIDA = 'ATENDIDA', 'Atendida'
     CANCELADA = 'CANCELADA', 'Cancelada'
     NO_ASISTIDA = 'NO_ASISTIDA', 'No asistida'
+    REAGENDADA = 'REAGENDADA', 'Reagendada'
 
 
 class Cita(models.Model):
@@ -39,7 +40,6 @@ class Cita(models.Model):
 
     class Meta:
         ordering = ['-fecha_hora']
-        unique_together = [['usuario_id', 'fecha_hora']]
 
     def __str__(self):
         return f'Cita {self.id} - Usuario {self.usuario_id} el {self.fecha_hora}'

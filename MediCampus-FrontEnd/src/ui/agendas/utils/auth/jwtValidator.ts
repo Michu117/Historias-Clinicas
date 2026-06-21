@@ -81,7 +81,7 @@ export const getTokenExpiresIn = (token: string): number => {
   }
 };
 
-const PROFESSIONAL_ROLES = new Set(['PROFESIONAL', 'medico', 'psicologo']);
+const PROFESSIONAL_ROLES = new Set(['PROFESIONAL', 'medico', 'psicologo', 'odontologo', 'trabajador_social']);
 const ADMIN_ROLES = new Set(['ADMIN', 'admin', 'Administrador']);
 
 /**

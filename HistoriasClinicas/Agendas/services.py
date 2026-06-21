@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, date, datetime, time, timezone as dt_timezone
 from django.db import transaction
 from django.utils import timezone
 
@@ -7,6 +7,24 @@ from .models import (
     SignosVitales, ConsultaMedica,
     ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial
 )
+
+
+# Mapeo de Servicio a nombre de Rol en Seguridad
+SERVICIO_ROL_MAP = {
+    'Medicina General': 'medico',
+    'Medicina': 'medico',
+    'Odontologia': 'odontologo',
+    'Odontología': 'odontologo',
+    'Psicologia': 'psicologo',
+    'Psicología': 'psicologo',
+    'Trabajo Social': 'trabajador_social',
+}
+
+HORA_INICIO = time(8, 0)
+HORA_FIN = time(18, 0)
+RECESO_INICIO = time(12, 0)
+RECESO_FIN = time(13, 0)
+SLOT_MINUTOS = 30
 
 
 class ConflictoHorarioError(Exception):
@@ -21,17 +39,38 @@ class EstadoCitaInvalidoError(Exception):
     """Excepción cuando la cita no está en estado válido para la operación."""
 
 
-def validar_choque_citas(usuario_id, fecha_hora, duracion_minutos=60, excluir_cita_id=None):
-    """Valida que un usuario no tenga citas superpuestas."""
+ESTADOS_ACTIVOS = [EstadoCita.AGENDADA, EstadoCita.CONFIRMADA]
+ESTADOS_INACTIVOS = [EstadoCita.CANCELADA, EstadoCita.REAGENDADA]
+
+
+def validar_choque_citas(profesional_id, fecha_hora, duracion_minutos=60, excluir_cita_id=None, usuario_id=None):
+    """Valida que un profesional no tenga citas superpuestas y que el paciente no tenga cita en ese horario."""
     if fecha_hora < timezone.now():
         raise DatosInvalidosError('La fecha y hora de la cita deben ser futuras.')
+
+    if usuario_id:
+        paciente_conflicto = Cita.objects.filter(
+            usuario_id=usuario_id,
+            fecha_hora=fecha_hora,
+        ).exclude(
+            estado__in=ESTADOS_INACTIVOS,
+        )
+        if excluir_cita_id:
+            paciente_conflicto = paciente_conflicto.exclude(id=excluir_cita_id)
+        if paciente_conflicto.exists():
+            raise ConflictoHorarioError(
+                'Ya tienes una cita agendada en esa fecha y hora.'
+            )
+
+    if not profesional_id:
+        return True
 
     tiempo_fin = fecha_hora + timedelta(minutes=duracion_minutos)
     tiempo_inicio = fecha_hora - timedelta(minutes=duracion_minutos)
 
     citas_conflictivas = Cita.objects.filter(
-        usuario_id=usuario_id,
-        estado__in=[EstadoCita.AGENDADA, EstadoCita.CONFIRMADA],
+        profesional_id=profesional_id,
+        estado__in=ESTADOS_ACTIVOS,
     )
 
     if excluir_cita_id:
@@ -44,10 +83,28 @@ def validar_choque_citas(usuario_id, fecha_hora, duracion_minutos=60, excluir_ci
 
     if citas_conflictivas.exists():
         raise ConflictoHorarioError(
-            f'El usuario {usuario_id} ya tiene una cita en ese horario.'
+            f'El profesional ya tiene una cita en ese horario.'
         )
 
     return True
+
+
+def validar_misma_especialidad_mismo_dia(usuario_id, fecha_hora, servicios_ids, excluir_cita_id=None):
+    """Valida que un paciente no tenga dos citas de la misma especialidad el mismo día."""
+    fecha_date = fecha_hora.date()
+    citas_mismo_dia = Cita.objects.filter(
+        usuario_id=usuario_id,
+        fecha_hora__date=fecha_date,
+        servicios__id__in=servicios_ids,
+    ).exclude(
+        estado__in=ESTADOS_INACTIVOS,
+    )
+    if excluir_cita_id:
+        citas_mismo_dia = citas_mismo_dia.exclude(id=excluir_cita_id)
+    if citas_mismo_dia.exists():
+        raise ConflictoHorarioError(
+            'Ya tienes una cita agendada de esta especialidad en el mismo día.'
+        )
 
 
 def validar_servicios_cita(servicios_ids):
@@ -255,8 +312,83 @@ def actualizar_atencion(consulta_id, tipo_consulta, datos_consulta):
         return consulta
 
 
+def _generar_slots_dia(dia):
+    """Genera los slots de 30 min disponibles para un día (08:00-11:30, 13:00-17:30)."""
+    slots = []
+    # Mañana
+    hora_actual = datetime.combine(dia, HORA_INICIO)
+    fin_manana = datetime.combine(dia, RECESO_INICIO)
+    while hora_actual + timedelta(minutes=SLOT_MINUTOS) <= fin_manana:
+        slots.append(hora_actual)
+        hora_actual += timedelta(minutes=SLOT_MINUTOS)
+    # Tarde
+    hora_actual = datetime.combine(dia, RECESO_FIN)
+    fin_tarde = datetime.combine(dia, HORA_FIN)
+    while hora_actual + timedelta(minutes=SLOT_MINUTOS) <= fin_tarde:
+        slots.append(hora_actual)
+        hora_actual += timedelta(minutes=SLOT_MINUTOS)
+    return slots
+
+
+def buscar_siguiente_cita_disponible(servicio_id, servicio_nombre, usuario_id):
+    """Busca el próximo slot disponible para un servicio y paciente."""
+    from Seguridad.models import Cuenta
+
+    rol_nombre = SERVICIO_ROL_MAP.get(servicio_nombre) or SERVICIO_ROL_MAP.get(
+        Servicio.objects.get(id=servicio_id).nombre
+    )
+    if not rol_nombre:
+        raise DatosInvalidosError(
+            f'No se encontró un rol para el servicio con ID {servicio_id}.'
+        )
+
+    profesionales = Cuenta.objects.filter(
+        rol__nombre=rol_nombre,
+        is_active=True,
+    ).order_by('id')
+
+    if not profesionales.exists():
+        raise DatosInvalidosError(
+            f'No hay profesionales activos para el servicio "{servicio_nombre}".'
+        )
+
+    fecha = timezone.localdate() + timedelta(days=1)
+    for _ in range(30):
+        if fecha.weekday() >= 5:
+            fecha += timedelta(days=1)
+            continue
+
+        slots = _generar_slots_dia(fecha)
+
+        for profesional in profesionales:
+            citas_existentes = Cita.objects.filter(
+                profesional_id=profesional.id,
+                fecha_hora__date=fecha,
+                estado__in=[EstadoCita.AGENDADA, EstadoCita.CONFIRMADA],
+            ).values_list('fecha_hora', flat=True)
+
+            for slot in slots:
+                if slot in citas_existentes:
+                    continue
+                # Verificar que el usuario no tenga cita en ese horario
+                if Cita.objects.filter(
+                    usuario_id=usuario_id,
+                    fecha_hora=slot,
+                ).exclude(
+                    estado__in=ESTADOS_INACTIVOS,
+                ).exists():
+                    continue
+                return profesional.id, timezone.make_aware(slot)
+
+        fecha += timedelta(days=1)
+
+    raise DatosInvalidosError(
+        'No se encontró disponibilidad en los próximos 30 días para el servicio destino.'
+    )
+
+
 def gestionar_derivacion(usuario_id, remitente_id, destinatario, tipo_derivacion, motivo):
-    """Crea una derivación interna o externa para un usuario."""
+    """Crea una derivación y auto-agenda una cita en el servicio destino."""
     if not usuario_id:
         raise DatosInvalidosError('Debe proporcionar usuario_id.')
     if not remitente_id:
@@ -267,10 +399,43 @@ def gestionar_derivacion(usuario_id, remitente_id, destinatario, tipo_derivacion
     if tipo_derivacion not in TipoDerivacion.values:
         raise DatosInvalidosError('Tipo de derivación inválido. Debe ser INTERNA o EXTERNA.')
 
-    return Derivacion.objects.create(
-        usuario_id=usuario_id,
-        remitente_id=remitente_id,
-        destinatario=destinatario,
-        tipo=tipo_derivacion,
-        motivo=motivo,
-    )
+    if tipo_derivacion != TipoDerivacion.INTERNA:
+        return Derivacion.objects.create(
+            usuario_id=usuario_id,
+            remitente_id=remitente_id,
+            destinatario=destinatario,
+            tipo=tipo_derivacion,
+            motivo=motivo,
+        )
+
+    try:
+        servicio_destino_id = int(destinatario)
+        servicio = Servicio.objects.get(id=servicio_destino_id, es_activo=True)
+    except (ValueError, Servicio.DoesNotExist):
+        raise DatosInvalidosError(f'El servicio destino "{destinatario}" no es válido.')
+
+    with transaction.atomic():
+        profesional_id, fecha_hora = buscar_siguiente_cita_disponible(
+            servicio_id=servicio.id,
+            servicio_nombre=servicio.nombre,
+            usuario_id=usuario_id,
+        )
+
+        cita = Cita.objects.create(
+            usuario_id=usuario_id,
+            profesional_id=profesional_id,
+            fecha_hora=fecha_hora,
+            estado=EstadoCita.AGENDADA,
+            motivo=f'Derivación: {motivo[:200]}',
+        )
+        cita.servicios.add(servicio)
+
+        derivacion = Derivacion.objects.create(
+            usuario_id=usuario_id,
+            remitente_id=remitente_id,
+            destinatario=destinatario,
+            tipo=tipo_derivacion,
+            motivo=motivo,
+        )
+
+    return derivacion, cita

@@ -1,26 +1,33 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Card, CardTitle } from '../../../components';
 import { ServiceSelector } from '../selectors/ServiceSelector';
 import { ProfessionalSelector } from '../selectors/ProfessionalSelector';
 import { DateTimeSlotSelector } from '../selectors/DateTimeSlotSelector';
 import { useAgendamiento } from '../../hooks/useAgendamiento';
+import { citaService } from '../../services/api/citaService';
 import { EstadoCita } from '../../types';
 import { messages } from '../../utils/constants/messages';
 import { getUserId } from '../../services/storage/authStorage';
 
 export const AgendarCita: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const reprogramCita = (location.state as any)?.reprogramCita as
+    | { id: number; servicio_id: number; profesional_id: number; motivo: string }
+    | undefined;
+
   const agendamiento = useAgendamiento();
   const [servicios, setServicios] = useState(agendamiento.servicios);
   const [profesionales, setProfesionales] = useState(agendamiento.profesionales);
   const [citasExistentes, setCitasExistentes] = useState(agendamiento.citasExistentes);
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
-  const [selectedProfessionalId, setSelectedProfessionalId] = useState<number | null>(null);
+  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(reprogramCita?.servicio_id ?? null);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<number | null>(reprogramCita?.profesional_id ?? null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [motivo, setMotivo] = useState('');
+  const [motivo, setMotivo] = useState(reprogramCita?.motivo || '');
   const [isLoading, setIsLoading] = useState(false);
+  const [citaEstado, setCitaEstado] = useState<string>(reprogramCita ? 'AGENDADA' : 'EN CREACIÓN');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +44,21 @@ export const AgendarCita: React.FC = () => {
     fetchServicios();
   }, []);
 
+  useEffect(() => {
+    if (!reprogramCita || servicios.length === 0) return;
+    const servicio = servicios.find((s) => s.id === reprogramCita.servicio_id);
+    if (servicio) {
+      agendamiento.loadProfesionales(reprogramCita.servicio_id, servicio.nombre).then(() => {
+        setProfesionales([...agendamiento.profesionales]);
+        if (reprogramCita.profesional_id > 0) {
+          agendamiento.loadCitasPorProfesional(reprogramCita.profesional_id).then(() => {
+            setCitasExistentes([...agendamiento.citasExistentes]);
+          });
+        }
+      });
+    }
+  }, [servicios.length]);
+
   const handleServiceSelect = async (serviceId: number) => {
     setSelectedServiceId(serviceId);
     setSelectedProfessionalId(null);
@@ -44,18 +66,26 @@ export const AgendarCita: React.FC = () => {
     setSelectedTime(null);
     setMessage(null);
     setError(null);
+    setCitasExistentes([]);
     setIsLoading(true);
-    await agendamiento.loadProfesionales(serviceId);
+    const servicio = servicios.find((s) => s.id === serviceId);
+    await agendamiento.loadProfesionales(serviceId, servicio?.nombre);
     setProfesionales([...agendamiento.profesionales]);
     setIsLoading(false);
   };
 
-  const handleProfessionalSelect = (professionalId: number) => {
+  const handleProfessionalSelect = async (professionalId: number) => {
     setSelectedProfessionalId(professionalId);
     setSelectedDate(null);
     setSelectedTime(null);
     setMessage(null);
     setError(null);
+    if (professionalId > 0) {
+      setIsLoading(true);
+      await agendamiento.loadCitasPorProfesional(professionalId);
+      setCitasExistentes([...agendamiento.citasExistentes]);
+      setIsLoading(false);
+    }
   };
 
   const handleDateTimeSelect = (data: { fecha: string; hora: string }) => {
@@ -68,6 +98,7 @@ export const AgendarCita: React.FC = () => {
   const handleSubmit = async () => {
     setMessage(null);
     setError(null);
+    setIsLoading(true);
 
     const citaData = {
       paciente_id: currentUserId,
@@ -82,20 +113,42 @@ export const AgendarCita: React.FC = () => {
       motivo: motivo.trim(),
     };
 
-    await agendamiento.crearCita(citaData as any);
-    if (agendamiento.error) {
-      setError(agendamiento.error);
-      return;
+    if (reprogramCita) {
+      const fecha_hora = `${citaData.fecha}T${citaData.hora}:00`;
+      try {
+        await citaService.actualizar(reprogramCita.id, { estado: EstadoCita.REAGENDADA });
+        await citaService.crear({
+          usuario_id: currentUserId,
+          profesional_id: reprogramCita.profesional_id || null,
+          fecha_hora,
+          motivo: citaData.motivo,
+          servicios: [reprogramCita.servicio_id],
+        });
+        setMessage('Cita reprogramada con éxito.');
+      } catch {
+        setError('Error al reprogramar la cita.');
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      await agendamiento.crearCita(citaData as any);
+      if (agendamiento.error) {
+        setError(agendamiento.error);
+        setIsLoading(false);
+        return;
+      }
+      setCitasExistentes([...agendamiento.citasExistentes]);
     }
 
-    setCitasExistentes([...agendamiento.citasExistentes]);
-    setMessage('Cita creada con éxito.');
+    setCitaEstado(EstadoCita.AGENDADA);
+    setMessage(reprogramCita ? 'Cita reprogramada con éxito.' : 'Cita creada con éxito.');
     setMotivo('');
     setSelectedServiceId(null);
     setSelectedProfessionalId(null);
     setSelectedDate(null);
     setSelectedTime(null);
     setProfesionales([]);
+    setIsLoading(false);
   };
 
   const canSubmit = selectedServiceId && selectedProfessionalId && selectedDate && selectedTime && motivo.trim().length > 0;
@@ -229,7 +282,7 @@ export const AgendarCita: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--primary, #2563eb)' }}>
-                Estado: EN CREACI&Oacute;N
+                Estado: {citaEstado}
               </span>
             </div>
 

@@ -63,33 +63,39 @@ describe('ConsultaForm', () => {
     vi.clearAllMocks();
   });
 
+  const requiredProps = {
+    isLoading: false,
+    error: null,
+    isEditable: true,
+  };
+
   // Wrapper polimórfico detecta tipoServicio
   it('should render ConsultaMedicaForm for Medicina General service', () => {
-    render(<ConsultaForm cita={mockCita} onSave={mockOnSave} />);
+    render(<ConsultaForm cita={mockCita} onSave={mockOnSave} {...requiredProps} serviceName="Medicina General" />);
     expect(screen.getByTestId('consulta-medica-form')).toBeInTheDocument();
   });
 
   it('should render ConsultaOdontologicaForm for Odontología service', () => {
-    const odontologiaCita = { ...mockCita, servicios: [{ id: 2, nombre: 'Odontología', descripcion: '', es_activo: true, fecha_creacion: '2026-01-01T00:00:00Z' }] };
-    render(<ConsultaForm cita={odontologiaCita} onSave={mockOnSave} />);
+    const odontologiaCita = { ...mockCita, servicio_id: 2 };
+    render(<ConsultaForm cita={odontologiaCita} onSave={mockOnSave} {...requiredProps} serviceName="Odontología" />);
     expect(screen.getByTestId('consulta-odontologica-form')).toBeInTheDocument();
   });
 
   it('should render ConsultaPsicologicaForm for Psicología service', () => {
-    const psicologiaCita = { ...mockCita, servicios: [{ id: 3, nombre: 'Psicología', descripcion: '', es_activo: true, fecha_creacion: '2026-01-01T00:00:00Z' }] };
-    render(<ConsultaForm cita={psicologiaCita} onSave={mockOnSave} />);
+    const psicologiaCita = { ...mockCita, servicio_id: 3 };
+    render(<ConsultaForm cita={psicologiaCita} onSave={mockOnSave} {...requiredProps} serviceName="Psicología" />);
     expect(screen.getByTestId('consulta-psicologica-form')).toBeInTheDocument();
   });
 
   it('should render ConsultaSocialForm for Trabajo Social service', () => {
-    const socialCita = { ...mockCita, servicios: [{ id: 4, nombre: 'Trabajo Social', descripcion: '', es_activo: true, fecha_creacion: '2026-01-01T00:00:00Z' }] };
-    render(<ConsultaForm cita={socialCita} onSave={mockOnSave} />);
+    const socialCita = { ...mockCita, servicio_id: 4 };
+    render(<ConsultaForm cita={socialCita} onSave={mockOnSave} {...requiredProps} serviceName="Trabajo Social" />);
     expect(screen.getByTestId('consulta-social-form')).toBeInTheDocument();
   });
 
   it('should not render any specific form if service is not recognized', () => {
-    const unknownServiceCita = { ...mockCita, servicios: [{ id: 5, nombre: 'Unknown', descripcion: '', es_activo: true, fecha_creacion: '2026-01-01T00:00:00Z' }] };
-    render(<ConsultaForm cita={unknownServiceCita} onSave={mockOnSave} />);
+    const unknownServiceCita = { ...mockCita, servicio_id: 5 };
+    render(<ConsultaForm cita={unknownServiceCita} onSave={mockOnSave} {...requiredProps} />);
     expect(screen.queryByTestId('consulta-medica-form')).not.toBeInTheDocument();
     expect(screen.queryByTestId('consulta-odontologica-form')).not.toBeInTheDocument();
     expect(screen.queryByTestId('consulta-psicologica-form')).not.toBeInTheDocument();
@@ -99,7 +105,7 @@ describe('ConsultaForm', () => {
 
   // Ejecuta onSave()
   it('should call onSave with correct data when subform submits', async () => {
-    render(<ConsultaForm cita={mockCita} onSave={mockOnSave} />);
+    render(<ConsultaForm cita={mockCita} onSave={mockOnSave} {...requiredProps} serviceName="Medicina General" />);
     const saveButton = screen.getByText('Guardar Médica');
     fireEvent.click(saveButton);
 

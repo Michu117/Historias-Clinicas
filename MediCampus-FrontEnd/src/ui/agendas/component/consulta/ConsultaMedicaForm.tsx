@@ -72,9 +72,9 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <section className="bg-white border border-[#c2c6d4] rounded-2xl p-8 shadow-sm">
+      <section className="bg-white border border-[var(--outline)] rounded-2xl p-8 shadow-sm">
         <div className="flex items-center gap-2 mb-6">
-          <h3 className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Anamnesis y Evolución *</h3>
+          <h3 className="text-sm font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Anamnesis y Evolución *</h3>
         </div>
 
         <label htmlFor="anamnesis" className="sr-only">Anamnesis</label>
@@ -83,39 +83,39 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
           value={anamnesis}
           onChange={(e) => setAnamnesis(e.target.value)}
           disabled={!isEditable}
-          className="w-full h-48 p-4 bg-[#f1f3ff] border border-[#c4c6d0] rounded-xl text-sm focus:ring-2 focus:ring-[#0056b3] focus:bg-white outline-none transition-all placeholder:text-[#74777f] disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full h-48 p-4 bg-[var(--surface-container-low)] border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] focus:bg-white outline-none transition-all placeholder:text-[var(--on-surface-variant)] disabled:opacity-60 disabled:cursor-not-allowed"
           placeholder="Ingrese los detalles de la consulta, síntomas, evolución..."
         />
-        <p className="text-[12px] text-[#424752] mt-2 font-medium">Este campo es obligatorio.</p>
+        <p className="text-[12px] text-[var(--on-surface-variant)] mt-2 font-medium">Este campo es obligatorio.</p>
 
         <div className="mt-6 space-y-4">
-          <label htmlFor="tratamiento" className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Tratamiento / Indicaciones</label>
+          <label htmlFor="tratamiento" className="text-sm font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Tratamiento / Indicaciones</label>
           <textarea
             id="tratamiento"
             value={tratamiento}
             onChange={(e) => setTratamiento(e.target.value)}
             disabled={!isEditable}
-            className="w-full h-[104px] p-4 bg-white border border-[#c4c6d0] rounded-xl text-sm focus:ring-2 focus:ring-[#0056b3] outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full h-[104px] p-4 bg-white border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             placeholder="Instrucciones para el paciente..."
           />
         </div>
 
         <div className="mt-6 space-y-4">
-          <label htmlFor="observaciones" className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Observaciones</label>
+          <label htmlFor="observaciones" className="text-sm font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Observaciones</label>
           <textarea
             id="observaciones"
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
             disabled={!isEditable}
-            className="w-full h-24 p-4 bg-white border border-[#c4c6d0] rounded-xl text-sm focus:ring-2 focus:ring-[#0056b3] outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full h-24 p-4 bg-white border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             placeholder="Notas adicionales..."
           />
         </div>
       </section>
 
-      <section className="bg-white border border-[#c2c6d4] rounded-2xl p-8 shadow-sm">
+      <section className="bg-white border border-[var(--outline)] rounded-2xl p-8 shadow-sm">
         <div className="flex items-center gap-2 mb-6">
-          <h3 className="text-sm font-black text-[#424752] uppercase tracking-[0.1em]">Signos Vitales</h3>
+          <h3 className="text-sm font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Signos Vitales</h3>
         </div>
         <SignosVitalesInput onUpdate={handleSignosVitalesUpdate} initialData={signosVitales} isEditable={isEditable} />
       </section>
@@ -131,7 +131,7 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="h-12 px-8 bg-[#0056b3] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="h-12 px-8 bg-[var(--primary)] text-white font-bold text-sm rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">

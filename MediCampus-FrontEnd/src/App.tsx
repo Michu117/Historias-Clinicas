@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Importaciones de Seguridad
 import SecurityLayout from './ui/seguridad/components/SecurityLayout';
@@ -25,6 +25,7 @@ import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
 // Importaciones de Agendas
 import { AgendarCita } from './ui/agendas/component/pages/AgendarCita';
 import { MiAgenda } from './ui/agendas/component/pages/MiAgenda';
+import { MisCitas } from './ui/agendas/component/pages/MisCitas';
 import { Derivaciones } from './ui/agendas/component/pages/Derivaciones';
 import { Consulta } from './ui/agendas/component/pages/Consulta';
 import { getToken } from './ui/agendas/services/storage/authStorage';
@@ -43,6 +44,7 @@ function ProfessionalGuard({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
+    <BrowserRouter>
       <div className="w-full min-h-screen bg-[#faf9ff] overflow-y-auto">
         <Routes>
         {/* Rutas Públicas */}
@@ -81,6 +83,7 @@ export default function App() {
 
         {/* Rutas de Agendas */}
         <Route path="/AgendarCita" element={<AgendarCita />} />
+        <Route path="/mis-citas" element={<MisCitas />} />
         <Route path="/agendas/mi-agenda" element={<ProfessionalGuard><MiAgenda /></ProfessionalGuard>} />
         <Route path="/agendas/consulta/:citaId?" element={<ProfessionalGuard><Consulta /></ProfessionalGuard>} />
         <Route path="/agendas/derivaciones" element={<ProfessionalGuard><Derivaciones /></ProfessionalGuard>} />
@@ -89,5 +92,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+    </BrowserRouter>
   );
 }

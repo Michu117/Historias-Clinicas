@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cita, Consulta } from '../../types';
+import { Cita, Consulta, ConsultaMedica, ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial } from '../../types';
 import { ConsultaMedicaForm } from './ConsultaMedicaForm';
 import { ConsultaOdontologicaForm } from './ConsultaOdontologicaForm';
 import { ConsultaPsicologicaForm } from './ConsultaPsicologicaForm';
@@ -12,8 +12,15 @@ interface ConsultaFormProps {
   isLoading: boolean;
   error: string | null;
   isEditable: boolean;
-  serviceName?: string; // Optional override for testing
+  serviceName?: string;
 }
+
+const SERVICE_NAME_MAP: Record<number, string> = {
+  1: 'Medicina General',
+  2: 'Odontología',
+  3: 'Trabajo Social',
+  4: 'Psicología',
+};
 
 export const ConsultaForm: React.FC<ConsultaFormProps> = ({
   cita,
@@ -24,7 +31,7 @@ export const ConsultaForm: React.FC<ConsultaFormProps> = ({
   isEditable,
   serviceName: overrideServiceName,
 }) => {
-  const serviceName = overrideServiceName || cita.servicios?.[0]?.nombre;
+  const serviceName = overrideServiceName || SERVICE_NAME_MAP[cita.servicio_id];
 
   const renderForm = () => {
     switch (serviceName) {
@@ -32,7 +39,7 @@ export const ConsultaForm: React.FC<ConsultaFormProps> = ({
         return (
           <ConsultaMedicaForm
             cita={cita}
-            initialData={initialData}
+            initialData={initialData as ConsultaMedica | null | undefined}
             onSave={onSave}
             isLoading={isLoading}
             isEditable={isEditable}
@@ -42,7 +49,7 @@ export const ConsultaForm: React.FC<ConsultaFormProps> = ({
         return (
           <ConsultaOdontologicaForm
             cita={cita}
-            initialData={initialData}
+            initialData={initialData as ConsultaOdontologica | null | undefined}
             onSave={onSave}
             isLoading={isLoading}
             isEditable={isEditable}
@@ -52,7 +59,7 @@ export const ConsultaForm: React.FC<ConsultaFormProps> = ({
         return (
           <ConsultaPsicologicaForm
             cita={cita}
-            initialData={initialData}
+            initialData={initialData as ConsultaPsicologica | null | undefined}
             onSave={onSave}
             isLoading={isLoading}
             isEditable={isEditable}
@@ -62,7 +69,7 @@ export const ConsultaForm: React.FC<ConsultaFormProps> = ({
         return (
           <ConsultaSocialForm
             cita={cita}
-            initialData={initialData}
+            initialData={initialData as ConsultaSocial | null | undefined}
             onSave={onSave}
             isLoading={isLoading}
             isEditable={isEditable}

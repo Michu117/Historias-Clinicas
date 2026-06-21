@@ -37,12 +37,12 @@ export const SignosVitalesInput: React.FC<SignosVitalesInputProps> = ({
     });
   }, [pesoKg, temperatura, presionArterial, frecuenciaCardiaca, onUpdate]);
 
-  const inputClass = `w-full h-11 px-4 bg-[#f1f3ff] border border-[#c4c6d0] rounded-xl text-sm focus:ring-2 focus:ring-[#0056b3] focus:bg-white outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`;
+  const inputClass = `w-full h-11 px-4 bg-[var(--surface-container-low)] border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] focus:bg-white outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
       <div className="space-y-2">
-        <label htmlFor="peso_kg" className="text-[11px] font-black text-[#424752] uppercase tracking-[0.1em]">Peso (kg)</label>
+        <label htmlFor="peso_kg" className="text-[11px] font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Peso (kg)</label>
         <input
           type="text"
           inputMode="decimal"
@@ -55,7 +55,7 @@ export const SignosVitalesInput: React.FC<SignosVitalesInputProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="temperatura" className="text-[11px] font-black text-[#424752] uppercase tracking-[0.1em]">Temperatura (°C)</label>
+        <label htmlFor="temperatura" className="text-[11px] font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Temperatura (°C)</label>
         <input
           type="text"
           inputMode="decimal"
@@ -68,7 +68,7 @@ export const SignosVitalesInput: React.FC<SignosVitalesInputProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="presion_arterial" className="text-[11px] font-black text-[#424752] uppercase tracking-[0.1em]">Presión Arterial</label>
+        <label htmlFor="presion_arterial" className="text-[11px] font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Presión Arterial</label>
         <input
           type="text"
           id="presion_arterial"
@@ -80,7 +80,7 @@ export const SignosVitalesInput: React.FC<SignosVitalesInputProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <label htmlFor="frecuencia_cardiaca" className="text-[11px] font-black text-[#424752] uppercase tracking-[0.1em]">Frecuencia Cardíaca (bpm)</label>
+        <label htmlFor="frecuencia_cardiaca" className="text-[11px] font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Frecuencia Cardíaca (bpm)</label>
         <input
           type="text"
           inputMode="numeric"
