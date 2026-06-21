@@ -167,12 +167,6 @@ export const DetalleHistoriaClinicaPage = () => {
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Factor de riesgo</p>
                   <p className="mt-1 text-sm font-medium text-slate-800">{historia.factorRiesgo || '—'}</p>
                 </div>
-                <div className="rounded-global border border-slate-200 bg-white p-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Estado</p>
-                  <p className="mt-1 text-sm font-medium text-slate-800">
-                    {historia.estado === 'ACTIVA' ? 'Activa' : 'Cerrada'}
-                  </p>
-                </div>
                 {historia.fechaApertura && (
                   <div className="rounded-global border border-slate-200 bg-white p-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Fecha de creación</p>
