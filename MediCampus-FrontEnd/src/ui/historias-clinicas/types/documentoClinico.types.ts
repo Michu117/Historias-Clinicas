@@ -1,6 +1,6 @@
 export type TipoDocumentoClinico =
-  | 'RESULTADO_CONSULTA'
-  | 'FORMULARIO'
+  | 'RESULTADO'
+  | 'FORMULARIOS'
   | 'CONSENTIMIENTO'
   | 'CERTIFICADO'
 
@@ -11,8 +11,6 @@ export interface DocumentoClinico {
   encabezado: string
   cuerpo: string
   tipo: TipoDocumentoClinico
-  nombreArchivo?: string
-  urlArchivo?: string
   creadoEn?: string
   actualizadoEn?: string
 }
@@ -22,5 +20,3 @@ export type DocumentoClinicoModel = DocumentoClinico
 export const cloneDocumentoClinico = (
   documento: DocumentoClinicoModel,
 ): DocumentoClinicoModel => documento
-
-

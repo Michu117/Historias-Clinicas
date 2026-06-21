@@ -15,6 +15,7 @@ import GestionHistoriasClinicasPage from "./ui/historias-clinicas/pages/GestionH
 import NuevaHistoriaClinicaPage from "./ui/historias-clinicas/pages/NuevaHistoriaClinicaPage";
 import {DetalleHistoriaClinicaPage} from "./ui/historias-clinicas/pages/DetalleHistoriaClinicaPage";
 import EditarHistoriaClinicaPage from "./ui/historias-clinicas/pages/EditarHistoriaClinicaPage";
+import MiHistoriaClinicaPage from "./ui/historias-clinicas/pages/MiHistoriaClinicaPage";
 
 // Importaciones Globales y Reportes
 import LandingPage from './ui/global/LandingPage';
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/reportes/servicio/:servicioId" element={<Navigate to="/reportes" replace />} />
 
           <Route path="/historias" element={<GestionHistoriasClinicasPage />} />
+          <Route path="/historias/mi-historia" element={<MiHistoriaClinicaPage />} />
           <Route path="/historias/nueva" element={<NuevaHistoriaClinicaPage/>} />
           <Route path="/historias/:id" element={<DetalleHistoriaClinicaPage />} />
           <Route path="/historias/:id/editar" element={<EditarHistoriaClinicaPage/>} />
