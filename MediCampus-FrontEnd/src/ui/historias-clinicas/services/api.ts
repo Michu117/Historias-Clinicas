@@ -3,7 +3,7 @@
  * En la FASE VERDE se expandirá con Axios u otra librería HTTP
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
 interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -51,7 +51,13 @@ export class SimpleApiClient {
     }
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`)
+      let errorMessage = `API error: ${response.status}`
+      try {
+        const errorBody = await response.json()
+        if (errorBody?.message) errorMessage = errorBody.message
+        if (errorBody?.errors) errorMessage += `\n${JSON.stringify(errorBody.errors, null, 2)}`
+      } catch {}
+      throw new Error(errorMessage)
     }
 
     return response.json() as Promise<T>

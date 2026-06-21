@@ -49,35 +49,12 @@ export const HistoriasClinicasDashboardLayout = ({
         </aside>
 
         <section className="flex min-w-0 flex-col overflow-hidden bg-[#faf9ff]">
-          <header className="h-16 shrink-0 border-b border-[#c2c6d4] bg-white">
-            <div className="flex h-full items-center gap-8 px-8">
-              <div>
-                <p className="text-[15px] font-bold leading-none text-[#003f87]">
-                  MediCampus
-                </p>
-                <p className="text-[13px] font-bold leading-none text-[#003f87]">
-                  Historias Clínicas
-                </p>
-              </div>
-            </div>
-          </header>
 
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <section className="mx-auto flex h-full w-full max-w-[1760px] flex-col gap-5">
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <section className="mx-auto flex h-full w-full max-w-[1600px] flex-col gap-5">
               {children}
             </section>
           </div>
-
-          <footer className="h-10 shrink-0 border-t border-[#c2c6d4] bg-white px-8 text-xs text-[#424752]">
-            <div className="mx-auto flex h-full max-w-[1760px] items-center justify-between">
-              <p>© 2026 MediCampus. Universidad Bienestar Estudiantil.</p>
-
-              <div className="flex gap-4">
-                <span>Políticas de Privacidad</span>
-                <span>Términos de Uso</span>
-              </div>
-            </div>
-          </footer>
         </section>
       </div>
     </main>

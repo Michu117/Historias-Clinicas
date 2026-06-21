@@ -15,7 +15,7 @@ export const HistoriasClinicasStatsCards = ({
   items,
 }: HistoriasClinicasStatsCardsProps) => {
   return (
-    <section className="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section className="grid shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {items.map((item) => (
         <article
           key={item.label}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '../../../ui/components/Button'
+import { normalizarFecha } from '../utils/dateFormatter'
 import type { CasoClinico, EstadoCasoClinico, PrioridadCasoClinico } from '../types/casoClinico.types'
 
 interface Props {
@@ -21,8 +22,8 @@ const PRIORIDAD_OPTIONS: { value: PrioridadCasoClinico; label: string }[] = [
 ]
 
 const CasoClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }) => {
-  const [fechaApertura, setFechaApertura] = useState(initial?.fechaApertura ?? '')
-  const [fechaCierre, setFechaCierre] = useState(initial?.fechaCierre ?? '')
+  const [fechaApertura, setFechaApertura] = useState(initial?.fechaApertura ? normalizarFecha(initial.fechaApertura) : '')
+  const [fechaCierre, setFechaCierre] = useState(initial?.fechaCierre ? normalizarFecha(initial.fechaCierre) : '')
   const [estado, setEstado] = useState<EstadoCasoClinico>(initial?.estado ?? 'ABIERTO')
   const [prioridad, setPrioridad] = useState<PrioridadCasoClinico>(initial?.prioridad ?? 'MEDIA')
   const [saving, setSaving] = useState(false)
@@ -32,8 +33,8 @@ const CasoClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }) => {
     if (!fechaApertura) return
     setSaving(true)
     await onSubmit({
-      fechaApertura,
-      fechaCierre: fechaCierre || null,
+      fechaApertura: normalizarFecha(fechaApertura),
+      fechaCierre: fechaCierre ? normalizarFecha(fechaCierre) : null,
       estado,
       prioridad,
     })
