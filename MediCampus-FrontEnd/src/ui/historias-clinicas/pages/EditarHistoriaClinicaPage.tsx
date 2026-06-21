@@ -1,17 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '../../../ui/components/Button';
 import { Card } from '../../../ui/components/Card';
 import { Input } from '../../../ui/components/Input';
+import { Modal } from '../../../ui/components/Modal';
 import { HistoriasClinicasDashboardLayout } from '../components/HistoriasClinicasDashboardLayout';
 import { HistoriasClinicasHeader } from '../components/HistoriasClinicasHeader';
 import { MessageBanner } from '../components/MessageBanner';
+import AntecedentesClinicosList from '../components/AntecedentesClinicosList';
+import DocumentosClinicosList from '../components/DocumentosClinicosList';
 import { historiasClinicasService } from '../services/historiasClinicasService';
+import { useHistoriasClinicasAuth } from '../hooks/useHistoriasClinicasAuth';
+import { getNombreMedico } from '../utils/getNombreMedico';
 
 import type { HistoriaClinica, HistoriaClinicaFormValues } from '../types/historiaClinica.types';
-import type { AntecedenteClinico, TipoAntecedenteClinico } from '../types/antecedenteClinico.types';
-import type { CasoClinico, EstadoCasoClinico, PrioridadCasoClinico } from '../types/casoClinico.types';
+import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
 
 const initialFormValues: HistoriaClinicaFormValues = {
   usuarioNombre: '',
@@ -21,99 +25,71 @@ const initialFormValues: HistoriaClinicaFormValues = {
   factorRiesgo: '',
 };
 
-const TIPO_ANTECEDENTE_OPTIONS: { value: TipoAntecedenteClinico | ''; label: string }[] = [
-  { value: '', label: 'Seleccione...' },
-  { value: 'HEREDOFAMILIARES', label: 'Heredofamiliares' },
-  { value: 'PERSONALES_NO_PATOLOGICOS', label: 'Personales no patológicos' },
-  { value: 'PERSONALES_PATOLOGICOS', label: 'Personales patológicos' },
-  { value: 'GINECO_OBSTETRICOS', label: 'Gineco obstétricos' },
-];
-
-const ESTADO_CASO_OPTIONS: { value: EstadoCasoClinico; label: string }[] = [
-  { value: 'ABIERTO', label: 'Abierto' },
-  { value: 'EN_SEGUIMIENTO', label: 'En seguimiento' },
-  { value: 'CERRADO', label: 'Cerrado' },
-];
-
-const PRIORIDAD_OPTIONS: { value: PrioridadCasoClinico; label: string }[] = [
-  { value: 'ALTA', label: 'Alta' },
-  { value: 'MEDIA', label: 'Media' },
-  { value: 'BAJA', label: 'Baja' },
-];
-
 export default function EditarHistoriaClinicaPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { role, permissions, isAuthorized } = useHistoriasClinicasAuth();
 
+  const [accessDenied, setAccessDenied] = useState(false);
   const [historia, setHistoria] = useState<HistoriaClinica | null>(null);
   const [values, setValues] = useState<HistoriaClinicaFormValues>(initialFormValues);
 
-  const [antecedenteExistente, setAntecedenteExistente] = useState<AntecedenteClinico | null>(null);
-  const [antTipo, setAntTipo] = useState<TipoAntecedenteClinico | ''>('');
-  const [antDescripcion, setAntDescripcion] = useState('');
-  const [antFecha, setAntFecha] = useState('');
-
-  const [casoExistente, setCasoExistente] = useState<CasoClinico | null>(null);
-  const [casoFechaApertura, setCasoFechaApertura] = useState('');
-  const [casoFechaCierre, setCasoFechaCierre] = useState('');
-  const [casoEstado, setCasoEstado] = useState<EstadoCasoClinico>('ABIERTO');
-  const [casoPrioridad, setCasoPrioridad] = useState<PrioridadCasoClinico>('MEDIA');
+  const [antecedentes, setAntecedentes] = useState<AntecedenteClinico[]>([]);
+  const [documentosRefreshKey, setDocumentosRefreshKey] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      if (!id) {
-        setError('No se recibió el ID de la historia clínica.');
-        setLoading(false);
-        return;
-      }
+    if (!isAuthorized) {
+      navigate('/seguridad/login');
+      return;
+    }
+    if (!role || role !== 'MEDICO' || !permissions?.canEditHistoria) {
+      setAccessDenied(true);
+      return;
+    }
+  }, [role, permissions, isAuthorized, navigate]);
 
-      try {
-        setLoading(true);
-        setError('');
-        setMessage('');
+  const cargarDatos = useCallback(async () => {
+    if (!id) {
+      setError('No se recibió el ID de la historia clínica.');
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      setError('');
+      setMessage('');
 
-        const hc = await historiasClinicasService.obtenerHistoriaClinicaPorId(id);
-        setHistoria(hc);
-        setValues({
-          usuarioNombre: hc.usuario?.nombre ?? '',
-          usuarioIdentificacion: hc.usuario?.identificacion ?? '',
-          alergia: hc.alergia ?? '',
-          condicionPreexistente: hc.condicionPreexistente ?? '',
-          factorRiesgo: hc.factorRiesgo ?? '',
-        });
+      const hc = await historiasClinicasService.obtenerHistoriaClinicaPorId(id);
+      setHistoria(hc);
+      setValues({
+        usuarioNombre: hc.usuario?.nombre ?? '',
+        usuarioIdentificacion: hc.usuario?.identificacion ?? '',
+        alergia: hc.alergia ?? '',
+        condicionPreexistente: hc.condicionPreexistente ?? '',
+        factorRiesgo: hc.factorRiesgo ?? '',
+      });
 
-        const [ants, casos] = await Promise.all([
-          historiasClinicasService.listarAntecedentesPorHistoria(id),
-          historiasClinicasService.listarCasosPorHistoria(id),
-        ]);
-
-        const ant = ants[0] ?? null;
-        setAntecedenteExistente(ant);
-        setAntTipo((ant?.tipo as TipoAntecedenteClinico) ?? '');
-        setAntDescripcion(ant?.descripcion ?? '');
-        setAntFecha(ant?.fecha ?? '');
-
-        const cs = casos[0] ?? null;
-        setCasoExistente(cs);
-        setCasoFechaApertura(cs?.fechaApertura ?? '');
-        setCasoFechaCierre(cs?.fechaCierre ?? '');
-        setCasoEstado((cs?.estado as EstadoCasoClinico) ?? 'ABIERTO');
-        setCasoPrioridad((cs?.prioridad as PrioridadCasoClinico) ?? 'MEDIA');
-      } catch (err) {
-        console.error('Error al cargar:', err);
-        setError('No se pudo cargar la información para edición.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargarDatos();
+      const [ants] = await Promise.all([
+        historiasClinicasService.listarAntecedentesPorHistoria(id),
+      ]);
+      setAntecedentes(ants);
+    } catch (err) {
+      console.error('Error al cargar:', err);
+      setError('No se pudo cargar la información para edición.');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    void cargarDatos();
+  }, [cargarDatos]);
 
   const handleChange = (field: keyof HistoriaClinicaFormValues, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -136,51 +112,12 @@ export default function EditarHistoriaClinicaPage() {
     setError('');
 
     try {
-      // 1. Actualizar historia clínica
       const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {
         alergia: values.alergia,
         condicionPreexistente: values.condicionPreexistente,
         factorRiesgo: values.factorRiesgo,
       });
       setHistoria(hcActualizada);
-
-      // 2. Antecedente — actualizar o crear
-      const hayAntecedente = antTipo && antDescripcion.trim() && antFecha;
-      if (antecedenteExistente && hayAntecedente) {
-        await historiasClinicasService.actualizarAntecedente(antecedenteExistente.id, {
-          tipo: antTipo,
-          descripcion: antDescripcion.trim(),
-          fecha: antFecha,
-        });
-      } else if (!antecedenteExistente && hayAntecedente) {
-        const creado = await historiasClinicasService.crearAntecedenteClinico({
-          historiaClinicaId: id,
-          tipo: antTipo,
-          descripcion: antDescripcion.trim(),
-          fecha: antFecha,
-        });
-        setAntecedenteExistente(creado);
-      }
-
-      // 3. Caso — actualizar o crear
-      if (casoExistente && casoFechaApertura) {
-        await historiasClinicasService.actualizarCaso(casoExistente.id, {
-          fechaApertura: casoFechaApertura,
-          fechaCierre: casoFechaCierre || null,
-          estado: casoEstado,
-          prioridad: casoPrioridad,
-        });
-      } else if (!casoExistente && casoFechaApertura) {
-        const creado = await historiasClinicasService.crearCasoClinico({
-          historiaClinicaId: id,
-          fechaApertura: casoFechaApertura,
-          fechaCierre: casoFechaCierre || null,
-          estado: casoEstado,
-          prioridad: casoPrioridad,
-        });
-        setCasoExistente(creado);
-      }
-
       setMessage('Historia clínica actualizada correctamente.');
     } catch (err: any) {
       console.error('Error al actualizar:', err);
@@ -190,9 +127,41 @@ export default function EditarHistoriaClinicaPage() {
     }
   };
 
-  const handleCancel = () => {
-    navigate('/historias');
+  const handleCrearAntecedente = async (payload: Partial<AntecedenteClinico>) => {
+    if (!id) return;
+    await historiasClinicasService.crearAntecedenteClinico({
+      ...payload,
+      historiaClinicaId: id,
+    });
+    const ants = await historiasClinicasService.listarAntecedentesPorHistoria(id);
+    setAntecedentes(ants);
   };
+
+  const handleActualizarAntecedente = async (anteId: string, payload: Partial<AntecedenteClinico>) => {
+    await historiasClinicasService.actualizarAntecedente(anteId, payload);
+    const ants = await historiasClinicasService.listarAntecedentesPorHistoria(id!);
+    setAntecedentes(ants);
+  };
+
+  const handleCancel = () => {
+    setShowCancelModal(true);
+  };
+
+  if (accessDenied) {
+    return (
+      <HistoriasClinicasDashboardLayout>
+        <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
+        <section className="flex min-h-0 items-center justify-center">
+          <Card className="max-w-md text-center">
+            <h1 className="text-xl font-semibold text-slate-900">Acceso denegado</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              No tienes permisos para editar historias clínicas.
+            </p>
+          </Card>
+        </section>
+      </HistoriasClinicasDashboardLayout>
+    );
+  }
 
   if (loading) {
     return (
@@ -242,9 +211,8 @@ export default function EditarHistoriaClinicaPage() {
       {error && <MessageBanner type="error" message={error} />}
 
       <section className="w-full">
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* ── Datos generales ── */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <form onSubmit={handleSubmit}>
             <Card>
               <h2 className="mb-3 text-base font-semibold text-slate-900">Datos generales</h2>
               <div className="space-y-3">
@@ -274,99 +242,56 @@ export default function EditarHistoriaClinicaPage() {
                     onChange={(e) => handleChange('factorRiesgo', e.target.value)} />
                 </div>
               </div>
-            </Card>
-
-            {/* ── Antecedentes clínicos ── */}
-            <Card>
-              <h2 className="mb-3 text-base font-semibold text-slate-900">Antecedentes clínicos</h2>
-              <div className="space-y-3">
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Tipo de antecedente</label>
-                  <select value={antTipo}
-                    onChange={(e) => setAntTipo(e.target.value as TipoAntecedenteClinico)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
-                    {TIPO_ANTECEDENTE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Descripción</label>
-                  <textarea value={antDescripcion}
-                    onChange={(e) => setAntDescripcion(e.target.value)} rows={3}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
-                    placeholder="Describa el antecedente" />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Fecha</label>
-                  <input type="date" value={antFecha}
-                    onChange={(e) => setAntFecha(e.target.value)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
-                </div>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button type="button" variant="danger" onClick={handleCancel}>
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="primary" disabled={isSubmitting}>
+                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+                </Button>
               </div>
             </Card>
-          </div>
+          </form>
 
-          {/* ── Casos clínicos ── */}
-          <Card className="mt-4">
-            <h2 className="mb-3 text-base font-semibold text-slate-900">Casos clínicos</h2>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Fecha de apertura</label>
-                  <input type="date" value={casoFechaApertura}
-                    onChange={(e) => setCasoFechaApertura(e.target.value)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">
-                    Fecha de cierre <span className="text-slate-400">(opcional)</span>
-                  </label>
-                  <input type="date" value={casoFechaCierre}
-                    onChange={(e) => setCasoFechaCierre(e.target.value)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Estado del caso</label>
-                  <select value={casoEstado}
-                    onChange={(e) => {
-                      const val = e.target.value as EstadoCasoClinico;
-                      setCasoEstado(val);
-                      if (val !== 'CERRADO') setCasoFechaCierre('');
-                    }}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
-                    {ESTADO_CASO_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Prioridad</label>
-                  <select value={casoPrioridad}
-                    onChange={(e) => setCasoPrioridad(e.target.value as PrioridadCasoClinico)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
-                    {PRIORIDAD_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
+          {/* ── Antecedentes clínicos ── */}
+          <Card>
+            <h2 className="mb-3 text-base font-semibold text-slate-900">Antecedentes clínicos</h2>
+            <AntecedentesClinicosList
+              items={antecedentes}
+              onCreate={handleCrearAntecedente}
+              onUpdate={handleActualizarAntecedente}
+            />
           </Card>
+        </div>
 
-          {/* ── Botones ── */}
-          <div className="mt-4 flex justify-end gap-2">
-            <Button type="button" variant="danger" onClick={handleCancel}>
-              Cancelar
+        {/* ── Documentos clínicos ── */}
+        <Card className="mt-4">
+          <h2 className="mb-3 text-base font-semibold text-slate-900">Documentos clínicos</h2>
+          <DocumentosClinicosList
+            key={documentosRefreshKey}
+            historiaClinicaId={id!}
+            historia={historia}
+            medicoNombre={getNombreMedico()}
+            showFilters={false}
+          />
+        </Card>
+      </section>
+
+      <Modal open={showCancelModal} onClose={() => setShowCancelModal(false)} title="Cancelar edición">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            ¿Está seguro de que desea salir sin guardar? Los cambios no guardados se perderán.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setShowCancelModal(false)}>
+              No, continuar editando
             </Button>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+            <Button type="button" variant="danger" onClick={() => navigate('/historias')}>
+              Sí, salir sin guardar
             </Button>
           </div>
-        </form>
-      </section>
+        </div>
+      </Modal>
     </HistoriasClinicasDashboardLayout>
   );
 }
