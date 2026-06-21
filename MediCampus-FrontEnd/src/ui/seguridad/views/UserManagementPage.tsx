@@ -8,7 +8,7 @@ import { Select } from '../../components/Select'
 import { Modal } from '../../components/Modal'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/Table'
 import { Pagination } from '../../components/Pagination'
-import { listUsers, createUser, updateUser, User, RegisterPayload } from '../utils/authApi'
+import { listUsers, createUser, updateUser, listRoles, User, Role, RegisterPayload } from '../utils/authApi'
 import { useAuth } from '../hooks/useAuth'
 
 const DEBOUNCE_MS = 300
@@ -20,12 +20,15 @@ const SEXO_OPTIONS = [
   { value: 'M', label: 'Mujer' },
 ]
 
-const ROL_OPTIONS = [
-  { value: 'Administrador', label: 'Administrador' },
+const EXCLUDED_ROLES = ['paciente']
+
+const FALLBACK_ROLES: { value: string; label: string }[] = [
+  { value: 'admin', label: 'Administrador' },
   { value: 'medico', label: 'Médico' },
   { value: 'psicologo', label: 'Psicólogo' },
-  { value: 'trabajo_social', label: 'Trabajo Social' },
-  { value: 'auditor', label: 'Auditor' },
+  { value: 'odontologo', label: 'Odontólogo' },
+  { value: 'trabajador_social', label: 'Trabajo Social' },
+  { value: 'estudiante', label: 'Estudiante' },
 ]
 
 const UserManagementPage: React.FC = () => {
@@ -56,6 +59,23 @@ const UserManagementPage: React.FC = () => {
   const [editError, setEditError] = useState('')
   const [saving, setSaving] = useState(false)
   const [viewUser, setViewUser] = useState<User | null>(null)
+  const [roles, setRoles] = useState<Role[]>([])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      listRoles().then(setRoles).catch(() => {})
+    }
+  }, [isAuthenticated])
+
+  const roleOptions = (() => {
+    const apiRoles = roles
+      .filter((r) => !EXCLUDED_ROLES.includes(r.nombre))
+      .map((r) => ({ value: r.nombre, label: r.nombre }));
+    const merged = new Map<string, { value: string; label: string }>();
+    for (const r of FALLBACK_ROLES) merged.set(r.value, r);
+    for (const r of apiRoles) merged.set(r.value, r);
+    return [...merged.values()];
+  })()
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), DEBOUNCE_MS)
@@ -187,7 +207,7 @@ const UserManagementPage: React.FC = () => {
             <Select
               options={[
                 { value: '', label: 'Todos los Roles' },
-                ...ROL_OPTIONS,
+                ...roleOptions,
               ]}
               value={filterRole}
               onChange={(e) => { setFilterRole(e.target.value); setPage(1) }}
@@ -378,7 +398,7 @@ const UserManagementPage: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-[#424752] mb-1">Rol del sistema</label>
-              <Select options={ROL_OPTIONS} value={createForm.rol} onChange={handleCreateField('rol')} required />
+              <Select options={roleOptions} value={createForm.rol} onChange={handleCreateField('rol')} required />
             </div>
 
             {createError && (

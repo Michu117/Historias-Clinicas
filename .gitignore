@@ -4,3 +4,5 @@ __pycache__/
 db.sqlite3
 *.sqlite3
 .DS_Store
+
+MediCampus-FrontEnd/node_modules/

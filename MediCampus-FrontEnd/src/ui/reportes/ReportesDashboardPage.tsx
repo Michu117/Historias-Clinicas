@@ -107,7 +107,7 @@ const buildDynamicMetrics = (): MetricDef[] => {
   // 1. Si hay filtro de servicio, retornamos SOLO la tarjeta del servicio resaltada
   if (filters.servicioId) {
     const servicioSeleccionado = tableRows[0];
-
+    console.log('Consultas: ' + (servicioSeleccionado?.total_consultas ?? 0));
     return [
       {
         value: servicioSeleccionado ? (servicioSeleccionado.total_consultas ?? servicioSeleccionado.cantidad ?? 0) : 0,

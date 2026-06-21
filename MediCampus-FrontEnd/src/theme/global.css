@@ -61,11 +61,20 @@
     --table-row-hover: #f8fafc;
 
     /* --- MATERIAL DESIGN TOKENS (PROTOTIPO) --- */
-    --primary: #2563eb;
+    --surface: #f8fafc;
     --surface-container-low: #f1f5f9;
-    --primary-fixed: #dbeafe;
+    --surface-container-lowest: #ffffff;
+    --surface-container-high: #e2e8f0;
+    --primary: #2563eb;
+    --on-primary: #ffffff;
+    --primary-container: #dbeafe;
+    --on-primary-container: #1e40af;
     --on-surface: #0f172a;
+    --on-surface-variant: #64748b;
+    --outline: #94a3b8;
     --outline-variant: #cbd5e1;
+    --secondary-container: #f0fdf4;
+    --on-secondary-container: #166534;
 
     /* --- BORDES --- */
     --radius-md: 0.375rem;
