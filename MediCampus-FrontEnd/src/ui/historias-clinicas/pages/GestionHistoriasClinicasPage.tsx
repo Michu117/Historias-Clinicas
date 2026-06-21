@@ -15,6 +15,8 @@ import { useHistoriasClinicasAuth } from '../hooks/useHistoriasClinicasAuth';
 import { historiasClinicasService } from '../services/historiasClinicasService';
 
 import type { HistoriaClinica } from '../types/historiaClinica.types';
+import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
+import type { DocumentoClinico } from '../types/documentoClinico.types';
 import type { ConsultaClinico } from '../types/consultaClinico.types';
 
 const PAGE_SIZE = 3;
@@ -37,6 +39,8 @@ const MedicoContent = () => {
   const [actionMessage, setActionMessage] = useState('');
   const [page, setPage] = useState(1);
   const [closeTarget, setCloseTarget] = useState<HistoriaClinica | null>(null);
+  const [todosLosAntecedentes, setTodosLosAntecedentes] = useState<AntecedenteClinico[]>([]);
+  const [todosLosDocumentos, setTodosLosDocumentos] = useState<DocumentoClinico[]>([]);
   const [todosLosCasos, setTodosLosCasos] = useState<ConsultaClinico[]>([]);
 
   const {
@@ -101,22 +105,41 @@ const MedicoContent = () => {
 
   useEffect(() => {
     if (!rawHistorias.length) {
+      setTodosLosAntecedentes([]);
+      setTodosLosDocumentos([]);
       setTodosLosCasos([]);
       return;
     }
-    Promise.all(
-      rawHistorias.map((h) =>
-        historiasClinicasService.listarCasosClinicosPorHistoria(h.id)
-      )
-    )
-      .then((res) => setTodosLosCasos(res.flat()))
-      .catch(() => {});
+    const cargarActividadRelacionada = async () => {
+      const [antecedentes, documentos, casosPorHistoria] = await Promise.all([
+        historiasClinicasService.listarTodosLosAntecedentes(),
+        historiasClinicasService.listarTodosLosDocumentos(),
+        Promise.all(
+          rawHistorias.map((h) =>
+            historiasClinicasService
+              .listarCasosClinicosPorHistoria(h.id)
+              .then((casos) =>
+                casos.map((c) => ({ ...c, historiaClinicaId: h.id }))
+              )
+          )
+        ),
+      ])
+      setTodosLosAntecedentes(antecedentes)
+      setTodosLosDocumentos(documentos)
+      setTodosLosCasos(casosPorHistoria.flat())
+    }
+    cargarActividadRelacionada().catch(() => {
+      setTodosLosAntecedentes([]);
+      setTodosLosDocumentos([]);
+      setTodosLosCasos([]);
+    });
   }, [rawHistorias]);
 
   const esFechaDeHoy = (fecha?: string) => {
     if (!fecha) return false;
     const f = new Date(fecha);
     const h = new Date();
+    if (Number.isNaN(f.getTime())) return false;
     return (
       f.getFullYear() === h.getFullYear() &&
       f.getMonth() === h.getMonth() &&
@@ -124,9 +147,64 @@ const MedicoContent = () => {
     );
   };
 
-  const historiasActualizadasHoy = rawHistorias.filter((h) =>
-    esFechaDeHoy(h.ultimaActualizacion)
-  ).length;
+  const obtenerFechaHistoria = (historia: HistoriaClinica) =>
+    historia.ultimaActualizacion ??
+    (historia as any).updated_at ??
+    (historia as any).updatedAt ??
+    (historia as any).fechaActualizacion ??
+    historia.fechaApertura ??
+    (historia as any).created_at ??
+    (historia as any).createdAt
+
+  const obtenerFechasRelacionadas = (item: any): string[] =>
+    [
+      item?.ultimaActualizacion,
+      item?.updated_at,
+      item?.updatedAt,
+      item?.fechaActualizacion,
+      item?.fechaCreacion,
+      item?.fechaApertura,
+      item?.created_at,
+      item?.createdAt,
+      item?.creadoEn,
+      item?.actualizadoEn,
+      item?.fecha,
+    ].filter(Boolean)
+
+  const obtenerHistoriaIdRelacionada = (item: any): string =>
+    String(
+      item?.historiaClinicaId ??
+        item?.historia_clinica_id ??
+        item?.historia_clinica ??
+        item?.historiaClinica ??
+        ''
+    )
+
+  const historiaTieneActividadHoy = (historia: HistoriaClinica) => {
+    const historiaId = String(historia.id)
+
+    if (esFechaDeHoy(obtenerFechaHistoria(historia))) return true
+
+    const actividadAntecedentes = todosLosAntecedentes
+      .filter((a) => obtenerHistoriaIdRelacionada(a) === historiaId)
+      .some((a) => obtenerFechasRelacionadas(a).some(esFechaDeHoy))
+
+    if (actividadAntecedentes) return true
+
+    const actividadDocumentos = todosLosDocumentos
+      .filter((d) => obtenerHistoriaIdRelacionada(d) === historiaId)
+      .some((d) => obtenerFechasRelacionadas(d).some(esFechaDeHoy))
+
+    if (actividadDocumentos) return true
+
+    const actividadCasos = todosLosCasos
+      .filter((c) => String(c.historiaClinicaId ?? '') === historiaId)
+      .some((c) => obtenerFechasRelacionadas(c).some(esFechaDeHoy))
+
+    return actividadCasos
+  }
+
+  const historiasActualizadasHoy = rawHistorias.filter(historiaTieneActividadHoy).length
 
   const normalizarEstadoCaso = (estado?: string) =>
     String(estado ?? '')
@@ -144,9 +222,6 @@ const MedicoContent = () => {
   const casosCerrados = todosLosCasos.filter((caso) =>
     esCasoCerrado(caso.estado)
   ).length;
-
-  console.log('todosLosCasos dashboard:', todosLosCasos);
-  console.log('estados dashboard:', todosLosCasos.map((c) => c.estado));
 
   const statCards = [
     {

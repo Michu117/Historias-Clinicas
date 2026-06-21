@@ -92,6 +92,7 @@ export const MiHistoriaClinicaPage = () => {
       <HistoriasClinicasHeader
         title="Mi Historia Clínica"
         subtitle={historia ? `Paciente: ${historia.usuario.nombre}` : 'Cargando...'}
+        backTo="/historias"
       />
 
       {loading && (

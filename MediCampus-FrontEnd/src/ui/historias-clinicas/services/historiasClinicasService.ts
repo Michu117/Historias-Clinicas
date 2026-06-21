@@ -224,6 +224,14 @@ export const historiasClinicasService = {
     }));
   },
 
+  listarTodosLosAntecedentes: async (): Promise<AntecedenteClinico[]> => {
+    const response = await apiClient.get<any>('/historias/antecedentes/');
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    return (data || []).map(mapApiAntecedenteToModel);
+  },
+
   listarDocumentosPorHistoria: async (historiaId: string): Promise<DocumentoClinico[]> => {
     const response = await apiClient.get<any>('/historias/documentos/');
     const data = Array.isArray(response)
@@ -234,6 +242,14 @@ export const historiasClinicasService = {
       (d: DocumentoClinico) =>
         String(d.historiaClinicaId) === String(historiaId)
     );
+  },
+
+  listarTodosLosDocumentos: async (): Promise<DocumentoClinico[]> => {
+    const response = await apiClient.get<any>('/historias/documentos/');
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    return (data || []).map(mapApiDocumentoToModel);
   },
 
   crearDocumentoClinico: async (payload: Partial<DocumentoClinico>): Promise<DocumentoClinico> => {
