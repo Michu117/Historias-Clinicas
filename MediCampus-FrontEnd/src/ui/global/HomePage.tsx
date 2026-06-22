@@ -63,6 +63,13 @@ const HomePage: React.FC = () => {
               Ver Notificaciones
             </Button>
           </Card>
+          <Card>
+            <h3 className="font-semibold text-slate-900">Mi Historia</h3>
+            <p className="text-sm text-slate-500 mt-1">Revisa los detalles de tu historia clinica.</p>
+            <Button variant="primary" className="mt-3" onClick={() => navigate('/historias/mi-historia')}>
+              Ver Mi Historia
+            </Button>
+          </Card>
         </div>
       </main>
 
