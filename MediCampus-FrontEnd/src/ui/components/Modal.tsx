@@ -12,10 +12,12 @@ export const Modal: React.FC<Props> = ({ open, onClose, title, children }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-white rounded-global shadow-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="font-medium text-sm">{title}</h3>
-          <button onClick={onClose} className="text-slate-500">✕</button>
+      <div className="relative w-full max-w-2xl rounded-2xl shadow-lg overflow-hidden"
+        style={{ backgroundColor: 'var(--card-bg)' }}>
+        <div className="px-6 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid var(--outline)' }}>
+          <h3 className="font-medium text-sm" style={{ color: 'var(--hc-text)' }}>{title}</h3>
+          <button onClick={onClose} style={{ color: 'var(--on-surface-variant)', background: 'none', borderRadius: '999px', padding: '0.25rem 0.5rem' }}>✕</button>
         </div>
         <div className="p-6">{children}</div>
       </div>

@@ -55,9 +55,9 @@ function getStatusInfo(cita: Cita, startedIds: number[]): { label: string; bgCla
   switch (cita.estado) {
     case EstadoCita.AGENDADA:
     case EstadoCita.CONFIRMADA:
-      return { label: 'Programado', bgClass: 'var(--primary-container)', textClass: 'var(--primary)', icon: 'schedule' };
+      return { label: 'Programado', bgClass: 'var(--primary-fixed)', textClass: 'var(--on-primary-fixed)', icon: 'schedule' };
     default:
-      return { label: cita.estado, bgClass: 'var(--primary-container)', textClass: 'var(--primary)', icon: 'schedule' };
+      return { label: cita.estado, bgClass: 'var(--surface-container-low)', textClass: 'var(--on-surface-variant)', icon: 'schedule' };
   }
 }
 
@@ -191,7 +191,7 @@ export const MiAgenda: React.FC = () => {
           <div className="flex items-center gap-4">
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2"
-              style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)', borderColor: 'var(--outline)' }}
+              style={{ backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)', borderColor: 'var(--outline)' }}
             >
               DR
             </div>
@@ -360,7 +360,7 @@ export const MiAgenda: React.FC = () => {
                       <div className="flex items-center gap-4 min-w-0">
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center font-bold shrink-0 text-sm"
-                          style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)' }}
+                          style={{ backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' }}
                         >
                           {getInitials(cita.paciente_nombre!)}
                         </div>

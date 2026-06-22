@@ -30,7 +30,7 @@ export const HistoriaClinicaForm = ({
       }}
     >
       <div className="grid gap-1">
-        <label htmlFor="historia-usuario" className="text-sm font-medium text-slate-700">
+        <label htmlFor="historia-usuario" className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Nombre del usuario
         </label>
         <Input
@@ -41,7 +41,7 @@ export const HistoriaClinicaForm = ({
         />
       </div>
       <div className="grid gap-1">
-        <label htmlFor="historia-identificacion" className="text-sm font-medium text-slate-700">
+        <label htmlFor="historia-identificacion" className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Identificación
         </label>
         <Input
@@ -52,7 +52,7 @@ export const HistoriaClinicaForm = ({
         />
       </div>
       <div className="grid gap-1">
-        <label htmlFor="historia-alergia" className="text-sm font-medium text-slate-700">
+        <label htmlFor="historia-alergia" className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Alergias
         </label>
         <Input
@@ -63,7 +63,7 @@ export const HistoriaClinicaForm = ({
         />
       </div>
       <div className="grid gap-1">
-        <label htmlFor="historia-condicion" className="text-sm font-medium text-slate-700">
+        <label htmlFor="historia-condicion" className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Condición preexistente
         </label>
         <Input
@@ -74,7 +74,7 @@ export const HistoriaClinicaForm = ({
         />
       </div>
       <div className="grid gap-1">
-        <label htmlFor="historia-factor" className="text-sm font-medium text-slate-700">
+        <label htmlFor="historia-factor" className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Factor de riesgo
         </label>
         <Input
@@ -85,8 +85,8 @@ export const HistoriaClinicaForm = ({
         />
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-slate-100">
-        <Button type="submit" disabled={isSubmitting} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white">
+      <div className="flex justify-end pt-4" style={{ borderTop: '1px solid var(--card-border)' }}>
+        <Button type="submit" disabled={isSubmitting} style={{ backgroundColor: 'var(--btn-primary-bg)', color: 'var(--btn-primary-text)' }}>
           {submitLabel}
         </Button>
       </div>

@@ -55,14 +55,15 @@ const AntecedenteClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Tipo de antecedente
         </label>
         <select
           required
           value={tipo}
           onChange={(e) => setTipo(e.target.value as TipoAntecedenteClinico)}
-          className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          style={{ borderColor: 'var(--outline-variant)' }}
         >
           {TIPO_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -70,7 +71,7 @@ const AntecedenteClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Descripción
         </label>
         <textarea
@@ -78,11 +79,12 @@ const AntecedenteClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
           rows={3}
-          className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          style={{ borderColor: 'var(--outline-variant)' }}
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Fecha
         </label>
         <input
@@ -90,7 +92,8 @@ const AntecedenteClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }
           required
           value={fecha}
           onChange={(e) => setFecha(e.target.value)}
-          className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          style={{ borderColor: 'var(--outline-variant)' }}
         />
       </div>
       <div className="flex justify-end gap-2">

@@ -21,6 +21,19 @@ import type { ConsultaClinico } from '../types/consultaClinico.types';
 
 const PAGE_SIZE = 3;
 
+const AccessDenied = () => (
+  <main className="flex min-h-screen items-center justify-center px-6" style={{ backgroundColor: 'var(--hc-bg)' }}>
+    <Card className="max-w-md text-center">
+      <h1 className="text-xl font-semibold" style={{ color: 'var(--hc-text)' }}>
+        Acceso denegado
+      </h1>
+      <p className="mt-2 text-sm" style={{ color: 'var(--on-surface-variant)' }}>
+        No tienes permisos para acceder a historias clínicas.
+      </p>
+    </Card>
+  </main>
+);
+
 const MedicoContent = () => {
   const navigate = useNavigate();
   const [actionMessage, setActionMessage] = useState('');
@@ -275,7 +288,7 @@ const MedicoContent = () => {
       <section className="min-h-0 flex-1">
         {loading && (
           <Card>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
               Cargando historias clínicas...
             </p>
           </Card>
@@ -291,7 +304,7 @@ const MedicoContent = () => {
 
         {!loading && !error && rawHistorias.length === 0 && (
           <Card>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>
               No hay historias clínicas registradas.
             </p>
           </Card>
@@ -302,14 +315,15 @@ const MedicoContent = () => {
           rawHistorias.length > 0 &&
           historias.length === 0 && (
             <Card>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>
                 No se encontraron resultados con los filtros actuales.
               </p>
             </Card>
           )}
 
         {!loading && !error && historias.length > 0 && (
-          <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="w-full overflow-hidden rounded-xl shadow-sm"
+            style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
             <div className="w-full overflow-x-auto">
               <HistoriasClinicasTable
                 historias={paginatedHistorias}

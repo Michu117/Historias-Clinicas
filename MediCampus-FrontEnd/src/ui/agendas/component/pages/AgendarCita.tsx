@@ -9,6 +9,7 @@ import { citaService } from '../../services/api/citaService';
 import { EstadoCita } from '../../types';
 import { messages } from '../../utils/constants/messages';
 import { getUserId } from '../../services/storage/authStorage';
+import { HamburgerMenu } from '../shared/HamburgerMenu';
 
 export const AgendarCita: React.FC = () => {
   const navigate = useNavigate();
@@ -154,45 +155,36 @@ export const AgendarCita: React.FC = () => {
   const canSubmit = selectedServiceId && selectedProfessionalId && selectedDate && selectedTime && motivo.trim().length > 0;
 
   return (
-    <div className="h-screen flex flex-col bg-hc-bg">
-      <header className="bg-hc-primary text-hc-primaryText px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--hc-bg)' }}>
+      <header className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between" style={{ backgroundColor: 'var(--btn-primary-bg)' }}>
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-            <span className="font-bold text-sm sm:text-base">M</span>
+            <span className="font-bold text-sm sm:text-base text-white">M</span>
           </div>
-          <h1 className="text-base sm:text-lg font-semibold truncate">MediCampus</h1>
+          <h1 className="text-base sm:text-lg font-semibold truncate text-white">MediCampus</h1>
         </div>
-        <button
-          onClick={() => navigate('/home')}
-          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-hc-primaryText/80 hover:text-hc-primaryText transition-colors shrink-0"
-        >
-          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          Inicio
-        </button>
+        <HamburgerMenu />
       </header>
 
       <main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
         <Card>
           <CardTitle>{messages.titles.agendarCita}</CardTitle>
-          <p className="mt-2 text-xs sm:text-sm text-slate-500">
+          <p className="mt-2 text-xs sm:text-sm" style={{ color: 'var(--card-text-muted)' }}>
             Complete los detalles para programar una nueva atenci&oacute;n m&eacute;dica.
           </p>
         </Card>
 
         <Card className="space-y-6 sm:space-y-10">
-          {/* Sección 1: Detalles del Servicio */}
           <section aria-labelledby="service-details">
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--btn-primary-bg)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              <h3 id="service-details" className="text-base sm:text-lg font-bold text-slate-900">1. Detalles del Servicio</h3>
+              <h3 id="service-details" className="text-base sm:text-lg font-bold" style={{ color: 'var(--hc-text)' }}>1. Detalles del Servicio</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-700">Especialidad</label>
+                <label className="text-xs sm:text-sm font-bold" style={{ color: 'var(--on-surface)' }}>Especialidad</label>
                 <ServiceSelector
                   servicios={servicios}
                   selectedServiceId={selectedServiceId}
@@ -201,7 +193,7 @@ export const AgendarCita: React.FC = () => {
                 />
               </div>
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-700">Profesional Asignado</label>
+                <label className="text-xs sm:text-sm font-bold" style={{ color: 'var(--on-surface)' }}>Profesional Asignado</label>
                 <ProfessionalSelector
                   profesionales={profesionales}
                   selectedProfessionalId={selectedProfessionalId}
@@ -212,13 +204,12 @@ export const AgendarCita: React.FC = () => {
             </div>
           </section>
 
-          {/* Sección 2: Fecha y Hora */}
           <section aria-labelledby="date-time">
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--btn-primary-bg)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <h3 id="date-time" className="text-base sm:text-lg font-bold text-slate-900">2. Fecha y Hora</h3>
+              <h3 id="date-time" className="text-base sm:text-lg font-bold" style={{ color: 'var(--hc-text)' }}>2. Fecha y Hora</h3>
             </div>
             <DateTimeSlotSelector
               profesionalId={selectedProfessionalId ?? 0}
@@ -231,33 +222,36 @@ export const AgendarCita: React.FC = () => {
             />
           </section>
 
-          {/* Sección 3: Motivo */}
           <section aria-labelledby="additional-details">
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--btn-primary-bg)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              <h3 id="additional-details" className="text-base sm:text-lg font-bold text-slate-900">3. Detalles Adicionales</h3>
+              <h3 id="additional-details" className="text-base sm:text-lg font-bold" style={{ color: 'var(--hc-text)' }}>3. Detalles Adicionales</h3>
             </div>
             <div className="space-y-1.5 sm:space-y-2">
-              <label htmlFor="motivo" className="text-xs sm:text-sm font-bold text-slate-700">
+              <label htmlFor="motivo" className="text-xs sm:text-sm font-bold" style={{ color: 'var(--on-surface)' }}>
                 Motivo de la cita <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="motivo"
                 value={motivo}
                 onChange={(event) => setMotivo(event.target.value)}
-                className="w-full min-h-[80px] sm:min-h-[100px] px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all resize-y"
+                className="w-full min-h-[80px] sm:min-h-[100px] px-3 sm:px-4 py-2 sm:py-3 rounded-lg border text-sm focus:ring-2 focus:ring-[var(--btn-primary-bg)] focus:border-transparent outline-none transition-all resize-y"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderColor: 'var(--outline)',
+                  color: 'var(--hc-text)',
+                }}
                 placeholder="Describe brevemente el motivo de la consulta..."
               />
             </div>
           </section>
 
-          {/* Alertas */}
           {(error || message) && (
             <div className="space-y-2 sm:space-y-3">
               {error ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 sm:p-4 text-red-700 text-xs sm:text-sm flex items-center gap-2 font-medium">
+                <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#fecaca', backgroundColor: '#fef2f2', color: '#991b1b' }}>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -265,7 +259,7 @@ export const AgendarCita: React.FC = () => {
                 </div>
               ) : null}
               {message ? (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-3 sm:p-4 text-green-700 text-xs sm:text-sm flex items-center gap-2 font-medium">
+                <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#bbf7d0', backgroundColor: '#f0fdf4', color: '#166534' }}>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -275,13 +269,12 @@ export const AgendarCita: React.FC = () => {
             </div>
           )}
 
-          {/* Footer */}
-          <div className="pt-6 sm:pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 bg-blue-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-blue-100">
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary, #2563eb)' }}>
+          <div className="pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4" style={{ borderTop: '1px solid var(--card-border)' }}>
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border" style={{ backgroundColor: 'var(--primary-container)', borderColor: 'var(--outline-variant)' }}>
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--on-primary-container)' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--primary, #2563eb)' }}>
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--on-primary-container)' }}>
                 Estado: {citaEstado}
               </span>
             </div>
@@ -306,10 +299,9 @@ export const AgendarCita: React.FC = () => {
         </Card>
       </main>
 
-      <footer className="text-center text-[10px] sm:text-xs text-slate-400 py-3 sm:py-4 border-t border-slate-200">
+      <footer className="text-center text-[10px] sm:text-xs py-3 sm:py-4" style={{ color: 'var(--on-surface-variant)', borderTop: '1px solid var(--card-border)' }}>
         Universidad Nacional de Loja &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );
-}; 
-
+};

@@ -31,26 +31,26 @@ const AntecedentesClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, 
       )}
 
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500">No hay antecedentes registrados.</p>
+        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No hay antecedentes registrados.</p>
       ) : (
-        <div className="overflow-hidden rounded-global border border-slate-200">
+        <div className="overflow-hidden rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-600">
+              <tr className="text-left text-xs font-semibold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3">Descripción</th>
                 <th className="px-4 py-3">Fecha</th>
                 {!readOnly && <th className="px-4 py-3 text-right">Acciones</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
               {items.map((a) => (
                 <tr key={a.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">
+                  <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>
                     {TIPO_LABELS[a.tipo] ?? a.tipo}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{a.descripcion}</td>
-                  <td className="px-4 py-3 text-slate-600">{a.fecha}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{a.descripcion}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{a.fecha}</td>
                   {!readOnly && (
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">

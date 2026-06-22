@@ -16,34 +16,35 @@ export default function MetricCard({
   trend = 'neutral',
   icon
 }: MetricCardProps): JSX.Element {
-  const trendColor = {
-    up: 'text-green-600',
-    down: 'text-red-600',
-    neutral: 'text-gray-600'
-  }[trend];
+  const isUp = trend === 'up';
+  const isDown = trend === 'down';
+  const isNeutral = trend === 'neutral';
 
-  const trendBg = {
-    up: 'bg-green-50',
-    down: 'bg-red-50',
-    neutral: 'bg-gray-50'
-  }[trend];
+  const trendBgSemantic = isUp ? 'bg-green-50' : isDown ? 'bg-red-50' : '';
+  const trendBgStyle = isNeutral ? { backgroundColor: 'var(--surface-container-low)' } : {};
+
+  const trendColorClass = isUp ? 'text-green-600' : isDown ? 'text-red-600' : '';
+  const trendColorStyle = isNeutral ? { color: 'var(--on-surface-variant)' } : {};
 
   return (
-    <div className={`${trendBg} rounded-lg border border-gray-200 p-6 shadow-sm`}>
+    <div
+      className={`${trendBgSemantic} rounded-lg border p-6 shadow-sm`}
+      style={{ borderColor: 'var(--outline-variant)', ...trendBgStyle }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{label}</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">
+          <p className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>{label}</p>
+          <p className="mt-2 text-3xl font-bold" style={{ color: 'var(--on-surface)' }}>
             {formatMetricValue(value)}
           </p>
           {delta !== undefined && (
-            <p className={`mt-2 text-sm font-semibold ${trendColor}`}>
+            <p className={`mt-2 text-sm font-semibold ${trendColorClass}`} style={trendColorStyle}>
               {delta > 0 ? '+' : ''}{delta}%
             </p>
           )}
         </div>
         {icon && (
-          <div className={`ml-4 flex h-12 w-12 items-center justify-center rounded-lg ${trendBg}`}>
+          <div className={`ml-4 flex h-12 w-12 items-center justify-center rounded-lg ${trendBgSemantic}`} style={trendBgStyle}>
             {icon}
           </div>
         )}
@@ -51,4 +52,3 @@ export default function MetricCard({
     </div>
   );
 }
-

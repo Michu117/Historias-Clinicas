@@ -34,7 +34,9 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
   isLoading = false,
 }) => {
   const isUnread = notification.estado === 'no_leido';
-  const backgroundClass = isUnread ? 'bg-gray-100' : 'bg-white';
+  const backgroundStyle = isUnread
+    ? { backgroundColor: 'var(--surface-container-low)' }
+    : { backgroundColor: 'var(--card-bg)' };
 
   const handleMarkAsRead = () => {
     onMarkAsRead(notification.id);
@@ -42,14 +44,16 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
 
   return (
     <Card
-      className={`${backgroundClass} transition-colors`}
+      className="transition-colors"
+      style={backgroundStyle}
       data-testid="notification-card"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span
-              className="inline-block px-2 py-1 text-xs font-semibold text-slate-700 bg-slate-200 rounded"
+              className="inline-block px-2 py-1 text-xs font-semibold rounded"
+              style={{ color: 'var(--on-surface-variant)', backgroundColor: 'var(--surface-container-high)' }}
             >
               {getNotificationTypeLabel(notification.tipo)}
             </span>
@@ -57,8 +61,8 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
               <span aria-hidden="true" className="inline-block w-2 h-2 bg-red-500 rounded-full" />
             )}
           </div>
-          <p className="text-sm text-slate-900 mb-2">{notification.mensaje}</p>
-          <time className="text-xs text-slate-500" dateTime={notification.timestamp}>
+          <p className="text-sm mb-2" style={{ color: 'var(--on-surface)' }}>{notification.mensaje}</p>
+          <time className="text-xs" style={{ color: 'var(--on-surface-variant)' }} dateTime={notification.timestamp}>
             {formatTimestamp(notification.timestamp)}
           </time>
         </div>
