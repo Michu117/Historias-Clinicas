@@ -30,7 +30,7 @@ import { MisCitas } from './ui/agendas/component/pages/MisCitas';
 import { Derivaciones } from './ui/agendas/component/pages/Derivaciones';
 import { Consulta } from './ui/agendas/component/pages/Consulta';
 import { getToken } from './ui/agendas/services/storage/authStorage';
-import { validateTokenRole } from './ui/agendas/utils/auth/jwtValidator';
+import { validateTokenRole, isTokenExpired } from './ui/agendas/utils/auth/jwtValidator';
 
 function ProfessionalGuard({ children }: { children: React.ReactNode }) {
   const token = getToken();
@@ -38,6 +38,17 @@ function ProfessionalGuard({ children }: { children: React.ReactNode }) {
 
   if (!isProfessional) {
     return <Navigate to="/seguridad/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const token = getToken();
+  const isAutenticado = token && !isTokenExpired(token);
+
+  if (!isAutenticado) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -84,8 +95,8 @@ export default function App() {
         </Route>
 
         {/* Rutas de Agendas */}
-        <Route path="/AgendarCita" element={<AgendarCita />} />
-        <Route path="/mis-citas" element={<MisCitas />} />
+        <Route path="/AgendarCita" element={<AuthGuard><AgendarCita /></AuthGuard>} />
+        <Route path="/mis-citas" element={<AuthGuard><MisCitas /></AuthGuard>} />
         <Route path="/agendas/mi-agenda" element={<ProfessionalGuard><MiAgenda /></ProfessionalGuard>} />
         <Route path="/agendas/consulta/:citaId?" element={<ProfessionalGuard><Consulta /></ProfessionalGuard>} />
         <Route path="/agendas/derivaciones" element={<ProfessionalGuard><Derivaciones /></ProfessionalGuard>} />
