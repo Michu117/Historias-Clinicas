@@ -97,7 +97,7 @@ export const MiHistoriaClinicaPage = () => {
 
       {loading && (
         <section className="flex-1">
-          <p className="text-sm text-slate-500">Cargando tu historia clínica...</p>
+          <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Cargando tu historia clínica...</p>
         </section>
       )}
 
@@ -109,7 +109,7 @@ export const MiHistoriaClinicaPage = () => {
 
       {!loading && !error && !historia && (
         <section className="flex-1">
-          <Card><p className="text-sm text-slate-500">No se encontró la historia clínica.</p></Card>
+          <Card><p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No se encontró la historia clínica.</p></Card>
         </section>
       )}
 
@@ -117,24 +117,24 @@ export const MiHistoriaClinicaPage = () => {
         <section className="w-full">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Card>
-              <h2 className="mb-3 text-base font-semibold text-slate-900">Datos generales</h2>
+              <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Datos generales</h2>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-global border border-slate-200 bg-white p-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Alergia</p>
-                  <p className="mt-1 text-sm font-medium text-slate-800">{historia.alergia || '—'}</p>
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Alergia</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.alergia || '—'}</p>
                 </div>
-                <div className="rounded-global border border-slate-200 bg-white p-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Condición preexistente</p>
-                  <p className="mt-1 text-sm font-medium text-slate-800">{historia.condicionPreexistente || '—'}</p>
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Condición preexistente</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.condicionPreexistente || '—'}</p>
                 </div>
-                <div className="rounded-global border border-slate-200 bg-white p-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Factor de riesgo</p>
-                  <p className="mt-1 text-sm font-medium text-slate-800">{historia.factorRiesgo || '—'}</p>
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Factor de riesgo</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.factorRiesgo || '—'}</p>
                 </div>
                 {historia.fechaApertura && (
-                  <div className="rounded-global border border-slate-200 bg-white p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Fecha de creación</p>
-                    <p className="mt-1 text-sm font-medium text-slate-800">{historia.fechaApertura}</p>
+                  <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Fecha de creación</p>
+                    <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.fechaApertura}</p>
                   </div>
                 )}
               </div>
@@ -142,27 +142,27 @@ export const MiHistoriaClinicaPage = () => {
 
             {/* ── Antecedentes ── */}
             <Card>
-              <h2 className="mb-3 text-base font-semibold text-slate-900">Antecedentes clínicos</h2>
+              <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Antecedentes clínicos</h2>
               {antecedentes.length === 0 ? (
-                <p className="text-sm text-slate-500">Sin antecedentes registrados</p>
+                <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin antecedentes registrados</p>
               ) : (
                 <div className="space-y-2">
                   {antecedentes.map((a) => (
-                    <div key={a.id} className="rounded-global border border-slate-200 bg-white p-3">
+                    <div key={a.id} className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
                       <div className="grid grid-cols-3 gap-3">
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Tipo</p>
-                          <p className="mt-1 text-sm font-medium text-slate-800">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Tipo</p>
+                          <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
                             {TIPO_ANT_LABELS[a.tipo] ?? a.tipo}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Descripción</p>
-                          <p className="mt-1 text-sm font-medium text-slate-800">{a.descripcion}</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Descripción</p>
+                          <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{a.descripcion}</p>
                         </div>
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Fecha</p>
-                          <p className="mt-1 text-sm font-medium text-slate-800">{a.fecha}</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Fecha</p>
+                          <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{a.fecha}</p>
                         </div>
                       </div>
                     </div>
@@ -174,27 +174,27 @@ export const MiHistoriaClinicaPage = () => {
 
           {/* ── Casos clínicos ── */}
           <Card className="mt-4">
-            <h2 className="mb-3 text-base font-semibold text-slate-900">Casos clínicos</h2>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Casos clínicos</h2>
             {consultas.length === 0 ? (
-              <p className="text-sm text-slate-500">Sin casos clínicos registrados</p>
+              <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin casos clínicos registrados</p>
             ) : (
-              <div className="overflow-hidden rounded-global border border-slate-200">
+              <div className="overflow-hidden rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-600">
+                    <tr className="text-left text-xs font-semibold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
                       <th className="px-4 py-3">Fecha</th>
                       <th className="px-4 py-3">Motivo / Caso</th>
                       <th className="px-4 py-3">Tipo</th>
                       <th className="px-4 py-3">Estado</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
                     {consultas.map((c, i) => (
                       <tr key={c.id || i} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium text-slate-800">{c.fecha}</td>
-                        <td className="px-4 py-3 text-slate-800">{c.motivo}</td>
-                        <td className="px-4 py-3 text-slate-600">{c.tipo}</td>
-                        <td className="px-4 py-3 text-slate-600">{c.estado}</td>
+                        <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{c.fecha}</td>
+                        <td className="px-4 py-3" style={{ color: 'var(--on-surface)' }}>{c.motivo}</td>
+                        <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.tipo}</td>
+                        <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.estado}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -205,7 +205,7 @@ export const MiHistoriaClinicaPage = () => {
 
           {/* ── Documentos ── */}
           <Card className="mt-4">
-            <h2 className="mb-3 text-base font-semibold text-slate-900">Documentos clínicos</h2>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Documentos clínicos</h2>
             <DocumentosClinicosList
               historiaClinicaId={historia.id}
               historia={historia}

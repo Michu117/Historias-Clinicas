@@ -55,7 +55,7 @@ export const SideNavBar: React.FC = () => {
               }`}
               style={
                 active
-                  ? { backgroundColor: 'var(--primary-container)', color: 'var(--on-primary-container)', borderLeft: '3px solid var(--on-primary-container)' }
+                  ? { backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)', borderLeft: '3px solid var(--on-primary-fixed)' }
                   : { color: 'var(--on-surface-variant)', backgroundColor: 'transparent' }
               }
               onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = 'var(--btn-tertiary-hover)'; }}

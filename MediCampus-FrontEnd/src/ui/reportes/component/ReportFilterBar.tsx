@@ -55,6 +55,8 @@ export default function ReportFilterBar({
   const [error, setError] = useState('');
   const [servicioOptions, setServicioOptions] = useState<{ value: string; label: string }[]>([]);
   const [serviciosLoading, setServiciosLoading] = useState(true);
+  const [applyHovered, setApplyHovered] = useState(false);
+  const [resetHovered, setResetHovered] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,16 +108,20 @@ export default function ReportFilterBar({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <div
+      className="rounded-lg p-6 shadow-sm"
+      style={{ border: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-lowest)' }}
+    >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
             Período
           </label>
           <select
             value={dateRange}
             onChange={(e) => handleDateRangeChange(e.target.value as DateRangePreset)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="mt-1 block w-full rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            style={{ border: '1px solid var(--outline)', backgroundColor: 'var(--surface-container-lowest)' }}
           >
             {DATE_RANGE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -128,40 +134,46 @@ export default function ReportFilterBar({
         {isCustom && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
                 Fecha inicio
               </label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 block w-full rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                style={{ border: '1px solid var(--outline)', backgroundColor: 'var(--surface-container-lowest)' }}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
                 Fecha fin
               </label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1 block w-full rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                style={{ border: '1px solid var(--outline)', backgroundColor: 'var(--surface-container-lowest)' }}
               />
             </div>
           </>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
             Servicio
           </label>
           <select
             value={servicioId}
             onChange={(e) => setServicioId(e.target.value)}
             disabled={serviciosLoading}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-wait"
+            className="mt-1 block w-full rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:outline-none disabled:cursor-wait"
+            style={{
+              border: '1px solid var(--outline)',
+              backgroundColor: serviciosLoading ? 'var(--surface-container-low)' : 'var(--surface-container-lowest)'
+            }}
           >
             {serviciosLoading ? (
               <option value="">Cargando...</option>
@@ -184,13 +196,26 @@ export default function ReportFilterBar({
         <button
           onClick={handleApply}
           disabled={!isValid}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700"
+          className="rounded-md px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: !isValid ? 'var(--surface-container-high)' : (applyHovered ? '#1d4ed8' : '#2563eb'),
+            color: 'var(--btn-primary-text)'
+          }}
+          onMouseEnter={() => setApplyHovered(true)}
+          onMouseLeave={() => setApplyHovered(false)}
         >
           Aplicar
         </button>
         <button
           onClick={handleReset}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md px-4 py-2 text-sm font-medium"
+          style={{
+            border: '1px solid var(--outline)',
+            backgroundColor: resetHovered ? 'var(--surface-container-low)' : 'var(--surface-container-lowest)',
+            color: 'var(--on-surface-variant)'
+          }}
+          onMouseEnter={() => setResetHovered(true)}
+          onMouseLeave={() => setResetHovered(false)}
         >
           Limpiar
         </button>
@@ -198,4 +223,3 @@ export default function ReportFilterBar({
     </div>
   );
 }
-

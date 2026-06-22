@@ -36,10 +36,10 @@ export const NuevaHistoriaClinicaPage = () => {
       <HistoriasClinicasHeader title="Nueva Historia Clínica" backTo="/historias" />
       <section className="flex min-h-0 items-center justify-center">
         <Card className="max-w-md text-center">
-          <h1 className="text-xl font-semibold text-slate-900">
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--hc-text)' }}>
             Acción no disponible
           </h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm" style={{ color: 'var(--on-surface-variant)' }}>
             La creación de historias clínicas se realiza automáticamente desde el sistema.
           </p>
         </Card>

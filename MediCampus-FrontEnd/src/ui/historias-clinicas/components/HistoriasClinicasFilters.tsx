@@ -22,7 +22,7 @@ export const HistoriasClinicasFilters = ({
   return (
     <section className="grid gap-3 md:grid-cols-[2fr,1fr,auto] md:items-end">
       <div className="flex flex-col gap-1">
-        <label htmlFor="historia-search" className="text-sm font-medium text-slate-700">
+        <label htmlFor="historia-search" className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
           Buscar historia clínica
         </label>
         <Input

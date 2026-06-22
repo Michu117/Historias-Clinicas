@@ -4,8 +4,8 @@ from django.apps import AppConfig
 
 class HistoriasConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "Historias"
+    name = "historias"
     path = str(Path(__file__).resolve().parent)
 
     def ready(self):
-        import Historias.signals  # noqa: F401
+        import historias.signals  # noqa: F401

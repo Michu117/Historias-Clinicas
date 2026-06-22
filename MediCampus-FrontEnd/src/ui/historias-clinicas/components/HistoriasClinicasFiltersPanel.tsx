@@ -26,7 +26,7 @@ export const HistoriasClinicasFiltersPanel = ({
         <div className="flex flex-col gap-1">
           <label
             htmlFor="historia-search"
-            className="text-sm font-medium text-slate-700"
+            className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}
           >
             Buscar historia clínica
           </label>
