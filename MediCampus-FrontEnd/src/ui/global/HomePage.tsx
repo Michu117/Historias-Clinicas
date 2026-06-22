@@ -2,9 +2,13 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Card, CardTitle } from '../components/Card'
+import { NotificationBell } from '../notificaciones'
+import { useNotifications, useMarkAsRead } from '../notificaciones'
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate()
+  const { notifications, isLoading, error } = useNotifications()
+  const markAsRead = useMarkAsRead()
   const userName = localStorage.getItem('currentUser')
     ? JSON.parse(localStorage.getItem('currentUser') || '{}').correo
     : 'Usuario'
@@ -19,6 +23,13 @@ const HomePage: React.FC = () => {
           <h1 className="text-lg font-semibold">MediCampus</h1>
         </div>
         <div className="flex items-center gap-4">
+          <NotificationBell
+            notifications={notifications}
+            isLoading={isLoading}
+            onMarkAsRead={markAsRead}
+            error={error || undefined}
+            buttonClassName="text-white/80 hover:text-white"
+          />
           <span className="text-sm text-white/80">{userName}</span>
           <Button variant="secondary" size="sm" onClick={() => { localStorage.clear(); navigate('/seguridad/login') }}>
             Cerrar Sesión
@@ -50,22 +61,8 @@ const HomePage: React.FC = () => {
             </Button>
           </Card>
           <Card>
-            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Solicitar Permiso Médico</h3>
-            <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Tramita permisos médicos en línea.</p>
-            <Button variant="primary" className="mt-3" onClick={() => navigate('/seguridad/login')}>
-              Solicitar
-            </Button>
-          </Card>
-          <Card>
-            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Notificaciones</h3>
-            <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Revisa tus notificaciones pendientes.</p>
-            <Button variant="primary" className="mt-3" onClick={() => navigate('/seguridad/login')}>
-              Ver Notificaciones
-            </Button>
-          </Card>
-          <Card>
-            <h3 className="font-semibold text-slate-900">Mi Historia</h3>
-            <p className="text-sm text-slate-500 mt-1">Revisa los detalles de tu historia clinica.</p>
+            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Mi Historia</h3>
+            <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Revisa los detalles de tu historia clinica.</p>
             <Button variant="primary" className="mt-3" onClick={() => navigate('/historias/mi-historia')}>
               Ver Mi Historia
             </Button>

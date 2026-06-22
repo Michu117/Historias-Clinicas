@@ -8,4 +8,4 @@ class HistoriasConfig(AppConfig):
     path = str(Path(__file__).resolve().parent)
 
     def ready(self):
-        import historias.signals  # noqa: F401
+        import Historias.signals  # noqa: F401
