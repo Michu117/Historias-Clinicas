@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '../../../ui/components/Button'
+import { normalizarFecha } from '../utils/dateFormatter'
 import type { AntecedenteClinico, TipoAntecedenteClinico } from '../types/antecedenteClinico.types'
 
 interface Props {
@@ -16,27 +17,43 @@ const TIPO_OPTIONS: { value: TipoAntecedenteClinico | ''; label: string }[] = [
   { value: 'GINECO_OBSTETRICOS', label: 'Gineco obstétricos' },
 ]
 
+const hoy = () => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 const AntecedenteClinicoForm: React.FC<Props> = ({ initial, onSubmit, onCancel }) => {
   const [tipo, setTipo] = useState<TipoAntecedenteClinico | ''>(initial?.tipo ?? '')
   const [descripcion, setDescripcion] = useState(initial?.descripcion ?? '')
-  const [fecha, setFecha] = useState(initial?.fecha ?? '')
+  const [fecha, setFecha] = useState(initial?.fecha ? normalizarFecha(initial.fecha) : hoy())
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!tipo || !descripcion.trim() || !fecha) return
     setSaving(true)
-    await onSubmit({ tipo, descripcion, fecha })
-    setSaving(false)
-    if (!initial) {
-      setTipo('')
-      setDescripcion('')
-      setFecha('')
+    setError('')
+    try {
+      await onSubmit({ tipo, descripcion, fecha: normalizarFecha(fecha) })
+      if (!initial) {
+        setTipo('')
+        setDescripcion('')
+        setFecha('')
+      }
+    } catch (err: any) {
+      setError(err?.message ?? 'Error al guardar el antecedente.')
+    } finally {
+      setSaving(false)
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
       <div>
         <label className="mb-1 block text-sm font-medium text-slate-700">
           Tipo de antecedente

@@ -6,16 +6,27 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from Agendas.models import (
+    ConsultaMedica,
+    ConsultaOdontologica,
+    ConsultaPsicologica,
+    ConsultaSocial,
+)
 from .models import Antecedente, Caso, Documento, HistoriaClinica
 from .serializers import (
     AntecedenteSerializer,
     CasoSerializer,
+    ConsultaHistoriaSerializer,
     DocumentoSerializer,
     HistoriaClinicaSerializer,
 )
 from .services import (
     actualizar_historia_clinica,
     crear_historia_clinica,
+    es_administrador,
+    es_medico,
+    es_paciente,
+    normalizar_rol,
     obtener_historia_por_id,
     obtener_historias_clinicas,
 )
@@ -75,28 +86,37 @@ class BaseHistoriasView(APIView):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    def _denied(self, message="No tienes permisos para acceder a historias clínicas."):
+        return Response(
+            {"success": False, "message": message},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     def _error_detail(self, exc):
         return getattr(exc, "detail", None) or getattr(exc, "message_dict", None) or {
             "non_field_errors": [str(exc)]
         }
 
-    def _historia_from_user(self, request):
-        perfil = getattr(request.user, "perfil", None)
-        if perfil is None:
-            raise DRFValidationError(
-                {"usuario": ["El usuario autenticado no tiene un perfil asociado."]}
-            )
-        try:
-            return perfil.historia_clinica
-        except HistoriaClinica.DoesNotExist as exc:
-            raise DRFValidationError(
-                {"historia_clinica": ["El usuario autenticado no tiene historia clinica registrada."]}
-            ) from exc
+    def _es_medico(self, request):
+        return es_medico(request.user)
+
+    def _es_paciente(self, request):
+        return es_paciente(request.user)
+
+    def _es_admin(self, request):
+        return es_administrador(request.user)
 
 
 class HistoriaClinicaListCreateView(BaseHistoriasView):
     def get(self, request):
-        historias = obtener_historias_clinicas().filter(usuario=request.user.perfil)
+        if self._es_admin(request):
+            return self._denied()
+        if self._es_medico(request):
+            historias = obtener_historias_clinicas()
+            return self.ok_list(HistoriaClinicaSerializer(historias, many=True).data)
+        historias = HistoriaClinica.objects.filter(
+            usuario__cuenta=request.user
+        )
         return self.ok_list(HistoriaClinicaSerializer(historias, many=True).data)
 
     @extend_schema(
@@ -104,28 +124,9 @@ class HistoriaClinicaListCreateView(BaseHistoriasView):
         responses=HistoriaClinicaSerializer,
     )
     def post(self, request):
-        serializer = HistoriaClinicaSerializer(data=request.data)
-        if not serializer.is_valid():
-            return self.validation_error(serializer.errors)
-
-        if HistoriaClinica.objects.filter(usuario=request.user.perfil).exists():
-            return self.validation_error(
-                {
-                    "usuario": [
-                        "El usuario autenticado ya tiene una historia clinica registrada.",
-                    ]
-                }
-            )
-
-        try:
-            historia = crear_historia_clinica(
-                serializer.validated_data,
-                usuario=request.user.perfil,
-            )
-        except DjangoValidationError as exc:
-            return self.validation_error(self._error_detail(exc))
-
-        return self.created(HistoriaClinicaSerializer(historia).data)
+        return self._denied(
+            "La creación de historias clínicas no está disponible desde este módulo."
+        )
 
 
 @extend_schema_view(
@@ -136,8 +137,13 @@ class HistoriaClinicaListCreateView(BaseHistoriasView):
 )
 class HistoriaClinicaDetailView(BaseHistoriasView):
     def get(self, request, pk):
+        if self._es_admin(request):
+            return self._denied()
         try:
-            historia = obtener_historia_por_id(pk, usuario=request.user.perfil)
+            if self._es_medico(request):
+                historia = obtener_historia_por_id(pk)
+            else:
+                historia = obtener_historia_por_id(pk, usuario=request.user.perfil)
         except HistoriaClinica.DoesNotExist:
             return self.not_found()
         return self.ok(HistoriaClinicaSerializer(historia).data)
@@ -147,20 +153,20 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
         responses=HistoriaClinicaSerializer,
     )
     def put(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar historias clínicas.")
         try:
-            historia = obtener_historia_por_id(pk, usuario=request.user.perfil)
+            historia = obtener_historia_por_id(pk)
         except HistoriaClinica.DoesNotExist:
             return self.not_found()
-
         serializer = HistoriaClinicaSerializer(historia, data=request.data)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
         try:
             historia = actualizar_historia_clinica(
                 pk,
                 serializer.validated_data,
-                usuario=request.user.perfil,
+                usuario=None,
             )
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
@@ -171,11 +177,12 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
         responses=HistoriaClinicaSerializer,
     )
     def patch(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar historias clínicas.")
         try:
-            historia = obtener_historia_por_id(pk, usuario=request.user.perfil)
+            historia = obtener_historia_por_id(pk)
         except HistoriaClinica.DoesNotExist:
             return self.not_found()
-
         serializer = HistoriaClinicaSerializer(historia, data=request.data, partial=True)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
@@ -183,26 +190,28 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
             historia = actualizar_historia_clinica(
                 pk,
                 serializer.validated_data,
-                usuario=request.user.perfil,
+                usuario=None,
             )
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
         return self.ok(HistoriaClinicaSerializer(historia).data)
 
     def delete(self, request, pk):
-        try:
-            historia = obtener_historia_por_id(pk, usuario=request.user.perfil)
-        except HistoriaClinica.DoesNotExist:
-            return self.not_found()
-        historia.delete()
-        return self.ok({})
+        return self._denied(
+            "No se permite eliminar historias clínicas."
+        )
 
 
 class CasoListCreateView(BaseHistoriasView):
     def get(self, request):
-        casos = Caso.objects.select_related("historia_clinica").filter(
-            historia_clinica__usuario=request.user.perfil
-        )
+        if self._es_admin(request):
+            return self._denied()
+        if self._es_medico(request):
+            casos = Caso.objects.select_related("historia_clinica").all()
+        else:
+            casos = Caso.objects.select_related("historia_clinica").filter(
+                historia_clinica__usuario__cuenta=request.user
+            )
         return self.ok_list(CasoSerializer(casos, many=True).data)
 
     @extend_schema(
@@ -210,15 +219,20 @@ class CasoListCreateView(BaseHistoriasView):
         responses=CasoSerializer,
     )
     def post(self, request):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para crear casos clínicos.")
         serializer = CasoSerializer(data=request.data)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
+        historia_clinica_id = request.data.get("historia_clinica")
+        if not historia_clinica_id:
+            return self.validation_error(
+                {"historia_clinica": ["Debes especificar la historia clínica asociada."]}
+            )
         try:
-            historia = self._historia_from_user(request)
-        except DRFValidationError as exc:
-            return self.validation_error(self._error_detail(exc))
-
+            historia = HistoriaClinica.objects.get(pk=historia_clinica_id)
+        except HistoriaClinica.DoesNotExist:
+            return self.not_found()
         try:
             caso = serializer.save(historia_clinica=historia)
         except DjangoValidationError as exc:
@@ -227,12 +241,19 @@ class CasoListCreateView(BaseHistoriasView):
 
 
 class CasoDetailView(BaseHistoriasView):
+    def _get_caso(self, pk, request):
+        if self._es_medico(request):
+            return Caso.objects.select_related("historia_clinica").get(pk=pk)
+        return Caso.objects.select_related("historia_clinica").get(
+            pk=pk,
+            historia_clinica__usuario__cuenta=request.user,
+        )
+
     def get(self, request, pk):
+        if self._es_admin(request):
+            return self._denied()
         try:
-            caso = Caso.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            caso = self._get_caso(pk, request)
         except Caso.DoesNotExist:
             return self.not_found()
         return self.ok(CasoSerializer(caso).data)
@@ -242,23 +263,19 @@ class CasoDetailView(BaseHistoriasView):
         responses=CasoSerializer,
     )
     def put(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar casos clínicos.")
         try:
-            caso = Caso.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            caso = Caso.objects.select_related("historia_clinica").get(pk=pk)
         except Caso.DoesNotExist:
             return self.not_found()
-
         serializer = CasoSerializer(caso, data=request.data)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
         try:
             caso = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
-
         return self.ok(CasoSerializer(caso).data)
 
     @extend_schema(
@@ -266,46 +283,37 @@ class CasoDetailView(BaseHistoriasView):
         responses=CasoSerializer,
     )
     def patch(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar casos clínicos.")
         try:
-            caso = Caso.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            caso = Caso.objects.select_related("historia_clinica").get(pk=pk)
         except Caso.DoesNotExist:
             return self.not_found()
-
-        serializer = CasoSerializer(
-            caso,
-            data=request.data,
-            partial=True,
-        )
+        serializer = CasoSerializer(caso, data=request.data, partial=True)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
         try:
             caso = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
-
         return self.ok(CasoSerializer(caso).data)
 
     def delete(self, request, pk):
-        try:
-            caso = Caso.objects.get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
-        except Caso.DoesNotExist:
-            return self.not_found()
-        caso.delete()
-        return self.ok({})
+        return self._denied(
+            "No se permite eliminar casos clínicos. Para cerrar un caso, actualiza su estado a CERRADO."
+        )
 
 
 class AntecedenteListCreateView(BaseHistoriasView):
     def get(self, request):
-        antecedentes = Antecedente.objects.select_related("historia_clinica").filter(
-            historia_clinica__usuario=request.user.perfil
-        )
+        if self._es_admin(request):
+            return self._denied()
+        if self._es_medico(request):
+            antecedentes = Antecedente.objects.select_related("historia_clinica").all()
+        else:
+            antecedentes = Antecedente.objects.select_related("historia_clinica").filter(
+                historia_clinica__usuario__cuenta=request.user
+            )
         return self.ok_list(AntecedenteSerializer(antecedentes, many=True).data)
 
     @extend_schema(
@@ -313,15 +321,20 @@ class AntecedenteListCreateView(BaseHistoriasView):
         responses=AntecedenteSerializer,
     )
     def post(self, request):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para crear antecedentes.")
         serializer = AntecedenteSerializer(data=request.data)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
+        historia_clinica_id = request.data.get("historia_clinica")
+        if not historia_clinica_id:
+            return self.validation_error(
+                {"historia_clinica": ["Debes especificar la historia clínica asociada."]}
+            )
         try:
-            historia = self._historia_from_user(request)
-        except DRFValidationError as exc:
-            return self.validation_error(self._error_detail(exc))
-
+            historia = HistoriaClinica.objects.get(pk=historia_clinica_id)
+        except HistoriaClinica.DoesNotExist:
+            return self.not_found()
         try:
             antecedente = serializer.save(historia_clinica=historia)
         except DjangoValidationError as exc:
@@ -330,12 +343,19 @@ class AntecedenteListCreateView(BaseHistoriasView):
 
 
 class AntecedenteDetailView(BaseHistoriasView):
+    def _get_antecedente(self, pk, request):
+        if self._es_medico(request):
+            return Antecedente.objects.select_related("historia_clinica").get(pk=pk)
+        return Antecedente.objects.select_related("historia_clinica").get(
+            pk=pk,
+            historia_clinica__usuario__cuenta=request.user,
+        )
+
     def get(self, request, pk):
+        if self._es_admin(request):
+            return self._denied()
         try:
-            antecedente = Antecedente.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            antecedente = self._get_antecedente(pk, request)
         except Antecedente.DoesNotExist:
             return self.not_found()
         return self.ok(AntecedenteSerializer(antecedente).data)
@@ -345,26 +365,19 @@ class AntecedenteDetailView(BaseHistoriasView):
         responses=AntecedenteSerializer,
     )
     def put(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar antecedentes.")
         try:
-            antecedente = Antecedente.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            antecedente = Antecedente.objects.select_related("historia_clinica").get(pk=pk)
         except Antecedente.DoesNotExist:
             return self.not_found()
-
-        serializer = AntecedenteSerializer(
-            antecedente,
-            data=request.data,
-        )
+        serializer = AntecedenteSerializer(antecedente, data=request.data)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
         try:
             antecedente = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
-
         return self.ok(AntecedenteSerializer(antecedente).data)
 
     @extend_schema(
@@ -372,35 +385,26 @@ class AntecedenteDetailView(BaseHistoriasView):
         responses=AntecedenteSerializer,
     )
     def patch(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar antecedentes.")
         try:
-            antecedente = Antecedente.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            antecedente = Antecedente.objects.select_related("historia_clinica").get(pk=pk)
         except Antecedente.DoesNotExist:
             return self.not_found()
-
-        serializer = AntecedenteSerializer(
-            antecedente,
-            data=request.data,
-            partial=True,
-        )
+        serializer = AntecedenteSerializer(antecedente, data=request.data, partial=True)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
         try:
             antecedente = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
-
         return self.ok(AntecedenteSerializer(antecedente).data)
 
     def delete(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para eliminar antecedentes.")
         try:
-            antecedente = Antecedente.objects.get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            antecedente = Antecedente.objects.get(pk=pk)
         except Antecedente.DoesNotExist:
             return self.not_found()
         antecedente.delete()
@@ -409,9 +413,14 @@ class AntecedenteDetailView(BaseHistoriasView):
 
 class DocumentoListCreateView(BaseHistoriasView):
     def get(self, request):
-        documentos = Documento.objects.select_related("historia_clinica").filter(
-            historia_clinica__usuario=request.user.perfil
-        )
+        if self._es_admin(request):
+            return self._denied()
+        if self._es_medico(request):
+            documentos = Documento.objects.select_related("historia_clinica").all()
+        else:
+            documentos = Documento.objects.select_related("historia_clinica").filter(
+                historia_clinica__usuario__cuenta=request.user
+            )
         return self.ok_list(DocumentoSerializer(documentos, many=True).data)
 
     @extend_schema(
@@ -419,15 +428,20 @@ class DocumentoListCreateView(BaseHistoriasView):
         responses=DocumentoSerializer,
     )
     def post(self, request):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para crear documentos.")
         serializer = DocumentoSerializer(data=request.data)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
+        historia_clinica_id = request.data.get("historia_clinica")
+        if not historia_clinica_id:
+            return self.validation_error(
+                {"historia_clinica": ["Debes especificar la historia clínica asociada."]}
+            )
         try:
-            historia = self._historia_from_user(request)
-        except DRFValidationError as exc:
-            return self.validation_error(self._error_detail(exc))
-
+            historia = HistoriaClinica.objects.get(pk=historia_clinica_id)
+        except HistoriaClinica.DoesNotExist:
+            return self.not_found()
         try:
             documento = serializer.save(historia_clinica=historia)
         except DjangoValidationError as exc:
@@ -442,12 +456,19 @@ class DocumentoListCreateView(BaseHistoriasView):
     ),
 )
 class DocumentoDetailView(BaseHistoriasView):
+    def _get_documento(self, pk, request):
+        if self._es_medico(request):
+            return Documento.objects.select_related("historia_clinica").get(pk=pk)
+        return Documento.objects.select_related("historia_clinica").get(
+            pk=pk,
+            historia_clinica__usuario__cuenta=request.user,
+        )
+
     def get(self, request, pk):
+        if self._es_admin(request):
+            return self._denied()
         try:
-            documento = Documento.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            documento = self._get_documento(pk, request)
         except Documento.DoesNotExist:
             return self.not_found()
         return self.ok(DocumentoSerializer(documento).data)
@@ -457,26 +478,19 @@ class DocumentoDetailView(BaseHistoriasView):
         responses=DocumentoSerializer,
     )
     def put(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar documentos.")
         try:
-            documento = Documento.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            documento = Documento.objects.select_related("historia_clinica").get(pk=pk)
         except Documento.DoesNotExist:
             return self.not_found()
-
-        serializer = DocumentoSerializer(
-            documento,
-            data=request.data,
-        )
+        serializer = DocumentoSerializer(documento, data=request.data)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
         try:
             documento = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
-
         return self.ok(DocumentoSerializer(documento).data)
 
     @extend_schema(
@@ -484,36 +498,71 @@ class DocumentoDetailView(BaseHistoriasView):
         responses=DocumentoSerializer,
     )
     def patch(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para editar documentos.")
         try:
-            documento = Documento.objects.select_related("historia_clinica").get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            documento = Documento.objects.select_related("historia_clinica").get(pk=pk)
         except Documento.DoesNotExist:
             return self.not_found()
-
-        serializer = DocumentoSerializer(
-            documento,
-            data=request.data,
-            partial=True,
-        )
+        serializer = DocumentoSerializer(documento, data=request.data, partial=True)
         if not serializer.is_valid():
             return self.validation_error(serializer.errors)
-
         try:
             documento = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
-
         return self.ok(DocumentoSerializer(documento).data)
 
     def delete(self, request, pk):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para eliminar documentos.")
         try:
-            documento = Documento.objects.get(
-                pk=pk,
-                historia_clinica__usuario=request.user.perfil,
-            )
+            documento = Documento.objects.get(pk=pk)
         except Documento.DoesNotExist:
             return self.not_found()
         documento.delete()
         return self.ok({})
+
+
+TIPO_CONSULTA_MAP = {
+    ConsultaMedica: "Consulta médica",
+    ConsultaOdontologica: "Consulta odontológica",
+    ConsultaPsicologica: "Consulta psicológica",
+    ConsultaSocial: "Consulta social",
+}
+
+
+class HistoriaConsultasListView(BaseHistoriasView):
+    def get(self, request, historia_id):
+        if self._es_admin(request):
+            return self._denied()
+
+        if self._es_paciente(request):
+            try:
+                historia = HistoriaClinica.objects.get(
+                    pk=historia_id, usuario__cuenta=request.user
+                )
+            except HistoriaClinica.DoesNotExist:
+                return self.not_found()
+
+        consultas = []
+        for model_cls, tipo_label in TIPO_CONSULTA_MAP.items():
+            qs = model_cls.objects.filter(
+                historia_clinica_id=historia_id
+            ).select_related("cita").only(
+                "id", "cita", "observaciones"
+            )
+            for c in qs:
+                cita = c.cita
+                motivo = cita.motivo or tipo_label
+                consultas.append({
+                    "id": c.id,
+                    "tipo": tipo_label,
+                    "fecha": cita.fecha_hora,
+                    "motivo": motivo,
+                    "estado": cita.estado,
+                    "observaciones": getattr(c, "observaciones", ""),
+                })
+
+        consultas.sort(key=lambda x: x["fecha"], reverse=True)
+        return self.ok_list(ConsultaHistoriaSerializer(consultas, many=True).data)

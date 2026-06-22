@@ -21,18 +21,21 @@ interface Props {
   onCreate: (payload: Partial<CasoClinico>) => Promise<void>
   onUpdate: (id: string, payload: Partial<CasoClinico>) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  readOnly?: boolean
 }
 
-const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelete }) => {
+const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelete, readOnly = false }) => {
   const [editing, setEditing] = useState<CasoClinico | null>(null)
   const [deleting, setDeleting] = useState<CasoClinico | null>(null)
 
   return (
     <div className="space-y-4">
-      <div className="rounded-global border border-slate-200 bg-white p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-800">Nuevo caso clínico</h3>
-        <CasoClinicoForm onSubmit={onCreate} />
-      </div>
+      {!readOnly && (
+        <div className="rounded-global border border-slate-200 bg-white p-4">
+          <h3 className="mb-3 text-sm font-semibold text-slate-800">Nuevo caso clínico</h3>
+          <CasoClinicoForm onSubmit={onCreate} />
+        </div>
+      )}
 
       {items.length === 0 ? (
         <p className="text-sm text-slate-500">No hay casos clínicos registrados.</p>
@@ -45,26 +48,28 @@ const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelet
                 <th className="px-4 py-3">Fecha cierre</th>
                 <th className="px-4 py-3">Estado</th>
                 <th className="px-4 py-3">Prioridad</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+                {!readOnly && <th className="px-4 py-3 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {items.map((c) => (
                 <tr key={c.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{c.fechaApertura}</td>
-                  <td className="px-4 py-3 text-slate-600">{c.fechaCierre || '—'}</td>
+<td className="px-4 py-3 font-medium text-slate-800">{c.fechaApertura}</td>
+<td className="px-4 py-3 text-slate-600">{c.fechaCierre || '—'}</td>
                   <td className="px-4 py-3 text-slate-600">{ESTADO_LABELS[c.estado] ?? c.estado}</td>
                   <td className="px-4 py-3 text-slate-600">{PRIORIDAD_LABELS[c.prioridad] ?? c.prioridad}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button type="button" variant="tertiary" size="sm" onClick={() => setEditing(c)}>
-                        Editar
-                      </Button>
-                      <Button type="button" variant="danger" size="sm" onClick={() => setDeleting(c)}>
-                        Eliminar
-                      </Button>
-                    </div>
-                  </td>
+                  {!readOnly && (
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button type="button" variant="tertiary" size="sm" onClick={() => setEditing(c)}>
+                          Editar
+                        </Button>
+                        <Button type="button" variant="danger" size="sm" onClick={() => setDeleting(c)}>
+                          Eliminar
+                        </Button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
