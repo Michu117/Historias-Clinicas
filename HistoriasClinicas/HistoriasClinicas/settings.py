@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
 
@@ -179,6 +180,20 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': True,
 }
+
+# Email — por defecto imprime en consola (desarrollo)
+# Para enviar correos reales vía Gmail SMTP:
+#   1. Crea un archivo .env en la raíz del proyecto
+#   2. EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+#   3. EMAIL_HOST_USER=tu.correo@gmail.com
+#   4. EMAIL_HOST_PASSWORD=<App Password de Gmail>
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'MediCampus <noreply@medicampus.com>')
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Historias Clínicas API',
