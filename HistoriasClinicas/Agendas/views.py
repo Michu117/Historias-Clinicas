@@ -65,6 +65,7 @@ class CitaViewSet(BaseAgendasViewSet):
                 profesional_id=serializer.validated_data.get('profesional_id'),
                 fecha_hora=serializer.validated_data['fecha_hora'],
                 usuario_id=serializer.validated_data.get('usuario_id'),
+                duracion_minutos=30,
             )
 
             if 'servicios' in serializer.validated_data:
