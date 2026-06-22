@@ -1,0 +1,141 @@
+.print-report {
+  padding: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #141b2b;
+}
+
+.print-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #003f87;
+}
+
+.print-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #003f87;
+  margin: 0 0 4px;
+}
+
+.print-header p {
+  font-size: 13px;
+  color: #424752;
+  margin: 0;
+}
+
+.print-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.print-kpi-card {
+  flex: 1 1 160px;
+  background: #f1f3ff;
+  border: 1px solid #c2c6d4;
+  border-left: 4px solid #003f87;
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.print-kpi-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: #003f87;
+}
+
+.print-kpi-label {
+  display: block;
+  font-size: 13px;
+  color: #424752;
+  margin-top: 2px;
+}
+
+.print-charts {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.print-charts--single {
+  display: block;
+}
+
+.print-charts--single .print-chart-item {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.print-chart-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.print-footer {
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 32px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.no-break {
+  page-break-inside: avoid;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 1.2cm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  .print-report {
+    padding: 0;
+  }
+
+  .print-report table {
+    page-break-inside: auto;
+  }
+
+  .print-report tr {
+    page-break-inside: avoid;
+  }
+
+  .print-report thead {
+    display: table-header-group;
+  }
+
+  .print-report tfoot {
+    display: table-footer-group;
+  }
+
+  .print-chart-item {
+    page-break-inside: avoid;
+  }
+
+  .print-chart-item canvas {
+    max-height: 200px;
+  }
+}
