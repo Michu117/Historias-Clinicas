@@ -14,7 +14,7 @@ export const MessageBanner = ({ type, message }: MessageBannerProps) => {
 
   return (
     <div
-      className={`shrink-0 rounded-global border px-4 py-3 text-sm ${typeStyles[type]}`}
+      className={`shrink-0 rounded-lg border px-4 py-3 text-sm ${typeStyles[type]}`}
     >
       {message}
     </div>

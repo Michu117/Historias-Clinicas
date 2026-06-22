@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface DataTableProps {
   title: string;
@@ -13,19 +13,25 @@ export default function DataTable({
   rows,
   emptyMessage = 'No hay datos disponibles'
 }: DataTableProps): JSX.Element {
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+    <div
+      className="rounded-lg shadow-sm"
+      style={{ border: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-lowest)' }}
+    >
+      <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--outline-variant)' }}>
+        <h2 className="text-lg font-semibold" style={{ color: 'var(--on-surface)' }}>{title}</h2>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead style={{ borderBottom: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-low)' }}>
             <tr>
               {columns.map(col => (
                 <th
                   key={col.key}
-                  className={`px-6 py-3 font-medium text-gray-700 text-${col.align || 'left'}`}
+                  className={`px-6 py-3 font-medium text-${col.align || 'left'}`}
+                  style={{ color: 'var(--on-surface-variant)' }}
                 >
                   {col.label}
                 </th>
@@ -35,11 +41,20 @@ export default function DataTable({
           <tbody>
             {rows && rows.length > 0 ? (
               rows.map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr
+                  key={idx}
+                  style={{
+                    borderBottom: '1px solid var(--outline)',
+                    backgroundColor: hoveredRow === idx ? 'var(--table-row-hover)' : undefined
+                  }}
+                  onMouseEnter={() => setHoveredRow(idx)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                >
                   {columns.map(col => (
                     <td
                       key={col.key}
-                      className={`px-6 py-3 text-gray-900 text-${col.align || 'left'}`}
+                      className={`px-6 py-3 text-${col.align || 'left'}`}
+                      style={{ color: 'var(--on-surface)' }}
                     >
                       {row[col.key] || '-'}
                     </td>
@@ -48,7 +63,7 @@ export default function DataTable({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={columns.length} className="px-6 py-4 text-center" style={{ color: 'var(--card-text-muted)' }}>
                   {emptyMessage}
                 </td>
               </tr>
@@ -59,4 +74,3 @@ export default function DataTable({
     </div>
   );
 }
-

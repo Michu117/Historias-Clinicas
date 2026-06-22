@@ -2,7 +2,11 @@ import React from 'react';
 
 export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = '', children, ...props }) => {
   return (
-    <div className={`bg-white border border-slate-200 rounded-global shadow-sm p-5 ${className}`} {...props}>
+    <div
+      className={`rounded-2xl shadow-sm p-5 ${className}`}
+      style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -10,7 +14,7 @@ export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className
 
 export const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ className = '', children, ...props }) => {
   return (
-    <h3 className={`text-lg font-semibold text-slate-900 leading-none tracking-tight ${className}`} {...props}>
+    <h3 className={`text-lg font-semibold leading-none tracking-tight ${className}`} style={{ color: 'var(--hc-text)' }} {...props}>
       {children}
     </h3>
   );

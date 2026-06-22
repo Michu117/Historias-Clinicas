@@ -11,9 +11,10 @@ export const ToggleSwitch: React.FC<Props> = ({ checked, onChange, disabled }) =
     aria-pressed={checked}
     disabled={disabled}
     onClick={() => onChange(!checked)}
-    className={`inline-flex items-center p-0.5 rounded-full ${checked ? 'bg-hc-primary' : 'bg-slate-200'} focus:outline-none`}
+    className="inline-flex items-center p-0.5 rounded-full focus:outline-none"
+    style={{ backgroundColor: checked ? 'var(--primary)' : 'var(--surface-container-high)' }}
   >
-    <span className={`inline-block w-4 h-4 bg-white rounded-full transform transition-transform ${checked ? 'translate-x-3' : 'translate-x-0'}`} />
+    <span className={`inline-block w-4 h-4 rounded-full transform transition-transform ${checked ? 'translate-x-3' : 'translate-x-0'}`} style={{ backgroundColor: 'var(--surface-container-lowest)' }} />
   </button>
 )
 

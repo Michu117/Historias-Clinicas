@@ -15,11 +15,12 @@ export const HistoriasClinicasStatsCards = ({
   items,
 }: HistoriasClinicasStatsCardsProps) => {
   return (
-    <section className="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section className="grid shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {items.map((item) => (
         <article
           key={item.label}
-          className="rounded-global border border-slate-200 bg-white p-4 shadow-sm"
+          className="rounded-lg p-4 shadow-sm"
+          style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}
         >
           <div className="flex items-start justify-between gap-4">
             <div
@@ -35,11 +36,11 @@ export const HistoriasClinicasStatsCards = ({
             </span>
           </div>
 
-          <p className="mt-4 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <p className="mt-4 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>
             {item.label}
           </p>
 
-          <p className="mt-1 text-3xl font-bold text-slate-900">
+          <p className="mt-1 text-3xl font-bold" style={{ color: 'var(--hc-text)' }}>
             {item.value.toLocaleString()}
           </p>
         </article>

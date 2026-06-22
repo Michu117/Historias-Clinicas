@@ -11,9 +11,15 @@ from .models import Bitacora, Cuenta, Rol, Usuario
 
 def generar_tokens(cuenta: Cuenta) -> dict[str, str]:
     refresh = RefreshToken.for_user(cuenta)
+    rol_nombre = cuenta.rol.nombre if cuenta.rol else ''
+    refresh['rol'] = rol_nombre
+    refresh['email'] = cuenta.correo
+    access = refresh.access_token
+    access['rol'] = rol_nombre
+    access['email'] = cuenta.correo
     return {
         'refresh': str(refresh),
-        'access': str(refresh.access_token),
+        'access': str(access),
     }
 
 

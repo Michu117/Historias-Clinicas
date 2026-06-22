@@ -63,39 +63,41 @@ export default function ReportesRangoPage(): JSX.Element {
   }, [handleScroll]);
 
   return (
-    <div className="bg-[#faf9ff] text-[#141b2b] min-h-screen w-full font-['Inter']">
+    <div style={{ backgroundColor: 'var(--hc-bg)', color: 'var(--hc-text)' }} className="min-h-screen w-full font-['Inter']">
       <div className="max-w-[1400px] mx-auto p-6 md:p-8">
         <div className="mb-8">
-          <h2 className="text-[32px] font-bold text-[#141b2b] mb-2">
+          <h2 className="text-[32px] font-bold mb-2" style={{ color: 'var(--hc-text)' }}>
             Consultas por Rango de Fechas
           </h2>
-          <p className="text-[16px] text-[#424752]">
-            Visualización detallada de consultas apiladas por servicio.
+          <p className="text-[16px]" style={{ color: 'var(--on-surface-variant)' }}>
+            Visualizacion detallada de consultas apiladas por servicio.
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-[#c2c6d4] shadow-sm p-6 mb-8">
+        <div className="rounded-xl shadow-sm p-6 mb-8" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px solid var(--outline-variant)' }}>
           <div className="flex flex-wrap items-end gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--on-surface-variant)' }}>
                 Fecha inicio
               </label>
               <input
                 type="date"
                 value={startDate}
                 onChange={handleStartDateChange}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                style={{ border: '1px solid var(--outline)', backgroundColor: 'var(--surface-container-lowest)' }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium mb-1" style={{ color: 'var(--on-surface-variant)' }}>
                 Fecha fin
               </label>
               <input
                 type="date"
                 value={endDate}
                 onChange={handleEndDateChange}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                style={{ border: '1px solid var(--outline)', backgroundColor: 'var(--surface-container-lowest)' }}
               />
             </div>
           </div>

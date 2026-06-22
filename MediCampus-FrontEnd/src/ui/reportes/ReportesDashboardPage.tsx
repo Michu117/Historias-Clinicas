@@ -28,7 +28,7 @@ type ReportType = 'general' | 'servicio';
 const TABLE_COLUMNS = [
   { key: 'servicio', label: 'Servicio', align: 'left' as const },
   { key: 'total_consultas', label: 'Consultas', align: 'center' as const },
-  { key: 'fecha', label: 'Período', align: 'left' as const },
+  { key: 'fecha', label: 'Periodo', align: 'left' as const },
 ];
 
 export default function ReportesDashboardPage(): JSX.Element {
@@ -102,7 +102,7 @@ export default function ReportesDashboardPage(): JSX.Element {
     }
   };
 
-  // --- Constructor Dinámico de Métricas para el KPIsGrid ---
+  // --- Constructor Dinamico de Metricas para el KPIsGrid ---
 const buildDynamicMetrics = (): MetricDef[] => {
   if (!kpis) return [];
 
@@ -136,55 +136,56 @@ const buildDynamicMetrics = (): MetricDef[] => {
 };
 
   return (
-    <div className="bg-[#faf9ff] text-[#141b2b] h-screen flex overflow-hidden w-full font-['Inter']">
+    <div style={{ backgroundColor: 'var(--hc-bg)', color: 'var(--hc-text)' }} className="h-screen flex overflow-hidden w-full font-['Inter']">
 
       {/* --- SIDENAVBAR (Panel Izquierdo Fijo) --- */}
-      <aside className="hidden md:flex flex-col h-screen w-[280px] p-6 space-y-2 bg-[#f1f3ff] border-r border-[#c2c6d4] shrink-0">
+      <aside className="hidden md:flex flex-col h-screen w-[280px] p-6 space-y-2 shrink-0" style={{ backgroundColor: '#f1f3ff', borderRight: '1px solid #c2c6d4' }}>
         <div className="flex items-center gap-4 mb-8">
           <div className="w-10 h-10 rounded-lg bg-[#003f87] flex items-center justify-center text-white font-bold">MC</div>
           <div>
             <h1 className="text-[20px] font-bold text-[#003f87] leading-tight">MediCampus</h1>
-            <p className="text-[12px] font-semibold text-[#424752]">Dashboard Clinico</p>
+            <p className="text-[12px] font-semibold" style={{ color: '#424752' }}>Dashboard Clinico</p>
           </div>
         </div>
 
         <nav className="flex-1 space-y-1">
-          <a className="flex items-center gap-3 text-[#424752] px-4 py-3 hover:bg-[#e1e8fe] transition-all rounded-lg cursor-pointer duration-200">
+          <a className="flex items-center gap-3 px-4 py-3 transition-all rounded-lg cursor-pointer duration-200" style={{ color: '#424752' }}>
             <span className="material-symbols-outlined">calendar_today</span>
             <span className="text-[14px] font-semibold">Agenda</span>
           </a>
-          <a className="flex items-center gap-3 bg-[#d7e2ff] text-[#001a40] rounded-lg px-4 py-3 border-l-4 border-[#003f87] cursor-pointer duration-200">
+          <a className="flex items-center gap-3 rounded-lg px-4 py-3 border-l-4 border-[#003f87] cursor-pointer duration-200" style={{ backgroundColor: '#d7e2ff', color: '#001a40' }}>
             <span className="material-symbols-outlined text-[#003f87]">analytics</span>
             <span className="text-[14px] font-semibold">Reportes</span>
           </a>
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-[#c2c6d4] space-y-1">
+        <div className="mt-auto pt-6 space-y-1" style={{ borderTop: '1px solid #c2c6d4' }}>
           <a className="flex items-center gap-3 text-red-600 px-4 py-3 hover:bg-red-50 transition-all rounded-lg cursor-pointer duration-200">
             <span className="material-symbols-outlined text-red-600">logout</span>
-            <span className="text-[16px] font-bold">Cerrar Sesión</span>
+            <span className="text-[16px] font-bold">Cerrar Sesion</span>
           </a>
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT AREA (Área con scroll) --- */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#faf9ff]">
+      {/* --- MAIN CONTENT AREA (Area con scroll) --- */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden" style={{ backgroundColor: 'var(--hc-bg)' }}>
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="max-w-[1400px] mx-auto">
 
-            {/* TITULO Y ACCIONES DE EXPORTACIÓN */}
+            {/* TITULO Y ACCIONES DE EXPORTACION */}
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
               <div>
-                <h2 className="text-[32px] font-bold text-[#141b2b] mb-2">Reportes Dashboard</h2>
-                <p className="text-[16px] text-[#424752]">Panorama estadístico de las operaciones clínicas.</p>
+                <h2 className="text-[32px] font-bold mb-2" style={{ color: 'var(--hc-text)' }}>Reportes Dashboard</h2>
+                <p className="text-[16px]" style={{ color: '#424752' }}>Panorama estadistico de las operaciones clinicas.</p>
               </div>
 
               {filters && !loading && !error && (
-                <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-[#c2c6d4] shadow-sm">
+                <div className="flex items-center gap-3 p-2 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px solid #c2c6d4' }}>
                   <button
                     onClick={() => handleExport('csv')}
                     disabled={isExporting === 'csv'}
-                    className="bg-transparent border border-[#0056b3] text-[#0056b3] font-semibold text-[14px] px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#f1f3ff] transition-colors disabled:opacity-50"
+                    className="bg-transparent font-semibold text-[14px] px-4 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                    style={{ border: '1px solid #0056b3', color: '#0056b3' }}
                   >
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     {isExporting === 'csv' ? 'Exportando...' : 'Exportar CSV'}
@@ -192,7 +193,8 @@ const buildDynamicMetrics = (): MetricDef[] => {
                   <button
                     onClick={() => handleExport('pdf')}
                     disabled={isExporting === 'pdf'}
-                    className="bg-[#0056b3] text-white font-semibold text-[14px] px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
+                    className="text-white font-semibold text-[14px] px-4 py-2 rounded-lg flex items-center gap-2 transition-opacity shadow-sm disabled:opacity-50"
+                    style={{ backgroundColor: '#0056b3' }}
                   >
                     <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                     {isExporting === 'pdf' ? 'Exportando...' : 'Exportar PDF'}
@@ -228,11 +230,11 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- KPIs Metricas Principales (Ancho completo dinámico) --- */}
+              {/* --- KPIs Metricas Principales (Ancho completo dinamico) --- */}
               {kpis && !loading && !error && (
                 <div className="col-span-12">
                   <KPIsGrid
-                    title="Métricas Principales"
+                    title="Metricas Principales"
                     metrics={buildDynamicMetrics()}
                   />
                 </div>
@@ -271,11 +273,11 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- Estado Vacío --- */}
+              {/* --- Estado Vacio --- */}
               {!loading && !error && !kpis && !filters && (
                 <div className="col-span-12">
-                  <div className="rounded-xl bg-white border border-dashed border-[#c2c6d4] p-12 text-center">
-                    <p className="text-[#424752]">Selecciona un rango de fechas para ver las estadísticas</p>
+                  <div className="rounded-xl p-12 text-center" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px dashed #c2c6d4' }}>
+                    <p style={{ color: '#424752' }}>Selecciona un rango de fechas para ver las estadisticas</p>
                   </div>
                 </div>
               )}
