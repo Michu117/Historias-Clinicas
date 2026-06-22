@@ -22,6 +22,7 @@ import MiHistoriaClinicaPage from "./ui/historias-clinicas/pages/MiHistoriaClini
 
 // Importaciones Globales y Reportes
 import LandingPage from './ui/global/LandingPage';
+import { NotificationCenter } from './ui/notificaciones';
 import HomePage from './ui/global/HomePage';
 import ReportesDashboardPage from './ui/reportes/ReportesDashboardPage';
 import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
