@@ -118,7 +118,7 @@ export const MiAgenda: React.FC = () => {
     });
 
     if (activeFilter === 'En Curso') {
-      result = result.filter((c) => startedCitaIds.includes(c.id));
+      result = result.filter((c) => startedCitaIds.includes(c.id) && c.estado !== EstadoCita.ATENDIDA);
     } else {
       const validStatuses = STATUS_MAP[activeFilter];
       if (validStatuses.length > 0) {
