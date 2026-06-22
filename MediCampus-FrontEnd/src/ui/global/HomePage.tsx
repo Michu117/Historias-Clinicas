@@ -10,8 +10,8 @@ const HomePage: React.FC = () => {
     : 'Usuario'
 
   return (
-    <div className="min-h-screen flex flex-col bg-hc-bg">
-      <header className="bg-hc-primary text-hc-primaryText px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-[var(--hc-bg)]">
+      <header className="bg-[var(--btn-primary-bg)] text-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
             <span className="font-bold">M</span>
@@ -38,15 +38,15 @@ const HomePage: React.FC = () => {
           <Card>
             <h3 className="font-semibold text-slate-900">Mis Citas Médicas</h3>
             <p className="text-sm text-slate-500 mt-1">Programa y consulta tus citas médicas.</p>
-            <Button variant="primary" className="mt-3" onClick={() => navigate('/seguridad/login')}>
+            <Button variant="primary" className="mt-3" onClick={() => navigate('/AgendarCita')}>
               Ir a Citas
             </Button>
           </Card>
           <Card>
-            <h3 className="font-semibold text-slate-900">Resultados de Exámenes</h3>
-            <p className="text-sm text-slate-500 mt-1">Revisa los resultados de tus exámenes médicos.</p>
-            <Button variant="primary" className="mt-3" onClick={() => navigate('/seguridad/login')}>
-              Ver Resultados
+            <h3 className="font-semibold text-slate-900">Mis Citas</h3>
+            <p className="text-sm text-slate-500 mt-1">Revisa, reprograma o cancela tus citas agendadas.</p>
+            <Button variant="primary" className="mt-3" onClick={() => navigate('/mis-citas')}>
+              Ver Mis Citas
             </Button>
           </Card>
           <Card>
@@ -61,6 +61,13 @@ const HomePage: React.FC = () => {
             <p className="text-sm text-slate-500 mt-1">Revisa tus notificaciones pendientes.</p>
             <Button variant="primary" className="mt-3" onClick={() => navigate('/seguridad/login')}>
               Ver Notificaciones
+            </Button>
+          </Card>
+          <Card>
+            <h3 className="font-semibold text-slate-900">Mi Historia</h3>
+            <p className="text-sm text-slate-500 mt-1">Revisa los detalles de tu historia clinica.</p>
+            <Button variant="primary" className="mt-3" onClick={() => navigate('/historias/mi-historia')}>
+              Ver Mi Historia
             </Button>
           </Card>
         </div>
