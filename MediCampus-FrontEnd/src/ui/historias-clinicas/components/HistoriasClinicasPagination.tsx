@@ -26,7 +26,10 @@ export const HistoriasClinicasPagination = ({
   });
 
   return (
-    <footer className="flex shrink-0 flex-col gap-3 border-t border-slate-200 bg-hc-surfaceAlt px-5 py-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+    <footer
+      className="flex shrink-0 flex-col gap-3 px-5 py-4 text-sm md:flex-row md:items-center md:justify-between"
+      style={{ borderTop: '1px solid var(--card-border)', backgroundColor: 'var(--hc-bg)', color: 'var(--on-surface-variant)' }}
+    >
       <p>
         Mostrando {start}-{end} de {totalItems.toLocaleString()} registros
       </p>
@@ -36,7 +39,8 @@ export const HistoriasClinicasPagination = ({
           type="button"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="rounded-global border border-slate-200 bg-white px-3 py-2 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg px-3 py-2 transition disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--on-surface-variant)' }}
         >
           ‹
         </button>
@@ -47,15 +51,20 @@ export const HistoriasClinicasPagination = ({
 
           return (
             <span key={item} className="flex items-center gap-2">
-              {showDots && <span className="px-1 text-slate-400">...</span>}
+              {showDots && <span className="px-1" style={{ color: 'var(--card-text-muted)' }}>...</span>}
 
               <button
                 type="button"
                 onClick={() => onPageChange(item)}
                 className={
                   item === page
-                    ? 'rounded-global bg-hc-primary px-3 py-2 font-semibold text-hc-primaryText'
-                    : 'rounded-global border border-slate-200 bg-white px-3 py-2 text-slate-600 transition hover:bg-slate-50'
+                    ? 'rounded-lg px-3 py-2 font-semibold'
+                    : 'rounded-lg px-3 py-2 transition'
+                }
+                style={
+                  item === page
+                    ? { backgroundColor: 'var(--btn-primary-bg)', color: 'var(--btn-primary-text)' }
+                    : { border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--on-surface-variant)' }
                 }
               >
                 {item}
@@ -68,7 +77,8 @@ export const HistoriasClinicasPagination = ({
           type="button"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="rounded-global border border-slate-200 bg-white px-3 py-2 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg px-3 py-2 transition disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)', color: 'var(--on-surface-variant)' }}
         >
           ›
         </button>

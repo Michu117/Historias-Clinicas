@@ -19,10 +19,10 @@ export const states = {
   },
 
   citaColors: {
-    AGENDADA: 'bg-blue-100 text-blue-800',
-    COMPLETADA: 'bg-green-100 text-green-800',
+    AGENDADA: 'bg-[var(--primary-container)] text-[var(--on-primary-container)]',
+    COMPLETADA: 'bg-[var(--secondary-container)] text-[var(--on-secondary-container)]',
     CANCELADA: 'bg-red-100 text-red-800',
-    NO_ASISTIO: 'bg-gray-100 text-gray-800',
+    NO_ASISTIO: 'bg-[var(--surface-container-low)] text-[var(--on-surface-variant)]',
   },
 
   // Estados de Derivación
@@ -41,10 +41,10 @@ export const states = {
   },
 
   derivacionColors: {
-    PENDIENTE: 'bg-yellow-100 text-yellow-800',
-    ACEPTADA: 'bg-green-100 text-green-800',
+    PENDIENTE: 'bg-[var(--primary-container)] text-[var(--on-primary-container)]',
+    ACEPTADA: 'bg-[var(--secondary-container)] text-[var(--on-secondary-container)]',
     RECHAZADA: 'bg-red-100 text-red-800',
-    COMPLETADA: 'bg-blue-100 text-blue-800',
+    COMPLETADA: 'bg-[var(--primary-container)] text-[var(--on-primary-container)]',
   },
 
   // Tipos de Consulta

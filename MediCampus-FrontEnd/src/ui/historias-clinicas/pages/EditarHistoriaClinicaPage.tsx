@@ -30,7 +30,6 @@ export default function EditarHistoriaClinicaPage() {
   const navigate = useNavigate();
   const { role, permissions, isAuthorized } = useHistoriasClinicasAuth();
 
-  const [accessDenied, setAccessDenied] = useState(false);
   const [historia, setHistoria] = useState<HistoriaClinica | null>(null);
   const [values, setValues] = useState<HistoriaClinicaFormValues>(initialFormValues);
 
@@ -42,10 +41,11 @@ export default function EditarHistoriaClinicaPage() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/seguridad/login');
+      navigate('/seguridad/login', { replace: true });
       return;
     }
     if (!role || role !== 'MEDICO' || !permissions?.canEditHistoria) {
@@ -153,8 +153,8 @@ export default function EditarHistoriaClinicaPage() {
         <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
         <section className="flex min-h-0 items-center justify-center">
           <Card className="max-w-md text-center">
-            <h1 className="text-xl font-semibold text-slate-900">Acceso denegado</h1>
-            <p className="mt-2 text-sm text-slate-600">
+            <h1 className="text-xl font-semibold" style={{ color: 'var(--hc-text)' }}>Acceso denegado</h1>
+            <p className="mt-2 text-sm" style={{ color: 'var(--on-surface-variant)' }}>
               No tienes permisos para editar historias clínicas.
             </p>
           </Card>
@@ -168,7 +168,7 @@ export default function EditarHistoriaClinicaPage() {
       <HistoriasClinicasDashboardLayout>
         <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
         <section className="min-h-0 flex-1">
-          <Card><p className="text-sm text-slate-600">Cargando historia clínica para edición...</p></Card>
+          <Card><p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>Cargando historia clínica para edición...</p></Card>
         </section>
       </HistoriasClinicasDashboardLayout>
     );
@@ -181,7 +181,7 @@ export default function EditarHistoriaClinicaPage() {
         <section className="min-h-0 flex-1">
           <Card>
             <MessageBanner type="error" message={error} />
-            <p className="text-sm text-slate-500">No se pudo cargar la información de la historia clínica.</p>
+            <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No se pudo cargar la información de la historia clínica.</p>
           </Card>
         </section>
       </HistoriasClinicasDashboardLayout>
@@ -193,7 +193,7 @@ export default function EditarHistoriaClinicaPage() {
       <HistoriasClinicasDashboardLayout>
         <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
         <section className="min-h-0 flex-1">
-          <Card><p className="text-sm text-slate-500">No se encontró la historia clínica solicitada.</p></Card>
+          <Card><p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No se encontró la historia clínica solicitada.</p></Card>
         </section>
       </HistoriasClinicasDashboardLayout>
     );
@@ -214,30 +214,30 @@ export default function EditarHistoriaClinicaPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <form onSubmit={handleSubmit}>
             <Card>
-              <h2 className="mb-3 text-base font-semibold text-slate-900">Datos generales</h2>
+              <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Datos generales</h2>
               <div className="space-y-3">
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Nombre del usuario</label>
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Nombre del usuario</label>
                   <Input value={values.usuarioNombre} placeholder="Nombre completo del usuario"
                     onChange={(e) => handleChange('usuarioNombre', e.target.value)} />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Identificación</label>
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Identificación</label>
                   <Input value={values.usuarioIdentificacion} placeholder="Documento de identificación"
                     onChange={(e) => handleChange('usuarioIdentificacion', e.target.value)} />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Alergias</label>
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Alergias</label>
                   <Input value={values.alergia} placeholder="Alergias reportadas"
                     onChange={(e) => handleChange('alergia', e.target.value)} />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Condición preexistente</label>
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Condición preexistente</label>
                   <Input value={values.condicionPreexistente} placeholder="Condiciones preexistentes"
                     onChange={(e) => handleChange('condicionPreexistente', e.target.value)} />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Factor de riesgo</label>
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Factor de riesgo</label>
                   <Input value={values.factorRiesgo} placeholder="Factores de riesgo identificados"
                     onChange={(e) => handleChange('factorRiesgo', e.target.value)} />
                 </div>
@@ -255,7 +255,7 @@ export default function EditarHistoriaClinicaPage() {
 
           {/* ── Antecedentes clínicos ── */}
           <Card>
-            <h2 className="mb-3 text-base font-semibold text-slate-900">Antecedentes clínicos</h2>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Antecedentes clínicos</h2>
             <AntecedentesClinicosList
               items={antecedentes}
               onCreate={handleCrearAntecedente}
@@ -266,7 +266,7 @@ export default function EditarHistoriaClinicaPage() {
 
         {/* ── Documentos clínicos ── */}
         <Card className="mt-4">
-          <h2 className="mb-3 text-base font-semibold text-slate-900">Documentos clínicos</h2>
+          <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Documentos clínicos</h2>
           <DocumentosClinicosList
             key={documentosRefreshKey}
             historiaClinicaId={id!}
@@ -279,7 +279,7 @@ export default function EditarHistoriaClinicaPage() {
 
       <Modal open={showCancelModal} onClose={() => setShowCancelModal(false)} title="Cancelar edición">
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
             ¿Está seguro de que desea salir sin guardar? Los cambios no guardados se perderán.
           </p>
           <div className="flex justify-end gap-2">

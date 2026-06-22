@@ -28,7 +28,7 @@ export const HistoriasClinicasTable = ({
 }: HistoriasClinicasTableProps) => {
   if (historias.length === 0) {
     return (
-      <p className="p-6 text-sm text-slate-500">
+      <p className="p-6 text-sm" style={{ color: 'var(--card-text-muted)' }}>
         No hay historias clínicas registradas.
       </p>
     );
@@ -96,15 +96,15 @@ export const HistoriasClinicasTable = ({
 
                 <TableCell className="px-4 py-3 align-middle">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-700">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
                       {iniciales}
                     </div>
 
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-slate-900">
+                      <p className="truncate text-sm font-bold" style={{ color: 'var(--hc-text)' }}>
                         {nombrePaciente}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs" style={{ color: 'var(--card-text-muted)' }}>
                         Paciente registrado
                       </p>
                     </div>
@@ -112,26 +112,26 @@ export const HistoriasClinicasTable = ({
                 </TableCell>
 
                 <TableCell className="px-4 py-3 align-middle">
-                  <p className="truncate text-sm font-medium text-slate-700">
+                  <p className="truncate text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
                     {identificacion}
                   </p>
                 </TableCell>
 
                 <TableCell className="px-4 py-3 align-middle">
-                  <p className="truncate text-sm text-slate-700">
+                  <p className="truncate text-sm" style={{ color: 'var(--on-surface-variant)' }}>
                     {historia.alergia || 'Sin alergias registradas.'}
                   </p>
                 </TableCell>
 
                 <TableCell className="px-4 py-3 align-middle">
-                  <p className="truncate text-sm text-slate-700">
+                  <p className="truncate text-sm" style={{ color: 'var(--on-surface-variant)' }}>
                     {historia.condicionPreexistente ||
                       'Sin condición preexistente registrada.'}
                   </p>
                 </TableCell>
 
                 <TableCell className="px-4 py-3 align-middle">
-                  <p className="truncate text-sm text-slate-700">
+                  <p className="truncate text-sm" style={{ color: 'var(--on-surface-variant)' }}>
                     {historia.factorRiesgo ||
                       'Sin factor de riesgo registrado.'}
                   </p>

@@ -34,7 +34,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
       <div className="flex items-center gap-4">
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-          style={{ backgroundColor: 'var(--primary-container)', color: 'var(--on-primary-container)' }}
+          style={{ backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' }}
         >
           {displayName.charAt(0).toUpperCase()}
         </div>

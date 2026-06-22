@@ -114,16 +114,18 @@ const DocumentoClinicoForm: React.FC<Props> = ({ historiaClinicaId, onSuccess })
       {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
 
       <div className="grid gap-1">
-        <label className="text-xs font-medium text-slate-700">Fecha del documento</label>
+        <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Fecha del documento</label>
         <input type="date" value={fecha} readOnly tabIndex={-1}
-          className="block w-full rounded-global border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 shadow-sm" />
+          className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm"
+          style={{ borderColor: 'var(--card-border)', backgroundColor: 'var(--surface-container-low)', color: 'var(--card-text-muted)' }} />
       </div>
 
       <div className="grid gap-1">
-        <label className="text-xs font-medium text-slate-700">Tipo de documento</label>
+        <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Tipo de documento</label>
         <select value={tipo}
           onChange={(e) => setTipo(e.target.value as TipoDocumentoClinico)}
-          className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
+          className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          style={{ borderColor: 'var(--outline-variant)' }}>
           <option value="">Seleccione...</option>
           {TIPO_DOCUMENTO_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -133,15 +135,16 @@ const DocumentoClinicoForm: React.FC<Props> = ({ historiaClinicaId, onSuccess })
 
       {tipo === 'RESULTADO' && (
         <div className="grid gap-1">
-          <label className="text-xs font-medium text-slate-700">Casos clínicos</label>
+          <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Casos clínicos</label>
           {loadingCasos ? (
-            <p className="text-sm text-slate-500">Cargando casos clínicos...</p>
+            <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Cargando casos clínicos...</p>
           ) : casosAtendidos.length === 0 ? (
-            <p className="text-sm text-slate-500">No existen casos clínicos atendidos para generar un resultado.</p>
+            <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No existen casos clínicos atendidos para generar un resultado.</p>
           ) : (
             <select value={casoId}
               onChange={(e) => setCasoId(e.target.value)}
-              className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
+              className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+              style={{ borderColor: 'var(--outline-variant)' }}>
               <option value="">Seleccione un caso clínico...</option>
               {casosAtendidos.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -154,19 +157,21 @@ const DocumentoClinicoForm: React.FC<Props> = ({ historiaClinicaId, onSuccess })
       )}
 
       <div className="grid gap-1">
-        <label className="text-xs font-medium text-slate-700">Encabezado</label>
+        <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Encabezado</label>
         <input type="text" value={encabezado}
           onChange={(e) => setEncabezado(e.target.value)}
           placeholder="Título o encabezado del documento"
-          className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
+          className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          style={{ borderColor: 'var(--outline-variant)' }} />
       </div>
 
       <div className="grid gap-1">
-        <label className="text-xs font-medium text-slate-700">Cuerpo</label>
+        <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Cuerpo</label>
         <textarea value={cuerpo}
           onChange={(e) => setCuerpo(e.target.value)} rows={4}
           placeholder="Contenido del documento"
-          className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
+          className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+          style={{ borderColor: 'var(--outline-variant)' }} />
       </div>
 
       <div className="flex justify-end gap-2">

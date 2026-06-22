@@ -33,34 +33,33 @@ export const HistoriasClinicasHeader = ({
   return (
     <header className="flex shrink-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--hc-text)' }}>
           {title}
         </h1>
-
         {subtitle && (
-          <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--on-surface-variant)' }}>{subtitle}</p>
         )}
       </div>
-
       <div className="flex items-center gap-5">
         {backTo !== undefined && (
-          <button type="button" onClick={handleBack} className="flex items-center gap-1 bg-transparent p-0 text-[14px] font-medium text-[#424752] hover:text-[#003f87]">
+          <button type="button" onClick={handleBack} className="flex items-center gap-1 bg-transparent p-0 text-[14px] font-medium" style={{ color: 'var(--on-surface-variant)' }}>
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Volver
           </button>
         )}
-
         {secondaryAction && (
-          <button type="button" onClick={secondaryAction.onClick} className="bg-transparent p-0 text-[14px] font-medium text-[#424752] hover:text-[#003f87]">
+          <button type="button" onClick={secondaryAction.onClick} className="bg-transparent p-0 text-[14px] font-medium" style={{ color: 'var(--on-surface-variant)' }}>
             {secondaryAction.label}
           </button>
         )}
-
         {action && (
           <button
             type="button"
             onClick={action.onClick}
-            className="rounded-lg bg-[#2563eb] px-8 py-3 text-[17px] font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
+            className="rounded-lg px-8 py-3 text-[17px] font-bold text-white shadow-sm transition"
+            style={{ backgroundColor: 'var(--btn-primary-bg)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)'; }}
           >
             {action.label}
           </button>

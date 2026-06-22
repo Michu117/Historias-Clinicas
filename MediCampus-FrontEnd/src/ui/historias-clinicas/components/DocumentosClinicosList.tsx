@@ -152,63 +152,68 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
       )}
 
       {showFilters && (
-        <div className="grid grid-cols-2 gap-3 rounded-global border border-slate-200 bg-white p-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 rounded-lg p-4 md:grid-cols-4"
+          style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
           <div className="grid gap-1">
-            <label className="text-xs font-medium text-slate-600">Tipo</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Tipo</label>
             <select value={filtroTipo}
               onChange={(e) => setFiltroTipo(e.target.value as TipoDocumentoClinico | '')}
-              className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
+              className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+              style={{ borderColor: 'var(--outline-variant)' }}>
               {TIPO_FILTER_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
           </div>
           <div className="grid gap-1">
-            <label className="text-xs font-medium text-slate-600">Fecha desde</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Fecha desde</label>
             <input type="date" value={fechaDesde}
               onChange={(e) => setFechaDesde(e.target.value)}
-              className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
+              className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+              style={{ borderColor: 'var(--outline-variant)' }} />
           </div>
           <div className="grid gap-1">
-            <label className="text-xs font-medium text-slate-600">Fecha hasta</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Fecha hasta</label>
             <input type="date" value={fechaHasta}
               onChange={(e) => setFechaHasta(e.target.value)}
-              className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
+              className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+              style={{ borderColor: 'var(--outline-variant)' }} />
           </div>
           <div className="grid gap-1">
-            <label className="text-xs font-medium text-slate-600">Buscar</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Buscar</label>
             <input type="text" value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Encabezado o cuerpo..."
-              className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
+              className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+              style={{ borderColor: 'var(--outline-variant)' }} />
           </div>
         </div>
       )}
 
-      {loading && <p className="text-sm text-slate-500">Cargando documentos...</p>}
+      {loading && <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Cargando documentos...</p>}
       {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
 
       {!loading && filtrados.length === 0 && (
-        <p className="text-sm text-slate-500">No se encontraron documentos clínicos.</p>
+        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No se encontraron documentos clínicos.</p>
       )}
 
       {!loading && filtrados.length > 0 && (
-        <div className="overflow-hidden rounded-global border border-slate-200">
+        <div className="overflow-hidden rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-600">
+              <tr className="text-left text-xs font-semibold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
                 <th className="px-4 py-3">Fecha</th>
                 <th className="px-4 py-3">Encabezado</th>
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
               {filtrados.map((d) => (
                 <tr key={d.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{d.fecha}</td>
-                  <td className="px-4 py-3 text-slate-600">{d.encabezado}</td>
-                  <td className="px-4 py-3 text-slate-600">{TIPO_DOC_LABELS[d.tipo] ?? d.tipo}</td>
+                  <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{d.fecha}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{d.encabezado}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{TIPO_DOC_LABELS[d.tipo] ?? d.tipo}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
                       <Button type="button" variant="tertiary" size="sm" onClick={() => handleDescargar(d)}>
@@ -235,17 +240,18 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
 
       <Modal open={showCasoPicker} onClose={() => { setShowCasoPicker(false); setDocParaDescargar(null) }} title="Seleccionar caso clínico">
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
             Seleccione el caso clínico asociado a este resultado para incluirlo en el PDF.
           </p>
           {(() => {
             const casosAtendidos = casosDisponibles.filter((c) => esCasoAtendido(c.estado))
-            if (loadingCasos) return <p className="text-sm text-slate-500">Cargando casos clínicos...</p>
-            if (casosAtendidos.length === 0) return <p className="text-sm text-slate-500">No existen casos clínicos atendidos para generar un resultado.</p>
+            if (loadingCasos) return <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Cargando casos clínicos...</p>
+            if (casosAtendidos.length === 0) return <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No existen casos clínicos atendidos para generar un resultado.</p>
             return (
               <select value={casoSeleccionado}
                 onChange={(e) => setCasoSeleccionado(e.target.value)}
-                className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
+                className="block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
+                style={{ borderColor: 'var(--outline-variant)' }}>
                 <option value="">Seleccione un caso clínico...</option>
                 {casosAtendidos.map((c) => (
                   <option key={c.id} value={c.id}>
