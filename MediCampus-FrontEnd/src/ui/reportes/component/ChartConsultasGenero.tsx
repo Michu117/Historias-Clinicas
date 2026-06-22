@@ -3,33 +3,29 @@ import ChartContainer from './ChartContainer';
 
 const GENDER_CONFIG: Record<string, { label: string; color: string }> = {
   hombre: { label: 'Hombres', color: '#0056b3' },
-  mujer: { label: 'Mujeres', color: '#003f87' },
-  sin_registro: { label: 'Sin Registro', color: '#94a3b8' },
+  mujer: { label: 'Mujeres', color: '#D81B60' },
+  sin_registro: { label: 'Sin Registro', color: '#FF7043' },
   male: { label: 'Hombres', color: '#0056b3' },
-  female: { label: 'Mujeres', color: '#003f87' },
-  other: { label: 'Sin Registro', color: '#94a3b8' },
+  female: { label: 'Mujeres', color: '#D81B60' },
+  other: { label: 'Sin Registro', color: '#FF7043' },
 };
 
 export default function ChartConsultasGenero({ data, loading = false, error = null }: any): JSX.Element {
 
-  console.log("DEBUG [1]: Datos crudos recibidos en componente:", data);
 
   let items: any[] = [];
   let total: number = 0;
 
   if (data) {
     const rawData = data.data || data;
-    console.log("DEBUG [2]: Datos normalizados (rawData):", rawData);
 
     // Caso A: Formato Array (el esperado)
     if (rawData.items && Array.isArray(rawData.items)) {
-      console.log("DEBUG [3]: Formato detectado: ARRAY (items)");
       items = rawData.items;
       total = Number(rawData.total_registros) || 0;
     }
     // Caso B: Formato Objeto
     else if (typeof rawData === 'object') {
-      console.log("DEBUG [3]: Formato detectado: OBJETO");
       items = Object.entries(rawData)
         .filter(([key]) => key !== 'total_registros' && key !== 'filtros_aplicados')
         .map(([key, val]: [string, any]) => {
@@ -46,8 +42,6 @@ export default function ChartConsultasGenero({ data, loading = false, error = nu
     }
   }
 
-  console.log("DEBUG [4]: Items finales para el gráfico:", items);
-  console.log("DEBUG [5]: Total calculado:", total);
 
   if (loading) return <ChartContainer title="Consultas por Género" type="pie" data={null} loading />;
 
@@ -58,7 +52,6 @@ export default function ChartConsultasGenero({ data, loading = false, error = nu
   const dataValues = items.map(i => i.cantidad);
   const backgroundColors = items.map(i => GENDER_CONFIG[i.genero]?.color || '#cbd5e1');
 
-  console.log("DEBUG [6]: Datos listos para ChartContainer:", { labels, dataValues, backgroundColors });
 
   return (
     <div className="bg-white p-6 rounded-xl border border-[#c2c6d4] shadow-sm">

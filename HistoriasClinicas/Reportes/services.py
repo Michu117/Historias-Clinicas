@@ -69,6 +69,13 @@ class Services:
             'servicio_id': servicio_id,
         }
 
+    TIPO_DISPLAY = {
+        'medica': 'Médica',
+        'psicologica': 'Psicológica',
+        'odontologica': 'Odontológica',
+        'social': 'Trabajo Social',
+    }
+
     def _consulta_models(self):
         return {
             'medica': apps.get_model('Agendas', 'ConsultaMedica'),
@@ -80,27 +87,24 @@ class Services:
     def _consulta_filters(self, fecha_inicio=None, fecha_fin=None, servicio_id=None):
         q_base = Q()
         if fecha_inicio:
-            # Convertimos inicio a las 00:00:00 del día
             inicio_dt = datetime.combine(fecha_inicio, time.min)
             q_base &= Q(cita__fecha_hora__gte=inicio_dt)
         if fecha_fin:
-            # Convertimos fin a las 23:59:59 del día
             fin_dt = datetime.combine(fecha_fin, time.max)
             q_base &= Q(cita__fecha_hora__lte=fin_dt)
 
         if servicio_id:
-            q_base &= Q(cita__servicios=servicio_id)
+            q_base &= Q(cita__servicios=servicio_id) | Q(servicios=servicio_id)
         return q_base
 
     def get_atenciones_stats(self, fecha_inicio=None, fecha_fin=None, servicio_id=None):
         models = self._consulta_models()
         q_base = self._consulta_filters(fecha_inicio, fecha_fin, servicio_id)
-        print(f"DEBUG FILTRO: {q_base}")
         por_tipo = []
         total = 0
         for tipo, model in models.items():
             cantidad = model.objects.filter(q_base).count()
-            por_tipo.append({'tipo': tipo, 'cantidad': cantidad})
+            por_tipo.append({'tipo': self.TIPO_DISPLAY.get(tipo, tipo), 'cantidad': cantidad})
             total += cantidad
 
         return {
@@ -146,32 +150,38 @@ class Services:
         }
 
     def get_servicios_mas_usados(self, fecha_inicio=None, fecha_fin=None, servicio_id=None, limit=10):
-        Cita = apps.get_model('Agendas', 'Cita')
         Servicio = apps.get_model('Agendas', 'Servicio')
+        consulta_models = self._consulta_models()
+        q_base = self._consulta_filters(fecha_inicio, fecha_fin, servicio_id)
 
-        citas_qs = Cita.objects.all()
-        if fecha_inicio:
-            citas_qs = citas_qs.filter(fecha_hora__date__gte=fecha_inicio)
-        if fecha_fin:
-            citas_qs = citas_qs.filter(fecha_hora__date__lte=fecha_fin)
-        if servicio_id:
-            citas_qs = citas_qs.filter(servicios=servicio_id)
+        service_counts = defaultdict(int)
+        for model in consulta_models.values():
+            rows = (
+                model.objects.filter(q_base)
+                .values('servicios')
+                .annotate(cantidad=Count('id'))
+            )
+            for row in rows:
+                svc_id = row['servicios']
+                if svc_id is not None:
+                    service_counts[svc_id] += row['cantidad']
 
-        servicios_qs = (
-            Servicio.objects.filter(citas__in=citas_qs)
-            .annotate(cantidad=Count('citas'))
-            .order_by('-cantidad')
-        )
-        total = servicios_qs.aggregate(total_sum=Count('citas'))['total_sum'] or 0
+        total = sum(service_counts.values())
+        sorted_servicios = sorted(service_counts.items(), key=lambda x: x[1], reverse=True)
 
         items = []
-        for servicio in servicios_qs[:limit]:
-            porcentaje = round((servicio.cantidad / total) * 100, 2) if total else 0
-            items.append({
-                'servicio': servicio.nombre,
-                'cantidad': servicio.cantidad,
-                'porcentaje': porcentaje,
-            })
+        for svc_id, cantidad in sorted_servicios[:limit]:
+            try:
+                servicio = Servicio.objects.get(id=svc_id)
+                porcentaje = round((cantidad / total) * 100, 2) if total else 0
+                items.append({
+                    'servicio': servicio.nombre,
+                    'servicio_nombre': servicio.nombre,
+                    'cantidad': cantidad,
+                    'porcentaje': porcentaje,
+                })
+            except Servicio.DoesNotExist:
+                continue
 
         return {
             'items': items,

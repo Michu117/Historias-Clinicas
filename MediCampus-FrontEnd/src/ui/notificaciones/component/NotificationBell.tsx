@@ -8,6 +8,7 @@ interface NotificationBellProps {
   isLoading: boolean;
   onMarkAsRead: (id: string) => void;
   error?: string;
+  buttonClassName?: string;
 }
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({
@@ -15,6 +16,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   isLoading,
   onMarkAsRead,
   error,
+  buttonClassName = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [notificationsList, setNotificationsList] = useState<INotification[]>(notifications);
@@ -55,7 +57,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       <button
         data-testid="notification-bell-button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-600 hover:text-slate-900"
+        className={`relative p-2 text-slate-600 hover:text-slate-900 ${buttonClassName}`}
       >
         <svg
           className="w-6 h-6"

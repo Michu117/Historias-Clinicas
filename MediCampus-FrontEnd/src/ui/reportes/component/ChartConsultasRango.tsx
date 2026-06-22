@@ -5,22 +5,20 @@ import LoadingState from './LoadingState';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-const PALETA: Record<string, string> = {
-  medica: '#0056B3',
-  psicologica: '#0D9488',
-  odontologica: '#4F46E5',
-  social: '#94A3B8',
+const SERVICIOS_CONFIG: Record<string, { label: string; color: string }> = {
+  medica: { label: 'Médica', color: '#0056B3' },
+  psicologica: { label: 'Psicológica', color: '#0D9488' },
+  odontologica: { label: 'Odontológica', color: '#4F46E5' },
+  social: { label: 'T. Social', color: '#94A3B8' },
 };
 
+const EXCLUDED_KEYS = new Set(['fecha', 'total']);
 const BAR_WIDTH_PER_DAY = 50;
 
 interface RangoItem {
   fecha: string;
-  medica: number;
-  psicologica: number;
-  odontologica: number;
-  social: number;
   total: number;
+  [key: string]: string | number;
 }
 
 interface ChartConsultasRangoProps {
@@ -57,32 +55,19 @@ export default function ChartConsultasRango({
   const labels = data.items.map((item) => item.fecha);
   const chartWidth = Math.max(labels.length * BAR_WIDTH_PER_DAY, 600);
 
-  const datasets = [
-    {
-      label: 'Médica',
-      data: data.items.map((item) => item.medica),
-      backgroundColor: PALETA.medica,
+  const serviceKeys = Object.keys(data.items[0]).filter(
+    (key) => !EXCLUDED_KEYS.has(key)
+  );
+
+  const datasets = serviceKeys.map((key) => {
+    const config = SERVICIOS_CONFIG[key];
+    return {
+      label: config?.label ?? key,
+      data: data.items.map((item) => (item[key] as number) || 0),
+      backgroundColor: config?.color ?? '#94a3b8',
       borderRadius: 2,
-    },
-    {
-      label: 'Psicológica',
-      data: data.items.map((item) => item.psicologica),
-      backgroundColor: PALETA.psicologica,
-      borderRadius: 2,
-    },
-    {
-      label: 'Odontológica',
-      data: data.items.map((item) => item.odontologica),
-      backgroundColor: PALETA.odontologica,
-      borderRadius: 2,
-    },
-    {
-      label: 'T. Social',
-      data: data.items.map((item) => item.social),
-      backgroundColor: PALETA.social,
-      borderRadius: 2,
-    },
-  ];
+    };
+  });
 
   const chartData = { labels, datasets };
 

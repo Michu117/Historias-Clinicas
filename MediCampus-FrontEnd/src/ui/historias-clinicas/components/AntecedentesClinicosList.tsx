@@ -15,53 +15,51 @@ interface Props {
   items: AntecedenteClinico[]
   onCreate: (payload: Partial<AntecedenteClinico>) => Promise<void>
   onUpdate: (id: string, payload: Partial<AntecedenteClinico>) => Promise<void>
-  onDelete: (id: string) => Promise<void>
+  readOnly?: boolean
 }
 
-const AntecedentesClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelete }) => {
+const AntecedentesClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, readOnly = false }) => {
+  const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<AntecedenteClinico | null>(null)
-  const [deleting, setDeleting] = useState<AntecedenteClinico | null>(null)
 
   return (
     <div className="space-y-4">
-      {/* Formulario para nuevo antecedente */}
-      <div className="rounded-global border border-slate-200 bg-white p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-800">Nuevo antecedente</h3>
-        <AntecedenteClinicoForm onSubmit={onCreate} />
-      </div>
+      {!readOnly && (
+        <Button type="button" variant="primary" size="sm" onClick={() => setCreating(true)}>
+          Agregar antecedente
+        </Button>
+      )}
 
-      {/* Lista de antecedentes */}
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500">No hay antecedentes registrados.</p>
+        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No hay antecedentes registrados.</p>
       ) : (
-        <div className="overflow-hidden rounded-global border border-slate-200">
+        <div className="overflow-hidden rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-600">
+              <tr className="text-left text-xs font-semibold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3">Descripción</th>
                 <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+                {!readOnly && <th className="px-4 py-3 text-right">Acciones</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
               {items.map((a) => (
                 <tr key={a.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">
+                  <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>
                     {TIPO_LABELS[a.tipo] ?? a.tipo}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{a.descripcion}</td>
-                  <td className="px-4 py-3 text-slate-600">{a.fecha}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button type="button" variant="tertiary" size="sm" onClick={() => setEditing(a)}>
-                        Editar
-                      </Button>
-                      <Button type="button" variant="danger" size="sm" onClick={() => setDeleting(a)}>
-                        Eliminar
-                      </Button>
-                    </div>
-                  </td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{a.descripcion}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{a.fecha}</td>
+                  {!readOnly && (
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button type="button" variant="tertiary" size="sm" onClick={() => setEditing(a)}>
+                          Editar
+                        </Button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -69,7 +67,16 @@ const AntecedentesClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, 
         </div>
       )}
 
-      {/* Modal editar */}
+      <Modal open={creating} onClose={() => setCreating(false)} title="Agregar antecedente">
+        <AntecedenteClinicoForm
+          onSubmit={async (payload) => {
+            await onCreate(payload)
+            setCreating(false)
+          }}
+          onCancel={() => setCreating(false)}
+        />
+      </Modal>
+
       <Modal open={editing !== null} onClose={() => setEditing(null)} title="Editar antecedente">
         {editing && (
           <AntecedenteClinicoForm
@@ -80,28 +87,6 @@ const AntecedentesClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, 
             }}
             onCancel={() => setEditing(null)}
           />
-        )}
-      </Modal>
-
-      {/* Modal confirmar eliminación */}
-      <Modal open={deleting !== null} onClose={() => setDeleting(null)} title="Confirmar eliminación">
-        {deleting && (
-          <div className="space-y-4">
-            <p className="text-sm text-slate-600">
-              ¿Está seguro de eliminar este antecedente? Esta acción no se puede deshacer.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={() => setDeleting(null)}>
-                Cancelar
-              </Button>
-              <Button type="button" variant="danger" onClick={async () => {
-                await onDelete(deleting.id)
-                setDeleting(null)
-              }}>
-                Eliminar
-              </Button>
-            </div>
-          </div>
         )}
       </Modal>
     </div>
