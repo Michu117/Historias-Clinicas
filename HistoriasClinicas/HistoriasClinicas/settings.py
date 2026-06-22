@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
     'Seguridad.apps.SeguridadConfig',
-    'Historias.apps.HistoriasConfig',
+    'historias.apps.HistoriasConfig',
     'Reportes',
     'Agendas',
     'Notificaciones.apps.NotificacionesConfig',

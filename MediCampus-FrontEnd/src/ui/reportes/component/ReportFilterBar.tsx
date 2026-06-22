@@ -206,19 +206,6 @@ export default function ReportFilterBar({
         >
           Aplicar
         </button>
-        <button
-          onClick={handleReset}
-          className="rounded-md px-4 py-2 text-sm font-medium"
-          style={{
-            border: '1px solid var(--outline)',
-            backgroundColor: resetHovered ? 'var(--surface-container-low)' : 'var(--surface-container-lowest)',
-            color: 'var(--on-surface-variant)'
-          }}
-          onMouseEnter={() => setResetHovered(true)}
-          onMouseLeave={() => setResetHovered(false)}
-        >
-          Limpiar
-        </button>
       </div>
     </div>
   );

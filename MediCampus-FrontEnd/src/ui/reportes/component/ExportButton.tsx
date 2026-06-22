@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { exportReport } from '../service/exportService';
 
 interface ExportButtonProps {
@@ -12,19 +12,40 @@ export default function ExportButton({
   data,
   columns,
   filename,
-  disabled = false
+  disabled = false,
 }: ExportButtonProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const printTriggered = useRef(false);
+
+  useEffect(() => {
+    if (isPrinting && !printTriggered.current) {
+      printTriggered.current = true;
+      const handleAfterPrint = () => {
+        setIsPrinting(false);
+        printTriggered.current = false;
+      };
+      window.addEventListener('afterprint', handleAfterPrint);
+      window.print();
+      return () => window.removeEventListener('afterprint', handleAfterPrint);
+    }
+    if (!isPrinting) {
+      printTriggered.current = false;
+    }
+  }, [isPrinting]);
 
   const handleExport = async (format: 'pdf' | 'csv') => {
+  if (format === 'pdf') {
+    setIsOpen(false);
+    setIsPrinting(true);
+    return;
+  }
+
   setIsExporting(true);
   try {
     const baseName = filename ? filename.replace(/\.(pdf|csv)$/i, '') : 'reporte';
-
     const finalFilename = `${baseName}.${format}`;
-
     exportReport(data, {
       format,
       columns,
@@ -39,53 +60,69 @@ export default function ExportButton({
 };
 
   return (
-    <div className="relative inline-block">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        disabled={disabled || data.length === 0 || isExporting}
-        className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed"
-        style={{
-          backgroundColor: disabled || data.length === 0 || isExporting ? 'var(--surface-container-high)' : 'var(--btn-success-bg)',
-          color: 'var(--btn-success-text)'
-        }}
-      >
-        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
-        {isExporting ? 'Exportando...' : 'Exportar'}
-      </button>
-
-      {isOpen && !disabled && (
-        <div
-          className="absolute right-0 mt-2 w-32 rounded-md shadow-lg z-10"
-          style={{ border: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-lowest)' }}
-        >
-          <button
-            onClick={() => handleExport('csv')}
-            className="block w-full text-left px-4 py-2 text-sm first:rounded-t-md"
-            style={{
-              color: 'var(--on-surface-variant)',
-              backgroundColor: hoveredIdx === 0 ? 'var(--surface-container-low)' : undefined
-            }}
-            onMouseEnter={() => setHoveredIdx(0)}
-            onMouseLeave={() => setHoveredIdx(null)}
-          >
-            📄 Exportar CSV
-          </button>
-          <button
-            onClick={() => handleExport('pdf')}
-            className="block w-full text-left px-4 py-2 text-sm last:rounded-b-md"
-            style={{
-              color: 'var(--on-surface-variant)',
-              backgroundColor: hoveredIdx === 1 ? 'var(--surface-container-low)' : undefined
-            }}
-            onMouseEnter={() => setHoveredIdx(1)}
-            onMouseLeave={() => setHoveredIdx(null)}
-          >
-            📋 Exportar PDF
-          </button>
+    <>
+      {isPrinting && (
+        <div className="print-only">
+          <div className="print-report" style={{ padding: '1cm' }}>
+            <div className="print-header">
+              <h1>Exportación de Datos</h1>
+              <p>Generado el {new Date().toLocaleDateString('es-EC')}</p>
+            </div>
+            <table className="w-full text-sm border-collapse" style={{ border: '1px solid #c2c6d4' }}>
+              <thead>
+                <tr className="bg-[#f1f3ff]">
+                  {columns.map((col) => (
+                    <th key={col} className="px-4 py-2 text-left font-semibold text-[#141b2b] border border-[#c2c6d4]">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((row, idx) => (
+                  <tr key={idx}>
+                    {columns.map((col) => (
+                      <td key={col} className="px-4 py-2 border border-[#c2c6d4] text-[#424752]">
+                        {row[col] ?? '-'}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-    </div>
+
+      <div className={`relative inline-block ${isPrinting ? 'no-print' : ''}`}>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          disabled={disabled || data.length === 0 || isExporting || isPrinting}
+          className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+        >
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+          {isExporting ? 'Exportando...' : 'Exportar'}
+        </button>
+
+        {isOpen && !disabled && (
+          <div className="absolute right-0 mt-2 w-32 rounded-md border border-gray-200 bg-white shadow-lg z-10">
+            <button
+              onClick={() => handleExport('csv')}
+              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-md"
+            >
+              📄 Exportar CSV
+            </button>
+            <button
+              onClick={() => handleExport('pdf')}
+              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 last:rounded-b-md"
+            >
+              📋 Exportar PDF
+            </button>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
