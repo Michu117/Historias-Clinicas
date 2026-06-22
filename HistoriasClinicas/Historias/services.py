@@ -66,7 +66,10 @@ def normalizar_rol(nombre_rol: str | None) -> str | None:
         'medico': 'medico',
         'psicologo': 'medico',
         'odontologo': 'medico',
-        'trabajador social': 'medico',
+        'trabajador social': 'trabajador_social',
+        'trabajador_social': 'trabajador_social',
+        'trabajadorsocial': 'trabajador_social',
+        'trabajo social': 'trabajador_social',
         'paciente': 'paciente',
         'administrador': 'administrador',
         'admin': 'administrador',
@@ -85,6 +88,10 @@ def _rol_nombre(user):
 
 def es_medico(user):
     return normalizar_rol(_rol_nombre(user)) == 'medico'
+
+
+def es_trabajador_social(user):
+    return normalizar_rol(_rol_nombre(user)) == 'trabajador_social'
 
 
 def es_paciente(user):

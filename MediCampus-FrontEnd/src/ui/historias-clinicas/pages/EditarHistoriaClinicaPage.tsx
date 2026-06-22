@@ -16,6 +16,7 @@ import { getNombreMedico } from '../utils/getNombreMedico';
 
 import type { HistoriaClinica, HistoriaClinicaFormValues } from '../types/historiaClinica.types';
 import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
+import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
 
 const initialFormValues: HistoriaClinicaFormValues = {
   usuarioNombre: '',
@@ -28,7 +29,7 @@ const initialFormValues: HistoriaClinicaFormValues = {
 export default function EditarHistoriaClinicaPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { role, permissions, isAuthorized } = useHistoriasClinicasAuth();
+  const { role, isAuthorized } = useHistoriasClinicasAuth();
 
   const [historia, setHistoria] = useState<HistoriaClinica | null>(null);
   const [values, setValues] = useState<HistoriaClinicaFormValues>(initialFormValues);
@@ -41,18 +42,27 @@ export default function EditarHistoriaClinicaPage() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [accessDenied, setAccessDenied] = useState(false);
+
+  const [registros, setRegistros] = useState<RegistroClinicoHistoria[]>([]);
+  const [nuevaAlergia, setNuevaAlergia] = useState('');
+  const [nuevoFactorRiesgo, setNuevoFactorRiesgo] = useState('');
 
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/seguridad/login', { replace: true });
+      navigate('/', { replace: true });
       return;
     }
-    if (!role || role !== 'MEDICO' || !permissions?.canEditHistoria) {
-      setAccessDenied(true);
+
+    if (role === 'PACIENTE') {
+      navigate('/historias/mi-historia', { replace: true });
       return;
     }
-  }, [role, permissions, isAuthorized, navigate]);
+
+    if (role !== 'MEDICO') {
+      navigate('/historias', { replace: true });
+      return;
+    }
+  }, [isAuthorized, role, navigate]);
 
   const cargarDatos = useCallback(async () => {
     if (!id) {
@@ -65,7 +75,11 @@ export default function EditarHistoriaClinicaPage() {
       setError('');
       setMessage('');
 
-      const hc = await historiasClinicasService.obtenerHistoriaClinicaPorId(id);
+      const [hc, registrosData, ants] = await Promise.all([
+        historiasClinicasService.obtenerHistoriaClinicaPorId(id),
+        historiasClinicasService.listarRegistrosClinicosPorHistoria(id),
+        historiasClinicasService.listarAntecedentesPorHistoria(id),
+      ]);
       setHistoria(hc);
       setValues({
         usuarioNombre: hc.usuario?.nombre ?? '',
@@ -74,10 +88,7 @@ export default function EditarHistoriaClinicaPage() {
         condicionPreexistente: hc.condicionPreexistente ?? '',
         factorRiesgo: hc.factorRiesgo ?? '',
       });
-
-      const [ants] = await Promise.all([
-        historiasClinicasService.listarAntecedentesPorHistoria(id),
-      ]);
+      setRegistros(registrosData);
       setAntecedentes(ants);
     } catch (err) {
       console.error('Error al cargar:', err);
@@ -103,9 +114,7 @@ export default function EditarHistoriaClinicaPage() {
       return;
     }
 
-    if (!values.alergia.trim()) { setMessage('La alergia es obligatoria.'); return; }
     if (!values.condicionPreexistente.trim()) { setMessage('La condición preexistente es obligatoria.'); return; }
-    if (!values.factorRiesgo.trim()) { setMessage('El factor de riesgo es obligatorio.'); return; }
 
     setIsSubmitting(true);
     setMessage('');
@@ -113,9 +122,7 @@ export default function EditarHistoriaClinicaPage() {
 
     try {
       const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {
-        alergia: values.alergia,
         condicionPreexistente: values.condicionPreexistente,
-        factorRiesgo: values.factorRiesgo,
       });
       setHistoria(hcActualizada);
       setMessage('Historia clínica actualizada correctamente.');
@@ -124,6 +131,36 @@ export default function EditarHistoriaClinicaPage() {
       setError(err?.message ?? 'No se pudo actualizar. Revisa la respuesta del API.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAgregarAlergia = async () => {
+    if (!id || !nuevaAlergia.trim()) return;
+    try {
+      await historiasClinicasService.crearRegistroClinico(id, {
+        tipo: 'ALERGIA',
+        descripcion: nuevaAlergia.trim(),
+      });
+      setNuevaAlergia('');
+      const registrosData = await historiasClinicasService.listarRegistrosClinicosPorHistoria(id);
+      setRegistros(registrosData);
+    } catch (err: any) {
+      setError(err?.message ?? 'No se pudo agregar la alergia.');
+    }
+  };
+
+  const handleAgregarFactorRiesgo = async () => {
+    if (!id || !nuevoFactorRiesgo.trim()) return;
+    try {
+      await historiasClinicasService.crearRegistroClinico(id, {
+        tipo: 'FACTOR_RIESGO',
+        descripcion: nuevoFactorRiesgo.trim(),
+      });
+      setNuevoFactorRiesgo('');
+      const registrosData = await historiasClinicasService.listarRegistrosClinicosPorHistoria(id);
+      setRegistros(registrosData);
+    } catch (err: any) {
+      setError(err?.message ?? 'No se pudo agregar el factor de riesgo.');
     }
   };
 
@@ -147,21 +184,11 @@ export default function EditarHistoriaClinicaPage() {
     setShowCancelModal(true);
   };
 
-  if (accessDenied) {
-    return (
-      <HistoriasClinicasDashboardLayout>
-        <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
-        <section className="flex min-h-0 items-center justify-center">
-          <Card className="max-w-md text-center">
-            <h1 className="text-xl font-semibold" style={{ color: 'var(--hc-text)' }}>Acceso denegado</h1>
-            <p className="mt-2 text-sm" style={{ color: 'var(--on-surface-variant)' }}>
-              No tienes permisos para editar historias clínicas.
-            </p>
-          </Card>
-        </section>
-      </HistoriasClinicasDashboardLayout>
-    );
-  }
+  const registrosAlergias = registros.filter((r) => r.tipo === 'ALERGIA');
+  const registrosFactores = registros.filter((r) => r.tipo === 'FACTOR_RIESGO');
+
+  if (!isAuthorized) return null;
+  if (role !== 'MEDICO') return null;
 
   if (loading) {
     return (
@@ -218,28 +245,18 @@ export default function EditarHistoriaClinicaPage() {
               <div className="space-y-3">
                 <div className="grid gap-1">
                   <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Nombre del usuario</label>
-                  <Input value={values.usuarioNombre} placeholder="Nombre completo del usuario"
-                    onChange={(e) => handleChange('usuarioNombre', e.target.value)} />
+                  <Input value={values.usuarioNombre} placeholder="Nombre completo del usuario" readOnly
+                    className="bg-slate-100 text-slate-700 cursor-not-allowed" />
                 </div>
                 <div className="grid gap-1">
                   <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Identificación</label>
-                  <Input value={values.usuarioIdentificacion} placeholder="Documento de identificación"
-                    onChange={(e) => handleChange('usuarioIdentificacion', e.target.value)} />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Alergias</label>
-                  <Input value={values.alergia} placeholder="Alergias reportadas"
-                    onChange={(e) => handleChange('alergia', e.target.value)} />
+                  <Input value={values.usuarioIdentificacion} placeholder="Documento de identificación" readOnly
+                    className="bg-slate-100 text-slate-700 cursor-not-allowed" />
                 </div>
                 <div className="grid gap-1">
                   <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Condición preexistente</label>
                   <Input value={values.condicionPreexistente} placeholder="Condiciones preexistentes"
                     onChange={(e) => handleChange('condicionPreexistente', e.target.value)} />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Factor de riesgo</label>
-                  <Input value={values.factorRiesgo} placeholder="Factores de riesgo identificados"
-                    onChange={(e) => handleChange('factorRiesgo', e.target.value)} />
                 </div>
               </div>
               <div className="mt-4 flex justify-end gap-2">
@@ -253,7 +270,72 @@ export default function EditarHistoriaClinicaPage() {
             </Card>
           </form>
 
-          {/* ── Antecedentes clínicos ── */}
+          <Card>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Alergias</h2>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={nuevaAlergia}
+                  placeholder="Nueva alergia..."
+                  onChange={(e) => setNuevaAlergia(e.target.value)}
+                />
+                <Button type="button" variant="primary" onClick={handleAgregarAlergia}
+                  disabled={!nuevaAlergia.trim()}>
+                  Agregar
+                </Button>
+              </div>
+              <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+                {registrosAlergias.length === 0 ? (
+                  <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                ) : (
+                  registrosAlergias.map((r) => (
+                    <div key={r.id} className="rounded-lg p-2"
+                      style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                      <p className="text-[11px]" style={{ color: 'var(--card-text-muted)' }}>
+                        {new Date(r.fecha_registro).toLocaleDateString()}
+                        {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Factores de riesgo</h2>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={nuevoFactorRiesgo}
+                  placeholder="Nuevo factor de riesgo..."
+                  onChange={(e) => setNuevoFactorRiesgo(e.target.value)}
+                />
+                <Button type="button" variant="primary" onClick={handleAgregarFactorRiesgo}
+                  disabled={!nuevoFactorRiesgo.trim()}>
+                  Agregar
+                </Button>
+              </div>
+              <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+                {registrosFactores.length === 0 ? (
+                  <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                ) : (
+                  registrosFactores.map((r) => (
+                    <div key={r.id} className="rounded-lg p-2"
+                      style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                      <p className="text-[11px]" style={{ color: 'var(--card-text-muted)' }}>
+                        {new Date(r.fecha_registro).toLocaleDateString()}
+                        {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </Card>
+
           <Card>
             <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Antecedentes clínicos</h2>
             <AntecedentesClinicosList
@@ -264,7 +346,6 @@ export default function EditarHistoriaClinicaPage() {
           </Card>
         </div>
 
-        {/* ── Documentos clínicos ── */}
         <Card className="mt-4">
           <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Documentos clínicos</h2>
           <DocumentosClinicosList
