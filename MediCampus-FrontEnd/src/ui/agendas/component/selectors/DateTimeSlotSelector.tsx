@@ -13,18 +13,23 @@ interface DateTimeSlotSelectorProps {
 }
 
 const TODAY_START = new Date();
-TODAY_START.setUTCHours(0, 0, 0, 0);
+TODAY_START.setHours(0, 0, 0, 0);
 
 const parseTime = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
   return Number.isNaN(hours) || Number.isNaN(minutes) ? NaN : hours * 60 + minutes;
 };
 
-const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+const formatDate = (date: Date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
 const addDays = (date: Date, days: number) => {
   const copy = new Date(date);
-  copy.setUTCDate(copy.getUTCDate() + days);
+  copy.setDate(copy.getDate() + days);
   return copy;
 };
 
@@ -93,7 +98,7 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     const current = addDays(TODAY_START, dayOffset);
     const fecha = formatDate(current);
     const isPast = current < minDate;
-    const isWeekend = current.getUTCDay() === 0 || current.getUTCDay() === 6;
+    const isWeekend = current.getDay() === 0 || current.getDay() === 6;
     const disabled = isPast || isWeekend || current > maxDate;
     availableDates.push({ fecha, disabled });
   }
