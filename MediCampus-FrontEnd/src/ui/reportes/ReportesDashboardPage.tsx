@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../seguridad/context/AuthContext';
 import ReportFilterBar from './component/ReportFilterBar';
 import LoadingState from './component/LoadingState';
 import ErrorState from './component/ErrorState';
@@ -6,6 +8,8 @@ import KPIsGrid, { MetricDef } from './component/KPIsGrid';
 import ChartConsultasFecha from './component/ChartConsultasFecha';
 import ChartConsultasGenero from './component/ChartConsultasGenero';
 import DataTable from './component/DataTable';
+import PrintReportView, { type ServiciosConfig } from './print/PrintReportView';
+import './print/print-report.css';
 import { useReportesDashboard } from './hooks/useReportesDashboard';
 import reportService from './service/reportService';
 import type { ReportFilter, DateRangePreset } from './types';
@@ -25,6 +29,13 @@ function defaultDateRange(): { fecha_inicio: string; fecha_fin: string } {
 
 type ReportType = 'general' | 'servicio';
 
+const PRINT_SERVICIOS_CONFIG: ServiciosConfig = {
+  medica: { label: 'Médica', color: '#0056B3' },
+  psicologica: { label: 'Psicológica', color: '#0D9488' },
+  odontologica: { label: 'Odontológica', color: '#4F46E5' },
+  social: { label: 'T. Social', color: '#94A3B8' },
+};
+
 const TABLE_COLUMNS = [
   { key: 'servicio', label: 'Servicio', align: 'left' as const },
   { key: 'total_consultas', label: 'Consultas', align: 'center' as const },
@@ -32,12 +43,39 @@ const TABLE_COLUMNS = [
 ];
 
 export default function ReportesDashboardPage(): JSX.Element {
+  const navigate = useNavigate();
+  const { user } = useAuthContext();
+
+  useEffect(() => {
+    if (user?.rol?.nombre !== 'admin') {
+      navigate('/access-denied');
+    }
+  }, [user, navigate]);
+
   const [filters, setFilters] = useState<ReportFilter>(() => {
     const { fecha_inicio, fecha_fin } = defaultDateRange();
     return { fecha_inicio, fecha_fin, dateRange: 'year' };
   });
+  const [isPrinting, setIsPrinting] = useState(false);
   const [isExporting, setIsExporting] = useState<'idle' | 'csv' | 'pdf' | 'done' | 'error'>('idle');
   const [exportMsg, setExportMsg] = useState<string | null>(null);
+  const printTriggered = useRef(false);
+
+  useEffect(() => {
+    if (isPrinting && !printTriggered.current) {
+      printTriggered.current = true;
+      const handleAfterPrint = () => {
+        setIsPrinting(false);
+        printTriggered.current = false;
+      };
+      window.addEventListener('afterprint', handleAfterPrint);
+      window.print();
+      return () => window.removeEventListener('afterprint', handleAfterPrint);
+    }
+    if (!isPrinting) {
+      printTriggered.current = false;
+    }
+  }, [isPrinting]);
 
   const reportType: ReportType = filters.servicioId ? 'servicio' : 'general';
 
@@ -51,6 +89,9 @@ export default function ReportesDashboardPage(): JSX.Element {
   } = useReportesDashboard(filters);
 
   const tableRows = tableData?.rows ?? [];
+  const filteredRows = tableRows.filter(
+    (r: any) => r.servicio && r.servicio !== '-' && r.total_consultas !== '-' && r.total_consultas !== 0
+  );
 
   const handleApplyFilters = (newFilters: {
     fecha_inicio: string;
@@ -74,6 +115,12 @@ export default function ReportesDashboardPage(): JSX.Element {
 
   const handleExport = async (format: 'csv' | 'pdf') => {
     if (!filters) return;
+
+    if (format === 'pdf') {
+      setIsPrinting(true);
+      return;
+    }
+
     setIsExporting(format);
     setExportMsg(null);
 
@@ -82,7 +129,7 @@ export default function ReportesDashboardPage(): JSX.Element {
         tipo: reportType,
         fecha_inicio: filters.fecha_inicio,
         fecha_fin: filters.fecha_fin,
-        servicio: filters.servicioId || undefined,
+        servicio_id: filters.servicioId || undefined,
         format,
       };
 
@@ -126,7 +173,7 @@ const buildDynamicMetrics = (): MetricDef[] => {
     { value: totalConsultasGlobal, label: 'Consultas Totales', trend: 'up' }
   ];
 
-  const tarjetasServicios = tableRows.map((row: any): MetricDef => ({
+  const tarjetasServicios = filteredRows.map((row: any): MetricDef => ({
     value: row.total_consultas ?? row.cantidad ?? 0,
     label: `Consulta ${row.servicio}`,
     trend: 'neutral'
@@ -138,8 +185,17 @@ const buildDynamicMetrics = (): MetricDef[] => {
   return (
     <div className="bg-[#faf9ff] text-[#141b2b] h-screen flex overflow-hidden w-full font-['Inter']">
 
+      {isPrinting && (
+        <div className="print-only">
+          <PrintReportView
+            data={{ kpis, byGenderData, serviciosData, tableRows: filteredRows, filters, tableColumns: TABLE_COLUMNS }}
+            config={{ servicios: PRINT_SERVICIOS_CONFIG }}
+          />
+        </div>
+      )}
+
       {/* --- SIDENAVBAR (Panel Izquierdo Fijo) --- */}
-      <aside className="hidden md:flex flex-col h-screen w-[280px] p-6 space-y-2 bg-[#f1f3ff] border-r border-[#c2c6d4] shrink-0">
+      <aside className={`hidden md:flex flex-col h-screen w-[280px] p-6 space-y-2 bg-[#f1f3ff] border-r border-[#c2c6d4] shrink-0 ${isPrinting ? 'no-print' : ''}`}>
         <div className="flex items-center gap-4 mb-8">
           <div className="w-10 h-10 rounded-lg bg-[#003f87] flex items-center justify-center text-white font-bold">MC</div>
           <div>
@@ -168,7 +224,7 @@ const buildDynamicMetrics = (): MetricDef[] => {
       </aside>
 
       {/* --- MAIN CONTENT AREA (Área con scroll) --- */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#faf9ff]">
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden bg-[#faf9ff] ${isPrinting ? 'no-print' : ''}`}>
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="max-w-[1400px] mx-auto">
 
@@ -261,12 +317,12 @@ const buildDynamicMetrics = (): MetricDef[] => {
               )}
 
               {/* --- Tabla de detalle de Atenciones (solo en vista general) --- */}
-              {!loading && !error && reportType === 'general' && tableRows.length > 0 && (
+              {!loading && !error && reportType === 'general' && filteredRows.length > 0 && (
                 <div className="col-span-12">
                   <DataTable
                     title="Detalle de Atenciones"
                     columns={TABLE_COLUMNS}
-                    rows={tableRows}
+                    rows={filteredRows}
                   />
                 </div>
               )}
