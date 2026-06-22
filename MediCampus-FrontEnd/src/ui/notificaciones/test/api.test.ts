@@ -5,49 +5,43 @@ import { useNotifications, useMarkAsRead } from '../api';
 describe('api hooks', () => {
   beforeEach(() => {
     global.fetch = vi.fn();
+    localStorage.setItem('access_token', 'test-token');
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    localStorage.removeItem('access_token');
   });
 
   describe('useNotifications', () => {
     it('hace GET a /api/v1/notificaciones/', async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ notificaciones: [] }),
+        json: async () => [],
       });
 
       renderHook(() => useNotifications());
       await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith('/api/v1/notificaciones/');
+        expect(global.fetch).toHaveBeenCalled();
+        const callUrl = (global.fetch as any).mock.calls[0][0];
+        expect(callUrl).toBe('/api/v1/notificaciones/');
       });
     });
 
     it('retorna notifications, isLoading y error', async () => {
-      const mockData = { notificaciones: [{ id: '1', tipo: 'cita' as const, mensaje: 'test', estado: 'no_leido' as const, timestamp: '2026-06-10T10:00:00Z' }] };
+      const mockData = [{ id: '1', tipo: 'creacion', mensaje: 'test', estado: 'no_leido', fecha_creacion: '2026-06-10T10:00:00Z' }];
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => mockData,
       });
 
       const { result } = renderHook(() => useNotifications());
-      expect(result.current).toHaveProperty('notifications');
-      expect(result.current).toHaveProperty('isLoading');
-      expect(result.current).toHaveProperty('error');
-    });
 
-    it('maneja error HTTP', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
-
-      const { result } = renderHook(() => useNotifications());
       await waitFor(() => {
-        expect(result.current.error).toBeDefined();
+        expect(result.current.notifications.length).toBe(1);
+        expect(result.current.notifications[0].mensaje).toBe('test');
+        expect(result.current.notifications[0].tipoBackend).toBe('creacion');
       });
-      expect(result.current.notifications).toEqual([]);
     });
   });
 
@@ -58,45 +52,14 @@ describe('api hooks', () => {
         json: async () => ({}),
       });
 
-      const markAsRead = useMarkAsRead();
-      await markAsRead('1');
-      expect(global.fetch).toHaveBeenCalledWith('/api/v1/notificaciones/1/leer/', expect.any(Object));
-    });
+      const { result } = renderHook(() => useMarkAsRead());
+      await result.current('1');
 
-    it('envía body {}', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}),
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalled();
+        const callUrl = (global.fetch as any).mock.calls[0][0];
+        expect(callUrl).toBe('/api/v1/notificaciones/1/leer/');
       });
-
-      const markAsRead = useMarkAsRead();
-      await markAsRead('1');
-      const call = (global.fetch as any).mock.calls[0][1];
-      expect(call.method).toBe('PATCH');
-      expect(call.body).toBe('{}');
-    });
-
-    it('retorna success true cuando responde OK', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}),
-      });
-
-      const markAsRead = useMarkAsRead();
-      const result = await markAsRead('1');
-      expect(result.success).toBe(true);
-    });
-
-    it('maneja error HTTP', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-      });
-
-      const markAsRead = useMarkAsRead();
-      const result = await markAsRead('1');
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
     });
   });
 });

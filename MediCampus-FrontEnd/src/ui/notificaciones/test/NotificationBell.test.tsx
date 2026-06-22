@@ -5,19 +5,13 @@ import { INotification } from '../types';
 
 describe('NotificationBell', () => {
   const mockNotification: INotification = {
-    id: '1',
-    tipo: 'cita',
-    mensaje: 'Nueva cita programada',
-    estado: 'no_leido',
-    timestamp: '2026-06-10T14:30:00Z',
+    id: '1', tipo: 'cita', tipoBackend: 'creacion', fecha_creacion: '2026-06-10T14:30:00Z', timestamp: '2026-06-10T14:30:00Z',
+    mensaje: 'Nueva cita programada', estado: 'no_leido',
   };
 
   const mockNotification2: INotification = {
-    id: '2',
-    tipo: 'derivacion',
-    mensaje: 'Paciente derivado',
-    estado: 'no_leido',
-    timestamp: '2026-06-09T16:45:00Z',
+    id: '2', tipo: 'derivacion', tipoBackend: 'derivacion', fecha_creacion: '2026-06-09T16:45:00Z', timestamp: '2026-06-09T16:45:00Z',
+    mensaje: 'Paciente derivado', estado: 'no_leido',
   };
 
   const mockOnMarkAsRead = vi.fn();

@@ -4,36 +4,28 @@ import { NotificationList } from '../component/NotificationList';
 import { INotification } from '../types';
 
 describe('NotificationList', () => {
+  const b1 = { tipoBackend: 'creacion', fecha_creacion: '2026-06-10T14:30:00Z', timestamp: '2026-06-10T14:30:00Z' };
+  const b2 = { tipoBackend: 'creacion', fecha_creacion: '2026-06-11T09:15:00Z', timestamp: '2026-06-11T09:15:00Z' };
+  const b3 = { tipoBackend: 'derivacion', fecha_creacion: '2026-06-09T16:45:00Z', timestamp: '2026-06-09T16:45:00Z' };
+  const b4 = { tipoBackend: 'derivacion', fecha_creacion: '2026-06-08T11:20:00Z', timestamp: '2026-06-08T11:20:00Z' };
   const mockNotificationCita: INotification = {
-    id: '1',
-    tipo: 'cita',
-    mensaje: 'Nueva cita programada para el 2026-06-15 a las 10:00 AM',
-    estado: 'no_leido',
-    timestamp: '2026-06-10T14:30:00Z',
+    id: '1', tipo: 'cita', ...b1,
+    mensaje: 'Nueva cita programada para el 2026-06-15 a las 10:00 AM', estado: 'no_leido',
   };
 
   const mockNotificationCita2: INotification = {
-    id: '2',
-    tipo: 'cita',
-    mensaje: 'Tu cita ha sido reprogramada a 2026-06-20',
-    estado: 'no_leido',
-    timestamp: '2026-06-11T09:15:00Z',
+    id: '2', tipo: 'cita', ...b2,
+    mensaje: 'Tu cita ha sido reprogramada a 2026-06-20', estado: 'no_leido',
   };
 
   const mockNotificationDerivacion: INotification = {
-    id: '3',
-    tipo: 'derivacion',
-    mensaje: 'Paciente derivado a tu servicio. Motivo: evaluación cardiológica',
-    estado: 'no_leido',
-    timestamp: '2026-06-09T16:45:00Z',
+    id: '3', tipo: 'derivacion', ...b3,
+    mensaje: 'Paciente derivado a tu servicio. Motivo: evaluación cardiológica', estado: 'no_leido',
   };
 
   const mockNotificationDerivacion2: INotification = {
-    id: '4',
-    tipo: 'derivacion',
-    mensaje: 'Nuevo caso derivado: seguimiento post-operatorio',
-    estado: 'no_leido',
-    timestamp: '2026-06-08T11:20:00Z',
+    id: '4', tipo: 'derivacion', ...b4,
+    mensaje: 'Nuevo caso derivado: seguimiento post-operatorio', estado: 'no_leido',
   };
 
   const mockOnMarkAsRead = vi.fn();

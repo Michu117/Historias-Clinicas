@@ -100,6 +100,8 @@ export default function App() {
               <Route path="alerts" element={<CriticalAlertsPage />} />
             </Route>
 
+            <Route path="/notificaciones" element={<NotificationCenter />} />
+
             {/* Rutas de Agendas */}
             <Route path="/AgendarCita" element={<AuthGuard><AgendarCita /></AuthGuard>} />
             <Route path="/mis-citas" element={<AuthGuard><MisCitas /></AuthGuard>} />
