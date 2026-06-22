@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Importaciones de Seguridad
 import SecurityLayout from './ui/seguridad/components/SecurityLayout';
@@ -23,17 +23,49 @@ import HomePage from './ui/global/HomePage';
 import ReportesDashboardPage from './ui/reportes/ReportesDashboardPage';
 import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
 
+// Importaciones de Agendas
+import { AgendarCita } from './ui/agendas/component/pages/AgendarCita';
+import { MiAgenda } from './ui/agendas/component/pages/MiAgenda';
+import { MisCitas } from './ui/agendas/component/pages/MisCitas';
+import { Derivaciones } from './ui/agendas/component/pages/Derivaciones';
+import { Consulta } from './ui/agendas/component/pages/Consulta';
+import { getToken } from './ui/agendas/services/storage/authStorage';
+import { validateTokenRole, isTokenExpired } from './ui/agendas/utils/auth/jwtValidator';
+
+function ProfessionalGuard({ children }: { children: React.ReactNode }) {
+  const token = getToken();
+  const isProfessional = token ? validateTokenRole(token, 'PROFESIONAL') : false;
+
+  if (!isProfessional) {
+    return <Navigate to="/seguridad/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const token = getToken();
+  const isAutenticado = token && !isTokenExpired(token);
+
+  if (!isAutenticado) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
+    <BrowserRouter>
       <div className="w-full min-h-screen bg-[#faf9ff] overflow-y-auto">
         <Routes>
-          {/* Rutas Públicas */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<HomePage />} />
+        {/* Rutas Públicas */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<HomePage />} />
 
-          {/* Rutas de Reportes */}
-          <Route path="/reportes" element={<ReportesDashboardPage />} />
-          <Route path="/reportes/rango" element={<ReportesRangoPage />} />
+        {/* Rutas de Reportes */}
+        <Route path="/reportes" element={<ReportesDashboardPage />} />
+        <Route path="/reportes/rango" element={<ReportesRangoPage />} />
 
           {/* Redirecciones de rutas antiguas de reportes */}
           <Route path="/reportes/generales" element={<Navigate to="/reportes" replace />} />
@@ -52,19 +84,27 @@ export default function App() {
           <Route path="/seguridad/register" element={<RegisterPage />} />
           <Route path="/seguridad/403" element={<ForbiddenPage />} />
 
-          <Route path="/seguridad" element={<SecurityLayout />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<SecurityDashboard />} />
-            <Route path="users" element={<UserManagementPage />} />
-            <Route path="permissions" element={<PermissionAssignmentPage />} />
-            <Route path="audit" element={<AuditDashboardPage />} />
-            <Route path="audit/:logId" element={<AuditLogDetailPage />} />
-            <Route path="alerts" element={<CriticalAlertsPage />} />
-          </Route>
+        <Route path="/seguridad" element={<SecurityLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<SecurityDashboard />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="permissions" element={<PermissionAssignmentPage />} />
+          <Route path="audit" element={<AuditDashboardPage />} />
+          <Route path="audit/:logId" element={<AuditLogDetailPage />} />
+          <Route path="alerts" element={<CriticalAlertsPage />} />
+        </Route>
 
-          {/* Fallback para rutas no encontradas */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Rutas de Agendas */}
+        <Route path="/AgendarCita" element={<AuthGuard><AgendarCita /></AuthGuard>} />
+        <Route path="/mis-citas" element={<AuthGuard><MisCitas /></AuthGuard>} />
+        <Route path="/agendas/mi-agenda" element={<ProfessionalGuard><MiAgenda /></ProfessionalGuard>} />
+        <Route path="/agendas/consulta/:citaId?" element={<ProfessionalGuard><Consulta /></ProfessionalGuard>} />
+        <Route path="/agendas/derivaciones" element={<ProfessionalGuard><Derivaciones /></ProfessionalGuard>} />
+
+        {/* Fallback para rutas no encontradas */}
+        <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+    </BrowserRouter>
   );
 }

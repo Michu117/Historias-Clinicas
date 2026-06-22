@@ -6,6 +6,8 @@ import { Card, CardTitle } from '../../components/Card'
 import { login } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
 
+const PROFESSIONAL_ROLES = new Set(['medico', 'psicologo', 'odontologo', 'trabajador_social']);
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
   const { saveSession } = useSession()
@@ -22,7 +24,17 @@ const LoginPage: React.FC = () => {
     try {
       const res = await login({ correo, clave })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      navigate(res.usuario.rol?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
+
+      localStorage.setItem('access_token', res.tokens.access);
+
+      const roleName = res.usuario.rol?.nombre?.toLowerCase() || '';
+      if (PROFESSIONAL_ROLES.has(roleName)) {
+        navigate('/agendas/mi-agenda');
+      } else if (roleName === 'admin' || roleName === 'administrador') {
+        navigate('/seguridad/dashboard');
+      } else {
+        navigate('/home');
+      }
     } catch (err: any) {
       if (err.status === 400) {
         setError('Credenciales inválidas. Verifica tu correo y contraseña.')
@@ -35,19 +47,19 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf9ff] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--hc-bg)] p-4">
       <Card className="w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="mx-auto w-12 h-12 bg-[#0056b3] rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-[var(--primary)] rounded-full flex items-center justify-center mb-4">
             <span className="text-hc-primaryText text-xl font-bold">M</span>
           </div>
           <CardTitle>Iniciar Sesión</CardTitle>
-          <p className="text-sm text-[#424752] mt-1">Accede al panel de seguridad de MediCampus</p>
+          <p className="text-sm text-[var(--on-surface-variant)] mt-1">Accede al panel de seguridad de MediCampus</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#424752] mb-1">Correo electrónico <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Correo electrónico <span className="text-red-500">*</span></label>
             <Input
               type="email"
               placeholder="tu@correo.com"
@@ -59,7 +71,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#424752] mb-1">Contraseña <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Contraseña <span className="text-red-500">*</span></label>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -72,7 +84,7 @@ const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-transparent border-none outline-none text-[#424752] hover:text-[#141b2b] cursor-pointer"
+                className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-transparent border-none outline-none text-[var(--on-surface-variant)] hover:text-[var(--hc-text)] cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px] leading-none">{showPassword ? 'visibility_off' : 'visibility'}</span>
               </button>
@@ -90,7 +102,7 @@ const LoginPage: React.FC = () => {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-[#424752] mt-4">
+        <p className="text-center text-sm text-[var(--on-surface-variant)] mt-4">
           ¿No tienes cuenta?{' '}
           <Link to="/seguridad/register" className="text-hc-primary font-medium hover:underline">
             Registrarse

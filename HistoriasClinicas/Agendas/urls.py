@@ -14,5 +14,6 @@ router.register('certificados', CertificadoViewSet, basename='certificado')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('consultas/', AtencionViewSet.as_view({'post': 'create'}), name='atencion-create'),
+    path('consultas/', AtencionViewSet.as_view({'post': 'create', 'get': 'list'}), name='atencion-list'),
+    path('consultas/<int:pk>/', AtencionViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'}), name='atencion-detail'),
 ]
