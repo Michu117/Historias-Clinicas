@@ -21,19 +21,6 @@ import type { ConsultaClinico } from '../types/consultaClinico.types';
 
 const PAGE_SIZE = 3;
 
-const AccessDenied = () => (
-  <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-    <Card className="max-w-md text-center">
-      <h1 className="text-xl font-semibold text-slate-900">
-        Acceso denegado
-      </h1>
-      <p className="mt-2 text-sm text-slate-600">
-        No tienes permisos para acceder a historias clínicas.
-      </p>
-    </Card>
-  </main>
-);
-
 const MedicoContent = () => {
   const navigate = useNavigate();
   const [actionMessage, setActionMessage] = useState('');
@@ -355,26 +342,27 @@ export const GestionHistoriasClinicasPage = () => {
 
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/seguridad/login');
+      navigate('/seguridad/login', { replace: true });
       return;
     }
     if (role === 'PACIENTE') {
       navigate('/historias/mi-historia', { replace: true });
       return;
     }
-  }, [isAuthorized, role, navigate]);
+    if (role === 'ADMINISTRADOR' || permissions?.isAdminBlocked) {
+      navigate('/home', { replace: true });
+      return;
+    }
+    if (role !== 'MEDICO') {
+      navigate('/home', { replace: true });
+      return;
+    }
+  }, [isAuthorized, role, permissions, navigate]);
 
   if (!isAuthorized) return null;
+  if (role !== 'MEDICO') return null;
 
-  if (role === 'ADMINISTRADOR' || permissions?.isAdminBlocked) {
-    return <AccessDenied />;
-  }
-
-  if (role === 'MEDICO') {
-    return <MedicoContent />;
-  }
-
-  return <AccessDenied />;
+  return <MedicoContent />;
 };
 
 export default GestionHistoriasClinicasPage;

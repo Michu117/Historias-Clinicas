@@ -30,7 +30,6 @@ export default function EditarHistoriaClinicaPage() {
   const navigate = useNavigate();
   const { role, permissions, isAuthorized } = useHistoriasClinicasAuth();
 
-  const [accessDenied, setAccessDenied] = useState(false);
   const [historia, setHistoria] = useState<HistoriaClinica | null>(null);
   const [values, setValues] = useState<HistoriaClinicaFormValues>(initialFormValues);
 
@@ -45,11 +44,11 @@ export default function EditarHistoriaClinicaPage() {
 
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/seguridad/login');
+      navigate('/seguridad/login', { replace: true });
       return;
     }
     if (!role || role !== 'MEDICO' || !permissions?.canEditHistoria) {
-      setAccessDenied(true);
+      navigate('/home', { replace: true });
       return;
     }
   }, [role, permissions, isAuthorized, navigate]);
@@ -146,22 +145,6 @@ export default function EditarHistoriaClinicaPage() {
   const handleCancel = () => {
     setShowCancelModal(true);
   };
-
-  if (accessDenied) {
-    return (
-      <HistoriasClinicasDashboardLayout>
-        <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
-        <section className="flex min-h-0 items-center justify-center">
-          <Card className="max-w-md text-center">
-            <h1 className="text-xl font-semibold text-slate-900">Acceso denegado</h1>
-            <p className="mt-2 text-sm text-slate-600">
-              No tienes permisos para editar historias clínicas.
-            </p>
-          </Card>
-        </section>
-      </HistoriasClinicasDashboardLayout>
-    );
-  }
 
   if (loading) {
     return (

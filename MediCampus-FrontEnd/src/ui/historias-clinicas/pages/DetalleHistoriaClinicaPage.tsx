@@ -20,17 +20,6 @@ const TIPO_ANT_LABELS: Record<string, string> = {
   GINECO_OBSTETRICOS: 'Gineco obstétricos',
 };
 
-const AccessDeniedMessage = () => (
-  <Card className="max-w-md text-center">
-    <h1 className="text-xl font-semibold text-slate-900">
-      Acceso denegado
-    </h1>
-    <p className="mt-2 text-sm text-slate-600">
-      No tienes permisos para acceder a historias clínicas.
-    </p>
-  </Card>
-);
-
 export const DetalleHistoriaClinicaPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -42,23 +31,19 @@ export const DetalleHistoriaClinicaPage = () => {
   const [documentos, setDocumentos] = useState<DocumentoClinico[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [accessDenied, setAccessDenied] = useState(false);
-
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/seguridad/login');
+      navigate('/seguridad/login', { replace: true });
       return;
     }
 
     if (!role || !permissions) {
-      setAccessDenied(true);
-      setLoading(false);
+      navigate('/home', { replace: true });
       return;
     }
 
     if (role === 'ADMINISTRADOR' || permissions.isAdminBlocked) {
-      setAccessDenied(true);
-      setLoading(false);
+      navigate('/home', { replace: true });
       return;
     }
 
@@ -78,8 +63,7 @@ export const DetalleHistoriaClinicaPage = () => {
           const cedula = userCedula ?? '';
           const usuario = h.usuario;
           if (usuario.identificacion !== cedula) {
-            setAccessDenied(true);
-            setLoading(false);
+            navigate('/home', { replace: true });
             return;
           }
         }
@@ -107,17 +91,6 @@ export const DetalleHistoriaClinicaPage = () => {
 
     cargarDatos();
   }, [id, role, permissions, userCedula, isAuthorized, navigate]);
-
-  if (accessDenied) {
-    return (
-      <HistoriasClinicasDashboardLayout>
-        <HistoriasClinicasHeader title="Detalle de Historia Clínica" backTo="/historias" />
-        <section className="flex items-center justify-center">
-          <AccessDeniedMessage />
-        </section>
-      </HistoriasClinicasDashboardLayout>
-    );
-  }
 
   const isMedico = role === 'MEDICO';
 
