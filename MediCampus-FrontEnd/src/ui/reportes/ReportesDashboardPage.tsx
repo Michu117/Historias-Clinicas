@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../seguridad/context/AuthContext';
+import { SideNavBar } from '../agendas/component/shared/SideNavBar';
+import type { NavItem } from '../agendas/component/shared/SideNavBar';
 import ReportFilterBar from './component/ReportFilterBar';
 import LoadingState from './component/LoadingState';
 import ErrorState from './component/ErrorState';
@@ -13,6 +15,14 @@ import './print/print-report.css';
 import { useReportesDashboard } from './hooks/useReportesDashboard';
 import reportService from './service/reportService';
 import type { ReportFilter, DateRangePreset } from './types';
+
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', icon: 'dashboard', path: '/seguridad/dashboard', match: '/seguridad/dashboard' },
+  { label: 'Usuarios', icon: 'group', path: '/seguridad/users', match: '/seguridad/users' },
+  { label: 'Auditoría', icon: 'assignment', path: '/seguridad/audit', match: '/seguridad/audit' },
+  { label: 'Alertas', icon: 'notifications', path: '/seguridad/alerts', match: '/seguridad/alerts' },
+  { label: 'Reportes', icon: 'reportes', path: '/reportes', match: '/reportes' },
+] as const;
 
 function defaultDateRange(): { fecha_inicio: string; fecha_fin: string } {
   const hoy = new Date();
@@ -149,42 +159,37 @@ export default function ReportesDashboardPage(): JSX.Element {
     }
   };
 
-  // --- Constructor Dinamico de Metricas para el KPIsGrid ---
-const buildDynamicMetrics = (): MetricDef[] => {
-  if (!kpis) return [];
+  const buildDynamicMetrics = (): MetricDef[] => {
+    if (!kpis) return [];
 
-  const totalConsultasGlobal = kpis.totalConsultas ?? 0;
+    const totalConsultasGlobal = kpis.totalConsultas ?? 0;
 
-  // 1. Si hay filtro de servicio, retornamos SOLO la tarjeta del servicio resaltada
-  // Usamos kpis.totalConsultas porque viene del backend con el filtro de servicio aplicado
-  if (filters.servicioId) {
-    return [
-      {
-        value: totalConsultasGlobal,
-        label: `Total de consultas`,
-        trend: 'neutral',
-        highlight: true
-      }
+    if (filters.servicioId) {
+      return [
+        {
+          value: totalConsultasGlobal,
+          label: `Total de consultas`,
+          trend: 'neutral',
+          highlight: true
+        }
+      ];
+    }
+
+    const baseMetrics: MetricDef[] = [
+      { value: totalConsultasGlobal, label: 'Consultas Totales', trend: 'up' }
     ];
-  }
 
-  // 2. Si NO hay filtro, retornamos la vista por defecto (Global + Lista de servicios)
-  const baseMetrics: MetricDef[] = [
-    { value: totalConsultasGlobal, label: 'Consultas Totales', trend: 'up' }
-  ];
+    const tarjetasServicios = filteredRows.map((row: any): MetricDef => ({
+      value: row.total_consultas ?? row.cantidad ?? 0,
+      label: `Consulta ${row.servicio}`,
+      trend: 'neutral'
+    }));
 
-  const tarjetasServicios = filteredRows.map((row: any): MetricDef => ({
-    value: row.total_consultas ?? row.cantidad ?? 0,
-    label: `Consulta ${row.servicio}`,
-    trend: 'neutral'
-  }));
-
-  return [...baseMetrics, ...tarjetasServicios];
-};
+    return [...baseMetrics, ...tarjetasServicios];
+  };
 
   return (
-    <div style={{ backgroundColor: 'var(--hc-bg)', color: 'var(--hc-text)' }} className="h-screen flex overflow-hidden w-full font-['Inter']">
-
+    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--hc-bg)' }}>
       {isPrinting && (
         <div className="print-only">
           <PrintReportView
@@ -194,54 +199,29 @@ const buildDynamicMetrics = (): MetricDef[] => {
         </div>
       )}
 
-      {/* --- SIDENAVBAR (Panel Izquierdo Fijo) --- */}
-      <aside className={`hidden md:flex flex-col h-screen w-[280px] p-6 space-y-2 bg-[#f1f3ff] border-r border-[#c2c6d4] shrink-0 ${isPrinting ? 'no-print' : ''}`}>
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-10 h-10 rounded-lg bg-[#003f87] flex items-center justify-center text-white font-bold">MC</div>
-          <div>
-            <h1 className="text-[20px] font-bold text-[#003f87] leading-tight">MediCampus</h1>
-            <p className="text-[12px] font-semibold" style={{ color: '#424752' }}>Dashboard Clinico</p>
-          </div>
-        </div>
+      <div className={isPrinting ? 'no-print' : ''}>
+        <SideNavBar navItems={NAV_ITEMS} />
+      </div>
 
-        <nav className="flex-1 space-y-1">
-          <a className="flex items-center gap-3 px-4 py-3 transition-all rounded-lg cursor-pointer duration-200" style={{ color: '#424752' }}>
-            <span className="material-symbols-outlined">calendar_today</span>
-            <span className="text-[14px] font-semibold">Agenda</span>
-          </a>
-          <a className="flex items-center gap-3 rounded-lg px-4 py-3 border-l-4 border-[#003f87] cursor-pointer duration-200" style={{ backgroundColor: '#d7e2ff', color: '#001a40' }}>
-            <span className="material-symbols-outlined text-[#003f87]">analytics</span>
-            <span className="text-[14px] font-semibold">Reportes</span>
-          </a>
-        </nav>
-
-        <div className="mt-auto pt-6 space-y-1" style={{ borderTop: '1px solid #c2c6d4' }}>
-          <a className="flex items-center gap-3 text-red-600 px-4 py-3 hover:bg-red-50 transition-all rounded-lg cursor-pointer duration-200">
-            <span className="material-symbols-outlined text-red-600">logout</span>
-            <span className="text-[16px] font-bold">Cerrar Sesion</span>
-          </a>
-        </div>
-      </aside>
-
-      {/* --- MAIN CONTENT AREA (Área con scroll) --- */}
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden bg-[#faf9ff] ${isPrinting ? 'no-print' : ''}`}>
+      <div className={`flex-1 ml-60 flex flex-col h-screen overflow-hidden ${isPrinting ? 'no-print' : ''}`} style={{ backgroundColor: 'var(--hc-bg)' }}>
+        <header
+          className="h-16 flex items-center px-6 shrink-0"
+          style={{
+            backgroundColor: 'var(--surface-container-lowest)',
+            borderBottom: '1px solid var(--outline)',
+          }}
+        >
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Reportes</h2>
+        </header>
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="max-w-[1400px] mx-auto">
-
-            {/* TITULO Y ACCIONES DE EXPORTACION */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
-              <div>
-                <h2 className="text-[32px] font-bold mb-2" style={{ color: 'var(--hc-text)' }}>Reportes Dashboard</h2>
-                <p className="text-[16px]" style={{ color: '#424752' }}>Panorama estadistico de las operaciones clinicas.</p>
-              </div>
-
-              {filters && !loading && !error && (
-                <div className="flex items-center gap-3 p-2 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px solid #c2c6d4' }}>
+            {filters && !loading && !error && (
+                <div className="flex items-center gap-3 p-2 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px solid var(--outline-variant)' }}>
                   <button
                     onClick={() => handleExport('csv')}
                     disabled={isExporting === 'csv'}
                     className="bg-transparent font-semibold text-[14px] px-4 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
-                    style={{ border: '1px solid #0056b3', color: '#0056b3' }}
+                    style={{ border: '1px solid var(--primary)', color: 'var(--primary)' }}
                   >
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     {isExporting === 'csv' ? 'Exportando...' : 'Exportar CSV'}
@@ -250,7 +230,7 @@ const buildDynamicMetrics = (): MetricDef[] => {
                     onClick={() => handleExport('pdf')}
                     disabled={isExporting === 'pdf'}
                     className="text-white font-semibold text-[14px] px-4 py-2 rounded-lg flex items-center gap-2 transition-opacity shadow-sm disabled:opacity-50"
-                    style={{ backgroundColor: '#0056b3' }}
+                    style={{ backgroundColor: 'var(--primary)' }}
                   >
                     <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                     {isExporting === 'pdf' ? 'Exportando...' : 'Exportar PDF'}
@@ -262,31 +242,24 @@ const buildDynamicMetrics = (): MetricDef[] => {
                   )}
                 </div>
               )}
-            </div>
 
-            {/* BARRA DE FILTROS (Fecha Inicio, Fin, Servicio) */}
             <div className="mb-8">
               <ReportFilterBar onApply={handleApplyFilters} />
             </div>
 
-            {/* ===== BENTO GRID CANVAS (12 columnas) ===== */}
             <div className="grid grid-cols-12 gap-6">
-
-              {/* --- Estado de Error --- */}
               {error && !loading && (
                 <div className="col-span-12">
                   <ErrorState error={error} onRetry={handleRetry} />
                 </div>
               )}
 
-              {/* --- Estado de Carga --- */}
               {loading && (
                 <div className="col-span-12">
                   <LoadingState message="Cargando datos del dashboard..." />
                 </div>
               )}
 
-              {/* --- KPIs Metricas Principales (Ancho completo dinamico) --- */}
               {kpis && !loading && !error && (
                 <div className="col-span-12">
                   <KPIsGrid
@@ -296,7 +269,6 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- Gráfico de Género (siempre visible) --- */}
               {!loading && !error && (
                 <div className={`${reportType === 'servicio' ? 'col-span-12' : 'col-span-12 lg:col-span-6'}`}>
                   <ChartConsultasGenero
@@ -307,7 +279,6 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- Gráfico de Consultas por Servicio (solo en vista general) --- */}
               {!loading && !error && reportType === 'general' && (
                 <div className="col-span-12 lg:col-span-6">
                   <ChartConsultasFecha
@@ -318,7 +289,6 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- Tabla de detalle de Atenciones (solo en vista general) --- */}
               {!loading && !error && reportType === 'general' && filteredRows.length > 0 && (
                 <div className="col-span-12">
                   <DataTable
@@ -329,20 +299,17 @@ const buildDynamicMetrics = (): MetricDef[] => {
                 </div>
               )}
 
-              {/* --- Estado Vacio --- */}
               {!loading && !error && !kpis && !filters && (
                 <div className="col-span-12">
-                  <div className="rounded-xl p-12 text-center" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px dashed #c2c6d4' }}>
-                    <p style={{ color: '#424752' }}>Selecciona un rango de fechas para ver las estadisticas</p>
+                  <div className="rounded-xl p-12 text-center" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px dashed var(--outline)' }}>
+                    <p style={{ color: 'var(--on-surface-variant)' }}>Selecciona un rango de fechas para ver las estadisticas</p>
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         </main>
       </div>
-
     </div>
   );
 }

@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from Seguridad.models import Usuario
-from Historias.models import HistoriaClinica
+from historias.models import HistoriaClinica
 
 
 @receiver(post_save, sender=Usuario)
