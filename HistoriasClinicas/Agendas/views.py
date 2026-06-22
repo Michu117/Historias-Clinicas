@@ -15,6 +15,7 @@ from .serializers import (
     ConsultaSocialSerializer, DerivacionSerializer, CertificadoSerializer
 )
 from . import services
+from Notificaciones.services import generate_notification_for_event
 
 
 class BaseAgendasViewSet(viewsets.ModelViewSet):
@@ -80,6 +81,23 @@ class CitaViewSet(BaseAgendasViewSet):
                 )
 
             self.perform_create(serializer)
+            cita = serializer.instance
+            try:
+                generate_notification_for_event(
+                    event_type='creacion',
+                    destinatario=cita.usuario_id,
+                    cita=cita,
+                    detalles={'mensaje': f'Su cita ha sido agendada para {cita.fecha_hora.strftime("%d/%m/%Y a las %H:%M")}.'},
+                )
+                if cita.profesional_id:
+                    generate_notification_for_event(
+                        event_type='creacion',
+                        destinatario=cita.profesional_id,
+                        cita=cita,
+                        detalles={'mensaje': f'Nueva cita agendada - {cita.motivo or "Sin motivo"}.'},
+                    )
+            except Exception:
+                pass
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         except services.ConflictoHorarioError as exc:
@@ -92,6 +110,40 @@ class CitaViewSet(BaseAgendasViewSet):
                 'success': False,
                 'error': {'code': 'BAD_REQUEST', 'message': str(exc)},
             }, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_update(self, serializer):
+        old_instance = self.get_object()
+        old_estado = old_instance.estado
+        instance = serializer.save()
+        new_estado = instance.estado
+
+        if new_estado != old_estado:
+            try:
+                if new_estado == 'CANCELADA':
+                    if instance.profesional_id:
+                        generate_notification_for_event(
+                            event_type='cancelacion',
+                            destinatario=instance.profesional_id,
+                            cita=instance,
+                            detalles={'mensaje': f'Cita cancelada por el paciente - {instance.motivo or "Sin motivo"}.'},
+                        )
+                elif new_estado == 'NO_ASISTIDA':
+                    generate_notification_for_event(
+                        event_type='cancelacion',
+                        destinatario=instance.usuario_id,
+                        cita=instance,
+                        detalles={'mensaje': f'No asistió a su cita del {instance.fecha_hora.strftime("%d/%m/%Y a las %H:%M")}.'},
+                    )
+                elif new_estado == 'REAGENDADA':
+                    if instance.profesional_id:
+                        generate_notification_for_event(
+                            event_type='reagendamiento',
+                            destinatario=instance.profesional_id,
+                            cita=instance,
+                            detalles={'mensaje': f'Cita reagendada - {instance.motivo or "Sin motivo"}.'},
+                        )
+            except Exception:
+                pass
 
     @action(detail=True, methods=['get'], url_path='historial')
     def historial(self, request, pk=None):

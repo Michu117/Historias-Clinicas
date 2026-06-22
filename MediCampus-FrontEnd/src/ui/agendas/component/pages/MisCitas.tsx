@@ -8,6 +8,7 @@ import { Cita, EstadoCita, Servicio } from '../../types';
 import { ConfirmModal } from '../shared/ConfirmModal';
 import { HamburgerMenu } from '../shared/HamburgerMenu';
 
+
 const ESTADO_LABEL: Record<string, { label: string; style: React.CSSProperties }> = {
   AGENDADA: { label: 'Agendada', style: { backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' } },
   CONFIRMADA: { label: 'Confirmada', style: { backgroundColor: '#eef2ff', color: '#4338ca' } },

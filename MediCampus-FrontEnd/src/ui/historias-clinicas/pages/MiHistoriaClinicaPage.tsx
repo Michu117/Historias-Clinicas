@@ -9,6 +9,7 @@ import type { HistoriaClinica } from '../types/historiaClinica.types';
 import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
 import type { ConsultaClinico } from '../types/consultaClinico.types';
 import type { DocumentoClinico } from '../types/documentoClinico.types';
+import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
 
 const TIPO_ANT_LABELS: Record<string, string> = {
   HEREDOFAMILIARES: 'Heredofamiliares',
@@ -43,6 +44,7 @@ export const MiHistoriaClinicaPage = () => {
   const [antecedentes, setAntecedentes] = useState<AntecedenteClinico[]>([]);
   const [consultas, setConsultas] = useState<ConsultaClinico[]>([]);
   const [documentos, setDocumentos] = useState<DocumentoClinico[]>([]);
+  const [registros, setRegistros] = useState<RegistroClinicoHistoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -57,14 +59,16 @@ export const MiHistoriaClinicaPage = () => {
       }
       const h = historias[0];
       setHistoria(h);
-      const [ants, cs, docs] = await Promise.all([
+      const [ants, cs, docs, regs] = await Promise.all([
         historiasClinicasService.listarAntecedentesPorHistoria(h.id),
         historiasClinicasService.listarCasosClinicosPorHistoria(h.id),
         historiasClinicasService.listarDocumentosPorHistoria(h.id),
+        historiasClinicasService.listarRegistrosClinicosPorHistoria(h.id),
       ]);
       setAntecedentes(ants);
       setConsultas(cs);
       setDocumentos(docs);
+      setRegistros(regs);
     } catch (err: any) {
       setError(err?.message ?? 'Ocurrió un error al cargar la información clínica.');
     } finally {
@@ -120,16 +124,58 @@ export const MiHistoriaClinicaPage = () => {
               <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Datos generales</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Alergia</p>
-                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.alergia || '—'}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Nombre </p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.usuario?.nombre || '—'}</p>
+                </div>
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>identificación</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.usuario?.identificacion || '—'}</p>
                 </div>
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
                   <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Condición preexistente</p>
                   <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.condicionPreexistente || '—'}</p>
                 </div>
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Factor de riesgo</p>
-                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.factorRiesgo || '—'}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Alergias</p>
+                  <div className="mt-1 max-h-32 space-y-1 overflow-y-auto">
+                    {(() => {
+                      const alergias = registros.filter((r) => r.tipo === 'ALERGIA');
+                      return alergias.length === 0 ? (
+                        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                      ) : (
+                        alergias.map((r) => (
+                          <div key={r.id}>
+                            <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                            <p className="text-[10px]" style={{ color: 'var(--card-text-muted)' }}>
+                              {new Date(r.fecha_registro).toLocaleDateString()}
+                              {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                            </p>
+                          </div>
+                        ))
+                      );
+                    })()}
+                  </div>
+                </div>
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Factores de riesgo</p>
+                  <div className="mt-1 max-h-32 space-y-1 overflow-y-auto">
+                    {(() => {
+                      const factores = registros.filter((r) => r.tipo === 'FACTOR_RIESGO');
+                      return factores.length === 0 ? (
+                        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                      ) : (
+                        factores.map((r) => (
+                          <div key={r.id}>
+                            <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                            <p className="text-[10px]" style={{ color: 'var(--card-text-muted)' }}>
+                              {new Date(r.fecha_registro).toLocaleDateString()}
+                              {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                            </p>
+                          </div>
+                        ))
+                      );
+                    })()}
+                  </div>
                 </div>
                 {historia.fechaApertura && (
                   <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>

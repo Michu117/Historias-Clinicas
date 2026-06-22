@@ -5,11 +5,9 @@ import { INotification } from '../types';
 
 describe('NotificationCard', () => {
   const mockNotification: INotification = {
-    id: '1',
-    tipo: 'cita',
-    mensaje: 'Nueva cita programada para el 2026-06-01',
+    id: '1', tipo: 'cita', tipoBackend: 'creacion', fecha_creacion: '2026-05-26T10:30:00Z', timestamp: '2026-05-26T10:30:00Z',
+    mensaje: 'Su cita ha sido agendada para 26/05/2026 a las 10:30.',
     estado: 'no_leido',
-    timestamp: '2026-05-26T10:30:00Z',
   };
 
   const mockOnMarkAsRead = vi.fn();
@@ -21,7 +19,7 @@ describe('NotificationCard', () => {
         onMarkAsRead={mockOnMarkAsRead}
       />
     );
-    expect(screen.getByText(/^Cita$/i)).toBeInTheDocument();
+    expect(screen.getByText('Cita Creada')).toBeInTheDocument();
   });
 
   it('renderiza mensaje tal cual llega del backend', () => {
@@ -31,7 +29,7 @@ describe('NotificationCard', () => {
         onMarkAsRead={mockOnMarkAsRead}
       />
     );
-    expect(screen.getByText('Nueva cita programada para el 2026-06-01')).toBeInTheDocument();
+    expect(screen.getByText('Su cita ha sido agendada para 26/05/2026 a las 10:30.')).toBeInTheDocument();
   });
 
   it('renderiza timestamp legible', () => {
@@ -126,11 +124,9 @@ describe('NotificationCard', () => {
 
   it('renderiza notificación de tipo derivacion', () => {
     const derivationNotification: INotification = {
-      id: '2',
-      tipo: 'derivacion',
+      id: '2', tipo: 'derivacion', tipoBackend: 'derivacion', fecha_creacion: '2026-05-26T09:15:00Z', timestamp: '2026-05-26T09:15:00Z',
       mensaje: 'Paciente derivado a tu servicio. Motivo: evaluación cardiológica',
       estado: 'no_leido',
-      timestamp: '2026-05-26T09:15:00Z',
     };
 
     render(

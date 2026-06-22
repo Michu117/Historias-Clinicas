@@ -9,6 +9,7 @@ from .models import (
     EstadoCaso,
     HistoriaClinica,
     Prioridad,
+    RegistroClinicoHistoria,
     TipoAntecedente,
     TipoDocumento,
 )
@@ -72,6 +73,45 @@ class DocumentoSerializer(serializers.ModelSerializer):
         if value is None or not value.strip():
             raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
         return value.strip()
+
+class RegistroClinicoHistoriaSerializer(serializers.ModelSerializer):
+    medico_registro_nombre = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RegistroClinicoHistoria
+        fields = (
+            "id",
+            "historia_clinica",
+            "tipo",
+            "descripcion",
+            "fecha_registro",
+            "medico_registro",
+            "medico_registro_nombre",
+            "activo",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "historia_clinica",
+            "fecha_registro",
+            "medico_registro",
+            "medico_registro_nombre",
+            "activo",
+            "created_at",
+            "updated_at",
+        )
+
+    def get_medico_registro_nombre(self, obj):
+        if obj.medico_registro:
+            return obj.medico_registro.nombre_completo
+        return None
+
+    def validate_descripcion(self, value):
+        if value is None or not value.strip():
+            raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
+        return value.strip()
+
 
 class ConsultaHistoriaSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
