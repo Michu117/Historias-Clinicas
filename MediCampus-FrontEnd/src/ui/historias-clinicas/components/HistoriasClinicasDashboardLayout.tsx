@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import React from "react";
 
 interface HistoriasClinicasDashboardLayoutProps {
   children: React.ReactNode;
@@ -50,15 +51,20 @@ export const HistoriasClinicasDashboardLayout = ({
               Historias Clínicas
             </a>
           </nav>
-
-          <div className="mt-auto px-6 pt-5 pb-3" style={{ borderTop: '1px solid var(--outline)' }}>
-            <div className="flex flex-col gap-0.5">
-              <button type="button" onClick={() => navigate('/')} className="flex w-full items-center gap-3 bg-transparent p-0 text-[16px] font-bold text-red-600 hover:text-red-700">
-                <span className="material-symbols-outlined text-[22px] text-red-600">logout</span>
-                Cerrar sesión
-              </button>
-            </div>
-          </div>
+          <div className="mt-auto">
+        <button
+          onClick={() => { localStorage.clear(); window.location.href = '/'; }}
+          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-sm transition-all shadow-none outline-none ring-0"
+          style={{ color: 'var(--primary)', backgroundColor: 'transparent' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-tertiary-hover)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span>Cerrar Sesi&oacute;n</span>
+        </button>
+      </div>
         </aside>
 
         <section className="flex min-w-0 flex-col overflow-hidden" style={{ backgroundColor: 'var(--hc-bg)' }}>

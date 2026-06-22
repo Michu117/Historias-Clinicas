@@ -356,26 +356,27 @@ export const GestionHistoriasClinicasPage = () => {
 
   useEffect(() => {
     if (!isAuthorized) {
-      navigate('/seguridad/login');
+      navigate('/seguridad/login', { replace: true });
       return;
     }
     if (role === 'PACIENTE') {
       navigate('/historias/mi-historia', { replace: true });
       return;
     }
-  }, [isAuthorized, role, navigate]);
+    if (role === 'ADMINISTRADOR' || permissions?.isAdminBlocked) {
+      navigate('/home', { replace: true });
+      return;
+    }
+    if (role !== 'MEDICO') {
+      navigate('/home', { replace: true });
+      return;
+    }
+  }, [isAuthorized, role, permissions, navigate]);
 
   if (!isAuthorized) return null;
+  if (role !== 'MEDICO') return null;
 
-  if (role === 'ADMINISTRADOR' || permissions?.isAdminBlocked) {
-    return <AccessDenied />;
-  }
-
-  if (role === 'MEDICO') {
-    return <MedicoContent />;
-  }
-
-  return <AccessDenied />;
+  return <MedicoContent />;
 };
 
 export default GestionHistoriasClinicasPage;

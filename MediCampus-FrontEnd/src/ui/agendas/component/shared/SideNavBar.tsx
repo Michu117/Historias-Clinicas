@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { label: 'Pacientes', icon: 'patients', path: '/agendas/mi-agenda', match: '/agendas/pacientes' },
   { label: 'Derivaciones', icon: 'referral', path: '/agendas/derivaciones', match: '/agendas/derivaciones' },
   { label: 'Certificados', icon: 'certificate', path: '/agendas/certificados', match: '/agendas/certificados' },
+  { label: 'Historias Clinicas', icon: 'certificate', path: '/historias', match: '/historias' },
 ];
 
 export const SideNavBar: React.FC = () => {
