@@ -25,15 +25,15 @@ const SecurityDashboard: React.FC = () => {
     <ProtectedRoute permission="security.dashboard">
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#141b2b]">Panel de Seguridad</h1>
-          <p className="text-sm text-[#424752] mt-1">Monitoreo general del estado de seguridad del sistema</p>
+          <h1 className="text-2xl font-bold text-[var(--hc-text)]">Panel de Seguridad</h1>
+          <p className="text-sm text-[var(--on-surface-variant)] mt-1">Monitoreo general del estado de seguridad del sistema</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {KPIS.map((kpi) => (
             <Card key={kpi.label} className="flex flex-col">
-              <span className="text-sm text-[#424752]">{kpi.label}</span>
-              <span className="text-3xl font-bold text-[#141b2b] mt-1">{kpi.value}</span>
+              <span className="text-sm text-[var(--on-surface-variant)]">{kpi.label}</span>
+              <span className="text-3xl font-bold text-[var(--hc-text)] mt-1">{kpi.value}</span>
               <div className="mt-2">
                 <Badge variant={kpi.variant}>{kpi.change} vs semana anterior</Badge>
               </div>
@@ -47,11 +47,11 @@ const SecurityDashboard: React.FC = () => {
             {QUICK_LINKS.map((link) => (
               <Card
                 key={link.path}
-                className="cursor-pointer hover:border-[#0056b3] transition-colors"
+                className="cursor-pointer hover:border-[var(--primary)] transition-colors"
                 onClick={() => navigate(link.path)}
               >
-                <h3 className="font-semibold text-[#141b2b]">{link.label}</h3>
-                <p className="text-sm text-[#424752] mt-1">{link.desc}</p>
+                <h3 className="font-semibold text-[var(--hc-text)]">{link.label}</h3>
+                <p className="text-sm text-[var(--on-surface-variant)] mt-1">{link.desc}</p>
               </Card>
             ))}
           </div>

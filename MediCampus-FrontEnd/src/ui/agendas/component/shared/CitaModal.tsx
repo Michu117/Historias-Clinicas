@@ -16,13 +16,14 @@ export const CitaModal: FC<CitaModalProps> = ({ cita, open, onClose, onAction })
   const isAtendida = String(cita.estado) === 'ATENDIDA' || String(cita.estado) === 'COMPLETADA';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="rounded-lg shadow-lg p-6 max-w-md w-full" style={{ backgroundColor: 'var(--card-bg)' }}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Detalles de Cita</h2>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--hc-text)' }}>Detalles de Cita</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-sm hover:opacity-70"
+            style={{ color: 'var(--on-surface-variant)' }}
             aria-label="Cerrar"
           >
             ✕
@@ -30,19 +31,19 @@ export const CitaModal: FC<CitaModalProps> = ({ cita, open, onClose, onAction })
         </div>
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-semibold text-gray-600">Hora</label>
-            <p className="text-lg">{cita.hora}</p>
+            <label className="text-sm font-semibold" style={{ color: 'var(--on-surface-variant)' }}>Hora</label>
+            <p className="text-lg" style={{ color: 'var(--hc-text)' }}>{cita.hora}</p>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-600">Motivo</label>
-            <p className="text-lg">{cita.motivo}</p>
+            <label className="text-sm font-semibold" style={{ color: 'var(--on-surface-variant)' }}>Motivo</label>
+            <p className="text-lg" style={{ color: 'var(--hc-text)' }}>{cita.motivo}</p>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-600">Paciente</label>
-            <p className="text-lg">ID: {cita.paciente_id}</p>
+            <label className="text-sm font-semibold" style={{ color: 'var(--on-surface-variant)' }}>Paciente</label>
+            <p className="text-lg" style={{ color: 'var(--hc-text)' }}>ID: {cita.paciente_id}</p>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-600">Estado</label>
+            <label className="text-sm font-semibold" style={{ color: 'var(--on-surface-variant)' }}>Estado</label>
             <div className="mt-1">
               <EstadoBadge estado={cita.estado} />
             </div>
@@ -58,14 +59,20 @@ export const CitaModal: FC<CitaModalProps> = ({ cita, open, onClose, onAction })
           {isAtendida && onAction && (
             <button
               onClick={() => onAction('derivar', { citaId: cita.id })}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 rounded hover:opacity-90 transition-all"
+              style={{ backgroundColor: 'var(--btn-info-bg)', color: 'var(--btn-info-text)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--btn-info-hover)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--btn-info-bg)'; }}
             >
               Derivar Paciente
             </button>
           )}
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+            className="px-4 py-2 rounded hover:opacity-90 transition-all"
+            style={{ backgroundColor: 'var(--btn-secondary-bg)', color: 'var(--btn-secondary-text)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--btn-secondary-hover)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--btn-secondary-bg)'; }}
           >
             Cerrar
           </button>

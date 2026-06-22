@@ -41,7 +41,18 @@ export const CertificateButton: FC<CertificateButtonProps> = ({ citaId, estado, 
       onClick={handleClick}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
       disabled={isProcessing}
-      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+      className="px-4 py-2 rounded transition-all disabled:cursor-not-allowed"
+      style={{
+        backgroundColor: isProcessing ? 'var(--surface-container-high)' : 'var(--btn-success-bg)',
+        color: isProcessing ? 'var(--on-surface-variant)' : 'var(--btn-success-text)',
+        opacity: isProcessing ? 0.6 : 1,
+      }}
+      onMouseEnter={(e) => {
+        if (!isProcessing) e.currentTarget.style.backgroundColor = 'var(--btn-success-hover)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = isProcessing ? 'var(--surface-container-high)' : 'var(--btn-success-bg)';
+      }}
       aria-label={messages.certificados.descargarCertificado}
       aria-busy={isProcessing}
       role="button"

@@ -6,14 +6,15 @@ import { servicioService } from '../../services/api/servicioService';
 import { getUserId } from '../../services/storage/authStorage';
 import { Cita, EstadoCita, Servicio } from '../../types';
 import { ConfirmModal } from '../shared/ConfirmModal';
+import { HamburgerMenu } from '../shared/HamburgerMenu';
 
-const ESTADO_LABEL: Record<string, { label: string; color: string }> = {
-  AGENDADA: { label: 'Agendada', color: 'bg-blue-100 text-blue-700' },
-  CONFIRMADA: { label: 'Confirmada', color: 'bg-indigo-100 text-indigo-700' },
-  ATENDIDA: { label: 'Atendida', color: 'bg-green-100 text-green-700' },
-  CANCELADA: { label: 'Cancelada', color: 'bg-red-100 text-red-700' },
-  NO_ASISTIDA: { label: 'No Asistió', color: 'bg-yellow-100 text-yellow-700' },
-  REAGENDADA: { label: 'Reagendada', color: 'bg-purple-100 text-purple-700' },
+const ESTADO_LABEL: Record<string, { label: string; style: React.CSSProperties }> = {
+  AGENDADA: { label: 'Agendada', style: { backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' } },
+  CONFIRMADA: { label: 'Confirmada', style: { backgroundColor: '#eef2ff', color: '#4338ca' } },
+  ATENDIDA: { label: 'Atendida', style: { backgroundColor: 'var(--secondary-container)', color: 'var(--on-secondary-container)' } },
+  CANCELADA: { label: 'Cancelada', style: { backgroundColor: '#fef2f2', color: '#991b1b' } },
+  NO_ASISTIDA: { label: 'No Asistió', style: { backgroundColor: '#fef3c7', color: '#92400e' } },
+  REAGENDADA: { label: 'Reagendada', style: { backgroundColor: '#f3e8ff', color: '#6b21a8' } },
 };
 
 export const MisCitas: React.FC = () => {
@@ -82,32 +83,24 @@ export const MisCitas: React.FC = () => {
   };
 
   const estadoBadge = (estado: string) => {
-    const info = ESTADO_LABEL[estado] || { label: estado, color: 'bg-gray-100 text-gray-700' };
+    const info = ESTADO_LABEL[estado] || { label: estado, style: { backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' } };
     return (
-      <span className={`text-xs font-bold px-2 py-1 rounded-full ${info.color}`}>
+      <span className="text-xs font-bold px-2 py-1 rounded-full" style={info.style}>
         {info.label}
       </span>
     );
   };
 
   return (
-    <div className="h-screen flex flex-col bg-hc-bg">
-      <header className="bg-hc-primary text-hc-primaryText px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--hc-bg)' }}>
+      <header className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between" style={{ backgroundColor: 'var(--btn-primary-bg)' }}>
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-            <span className="font-bold text-sm sm:text-base">M</span>
+            <span className="font-bold text-sm sm:text-base text-white">M</span>
           </div>
-          <h1 className="text-base sm:text-lg font-semibold truncate">Mis Citas</h1>
+          <h1 className="text-base sm:text-lg font-semibold truncate text-white">Mis Citas</h1>
         </div>
-        <button
-          onClick={() => navigate('/home')}
-          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-hc-primaryText/80 hover:text-hc-primaryText transition-colors shrink-0"
-        >
-          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          Inicio
-        </button>
+        <HamburgerMenu />
       </header>
 
       <main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
@@ -115,7 +108,7 @@ export const MisCitas: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle>Mis Citas Agendadas</CardTitle>
-              <p className="mt-1 text-xs sm:text-sm text-slate-500">
+              <p className="mt-1 text-xs sm:text-sm" style={{ color: 'var(--card-text-muted)' }}>
                 Revisa, reprograma o cancela tus citas médicas.
               </p>
             </div>
@@ -125,7 +118,6 @@ export const MisCitas: React.FC = () => {
           </div>
         </Card>
 
-        {/* Filtros */}
         <Card>
           <div className="flex gap-2">
             {[
@@ -136,11 +128,18 @@ export const MisCitas: React.FC = () => {
               <button
                 key={f.value}
                 onClick={() => setFiltroEstado(f.value)}
-                className={`px-3 py-1.5 text-xs sm:text-sm rounded-full font-bold transition-colors ${
+                className="px-3 py-1.5 text-xs sm:text-sm rounded-full font-bold transition-colors"
+                style={
                   filtroEstado === f.value
-                    ? 'bg-hc-primary text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                    ? { backgroundColor: 'var(--btn-primary-bg)', color: 'var(--btn-primary-text)' }
+                    : { backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }
+                }
+                onMouseEnter={(e) => {
+                  if (filtroEstado !== f.value) e.currentTarget.style.backgroundColor = 'var(--surface-container-high)';
+                }}
+                onMouseLeave={(e) => {
+                  if (filtroEstado !== f.value) e.currentTarget.style.backgroundColor = 'var(--surface-container-low)';
+                }}
               >
                 {f.label}
               </button>
@@ -148,11 +147,10 @@ export const MisCitas: React.FC = () => {
           </div>
         </Card>
 
-        {/* Alertas */}
         {(error || message) && (
           <div className="space-y-2">
             {error ? (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 sm:p-4 text-red-700 text-xs sm:text-sm flex items-center gap-2 font-medium">
+              <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#fecaca', backgroundColor: '#fef2f2', color: '#991b1b' }}>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -160,7 +158,7 @@ export const MisCitas: React.FC = () => {
               </div>
             ) : null}
             {message ? (
-              <div className="rounded-lg border border-green-200 bg-green-50 p-3 sm:p-4 text-green-700 text-xs sm:text-sm flex items-center gap-2 font-medium">
+              <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#bbf7d0', backgroundColor: '#f0fdf4', color: '#166534' }}>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -170,15 +168,14 @@ export const MisCitas: React.FC = () => {
           </div>
         )}
 
-        {/* Lista de citas */}
         <div className="space-y-3">
           {isLoading ? (
             <Card>
-              <p className="text-sm text-slate-500 text-center py-8">Cargando citas...</p>
+              <p className="text-sm text-center py-8" style={{ color: 'var(--card-text-muted)' }}>Cargando citas...</p>
             </Card>
           ) : citas.length === 0 ? (
             <Card>
-              <p className="text-sm text-slate-500 text-center py-8">No tienes citas en esta categoría.</p>
+              <p className="text-sm text-center py-8" style={{ color: 'var(--card-text-muted)' }}>No tienes citas en esta categoría.</p>
             </Card>
           ) : (
             citas.map((cita) => {
@@ -189,21 +186,21 @@ export const MisCitas: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-semibold text-slate-900 text-sm sm:text-base truncate">
+                        <h4 className="font-semibold text-sm sm:text-base truncate" style={{ color: 'var(--hc-text)' }}>
                           {servicioNombre}
                         </h4>
                         {estadoBadge(cita.estado)}
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-600">
+                      <p className="text-xs sm:text-sm" style={{ color: 'var(--on-surface-variant)' }}>
                         <span className="font-medium">Fecha:</span> {String(cita.fecha)} a las {cita.hora}
                       </p>
                       {cita.profesional_nombre && (
-                        <p className="text-xs sm:text-sm text-slate-600">
+                        <p className="text-xs sm:text-sm" style={{ color: 'var(--on-surface-variant)' }}>
                           <span className="font-medium">Profesional:</span> {cita.profesional_nombre}
                         </p>
                       )}
                       {cita.motivo && (
-                        <p className="text-xs sm:text-sm text-slate-500 line-clamp-2">
+                        <p className="text-xs sm:text-sm line-clamp-2" style={{ color: 'var(--card-text-muted)' }}>
                           <span className="font-medium">Motivo:</span> {cita.motivo}
                         </p>
                       )}
@@ -257,7 +254,7 @@ export const MisCitas: React.FC = () => {
         isLoading={cancelandoId !== null}
       />
 
-      <footer className="text-center text-[10px] sm:text-xs text-slate-400 py-3 sm:py-4 border-t border-slate-200">
+      <footer className="text-center text-[10px] sm:text-xs py-3 sm:py-4" style={{ color: 'var(--on-surface-variant)', borderTop: '1px solid var(--card-border)' }}>
         Universidad Nacional de Loja &copy; {new Date().getFullYear()}
       </footer>
     </div>

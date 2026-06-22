@@ -36,6 +36,10 @@ export default function ReportDataTable({
 }: ReportDataTableProps): JSX.Element {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const [hoveredTh, setHoveredTh] = useState<string | null>(null);
+  const [prevHovered, setPrevHovered] = useState(false);
+  const [nextHovered, setNextHovered] = useState(false);
 
   const handleSort = (column: string) => {
     const newDirection = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
@@ -50,10 +54,15 @@ export default function ReportDataTable({
   const exportColumns = columns.map(c => c.key);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+    <div
+      className="rounded-lg shadow-sm overflow-hidden"
+      style={{ border: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-lowest)' }}
+    >
+      <div
+        className="px-6 py-4 flex items-center justify-between"
+        style={{ borderBottom: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-low)' }}
+      >
+        <h2 className="text-lg font-semibold" style={{ color: 'var(--on-surface)' }}>{title}</h2>
         {allowExport && (
           <ExportButton
             data={data}
@@ -63,24 +72,28 @@ export default function ReportDataTable({
         )}
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm divide-y divide-gray-200">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr className="divide-x divide-gray-200">
+        <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+          <thead style={{ backgroundColor: 'var(--surface-container-low)' }}>
+            <tr style={{ borderBottom: '1px solid var(--outline-variant)' }}>
               {columns.map(col => (
                 <th
                   key={col.key}
-                  className={`px-6 py-3 font-semibold text-gray-700 text-${col.align || 'left'} ${
-                    col.sortable ? 'cursor-pointer hover:bg-gray-100 select-none' : ''
-                  }`}
+                  className={`px-6 py-3 font-semibold text-${col.align || 'left'} ${col.sortable ? 'cursor-pointer select-none' : ''}`}
+                  style={{
+                    color: 'var(--on-surface-variant)',
+                    borderRight: '1px solid var(--outline-variant)',
+                    backgroundColor: col.sortable && hoveredTh === col.key ? 'var(--surface-container-low)' : undefined
+                  }}
                   onClick={() => col.sortable && handleSort(col.key)}
+                  onMouseEnter={() => col.sortable && setHoveredTh(col.key)}
+                  onMouseLeave={() => setHoveredTh(null)}
                 >
-                  <div className="flex items-center gap-2 justify-${col.align === 'center' ? 'center' : col.align === 'right' ? 'end' : 'start'}">
+                  <div className="flex items-center gap-2">
                     {col.label}
                     {col.sortable && sortColumn === col.key && (
                       <span className="text-xs font-bold inline-block">
-                        {sortDirection === 'asc' ? '↑' : '↓'}
+                        {sortDirection === 'asc' ? '\u2191' : '\u2193'}
                       </span>
                     )}
                   </div>
@@ -88,14 +101,27 @@ export default function ReportDataTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody>
             {data && data.length > 0 ? (
               data.map((row, idx) => (
-                <tr key={idx} className="hover:bg-blue-50 transition-colors divide-x divide-gray-200">
+                <tr
+                  key={idx}
+                  style={{
+                    borderBottom: '1px solid var(--outline-variant)',
+                    backgroundColor: hoveredRow === idx ? 'var(--table-row-hover)' : undefined,
+                    transition: 'background-color 0.15s'
+                  }}
+                  onMouseEnter={() => setHoveredRow(idx)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                >
                   {columns.map(col => (
                     <td
                       key={col.key}
-                      className={`px-6 py-3 text-gray-900 text-${col.align || 'left'}`}
+                      className={`px-6 py-3 text-${col.align || 'left'}`}
+                      style={{
+                        color: 'var(--on-surface)',
+                        borderRight: '1px solid var(--outline-variant)'
+                      }}
                     >
                       {row[col.key] || '-'}
                     </td>
@@ -104,9 +130,10 @@ export default function ReportDataTable({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={columns.length} className="px-6 py-8 text-center" style={{ color: 'var(--card-text-muted)' }}>
                   <svg
-                    className="mx-auto h-12 w-12 text-gray-400 mb-2"
+                    className="mx-auto h-12 w-12 mb-2"
+                    style={{ color: 'var(--card-text-muted)' }}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -121,24 +148,40 @@ export default function ReportDataTable({
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-between flex-col gap-3 md:flex-row">
-        <p className="text-sm text-gray-600 font-medium">
-          Página <span className="font-bold text-gray-900">{pagination.page}</span> de{' '}
-          <span className="font-bold text-gray-900">{totalPages}</span> ({pagination.total} registros)
+      <div
+        className="px-6 py-4 flex items-center justify-between flex-col gap-3 md:flex-row"
+        style={{ borderTop: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-low)' }}
+      >
+        <p className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
+          Pagina <span className="font-bold" style={{ color: 'var(--on-surface)' }}>{pagination.page}</span> de{' '}
+          <span className="font-bold" style={{ color: 'var(--on-surface)' }}>{totalPages}</span> ({pagination.total} registros)
         </p>
         <div className="flex gap-2">
           <button
             onClick={() => onPageChange(pagination.page - 1)}
             disabled={!canGoPrev}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium disabled:cursor-not-allowed transition-colors"
+            style={{
+              border: '1px solid var(--outline)',
+              backgroundColor: prevHovered && canGoPrev ? 'var(--surface-container-low)' : 'var(--surface-container-lowest)',
+              color: canGoPrev ? 'var(--on-surface-variant)' : 'var(--card-text-muted)'
+            }}
+            onMouseEnter={() => setPrevHovered(true)}
+            onMouseLeave={() => setPrevHovered(false)}
           >
             ← Anterior
           </button>
           <button
             onClick={() => onPageChange(pagination.page + 1)}
             disabled={!canGoNext}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium disabled:cursor-not-allowed transition-colors"
+            style={{
+              border: '1px solid var(--outline)',
+              backgroundColor: nextHovered && canGoNext ? 'var(--surface-container-low)' : 'var(--surface-container-lowest)',
+              color: canGoNext ? 'var(--on-surface-variant)' : 'var(--card-text-muted)'
+            }}
+            onMouseEnter={() => setNextHovered(true)}
+            onMouseLeave={() => setNextHovered(false)}
           >
             Siguiente →
           </button>
@@ -147,5 +190,3 @@ export default function ReportDataTable({
     </div>
   );
 }
-
-

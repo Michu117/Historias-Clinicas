@@ -91,44 +91,44 @@ const RegisterPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf9ff] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--hc-bg)] p-4">
       <Card className="w-full max-w-lg">
         <div className="text-center mb-6">
-          <div className="mx-auto w-12 h-12 bg-[#0056b3] rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-[var(--primary)] rounded-full flex items-center justify-center mb-4">
             <span className="text-hc-primaryText text-xl font-bold">M</span>
           </div>
           <CardTitle>Crear Cuenta</CardTitle>
-          <p className="text-sm text-[#424752] mt-1">Regístrate en el sistema de MediCampus</p>
+          <p className="text-sm text-[var(--on-surface-variant)] mt-1">Regístrate en el sistema de MediCampus</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#424752] mb-1">Nombres <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Nombres <span className="text-red-500">*</span></label>
               <Input placeholder="Ana" value={form.nombre} onChange={handleChange('nombre')} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#424752] mb-1">Apellidos <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Apellidos <span className="text-red-500">*</span></label>
               <Input placeholder="Pérez" value={form.apellido} onChange={handleChange('apellido')} required />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#424752] mb-1">Cédula <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula <span className="text-red-500">*</span></label>
             <Input placeholder="0102030405" value={form.cedula} onChange={handleChange('cedula')} required />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#424752] mb-1">Correo electrónico <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Correo electrónico <span className="text-red-500">*</span></label>
             <Input type="email" placeholder="ana@example.com" value={form.correo} onChange={handleChange('correo')} required />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#424752] mb-1">Contraseña <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Contraseña <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={form.clave} onChange={handleChange('clave')} required className="pr-10" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-transparent border-none outline-none text-[#424752] hover:text-[#141b2b] cursor-pointer">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-transparent border-none outline-none text-[var(--on-surface-variant)] hover:text-[var(--hc-text)] cursor-pointer">
                   <span className="material-symbols-outlined text-[18px] leading-none">{showPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
@@ -143,10 +143,10 @@ const RegisterPage: React.FC = () => {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#424752] mb-1">Confirmar contraseña <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Confirmar contraseña <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" value={form.confirmarClave} onChange={handleChange('confirmarClave')} required className="pr-10" />
-                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-transparent border-none outline-none text-[#424752] hover:text-[#141b2b] cursor-pointer">
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 bg-transparent border-none outline-none text-[var(--on-surface-variant)] hover:text-[var(--hc-text)] cursor-pointer">
                   <span className="material-symbols-outlined text-[18px] leading-none">{showConfirmPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
@@ -155,11 +155,11 @@ const RegisterPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#424752] mb-1">Fecha de nacimiento <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Fecha de nacimiento <span className="text-red-500">*</span></label>
               <Input type="date" value={form.fechaNacimiento} onChange={handleChange('fechaNacimiento')} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#424752] mb-1">Sexo <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Sexo <span className="text-red-500">*</span></label>
               <Select options={SEXO_OPTIONS} value={form.sexo} onChange={handleChange('sexo')} required />
             </div>
           </div>
@@ -175,7 +175,7 @@ const RegisterPage: React.FC = () => {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-[#424752] mt-4">
+        <p className="text-center text-sm text-[var(--on-surface-variant)] mt-4">
           ¿Ya tienes cuenta?{' '}
           <Link to="/seguridad/login" className="text-hc-primary font-medium hover:underline">
             Iniciar Sesión

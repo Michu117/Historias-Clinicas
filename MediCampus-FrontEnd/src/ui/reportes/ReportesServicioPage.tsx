@@ -39,7 +39,7 @@ export default function ReportesServicioPage({
 
   if (!permissions.canViewReports) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="flex items-center justify-center min-h-screen p-4" style={{ backgroundColor: 'var(--hc-bg)' }}>
         <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
           <p className="text-red-700 font-medium">No tienes permiso para ver los reportes</p>
         </div>
@@ -67,12 +67,12 @@ export default function ReportesServicioPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--hc-bg)' }}>
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Reporte por Servicio</h1>
-          <p className="mt-2 text-gray-600">Servicios ID: {servicioId}</p>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--on-surface)' }}>Reporte por Servicio</h1>
+          <p className="mt-2" style={{ color: 'var(--on-surface-variant)' }}>Servicios ID: {servicioId}</p>
         </div>
 
         {/* Filter Bar */}
@@ -107,13 +107,11 @@ export default function ReportesServicioPage({
 
         {/* Empty State */}
         {!loading && !error && !filteredData?.length && filters && (
-          <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center">
-            <p className="text-gray-600">No hay datos para este servicio en el período seleccionado</p>
+          <div className="rounded-lg border border-dashed p-12 text-center" style={{ borderColor: 'var(--outline)' }}>
+            <p style={{ color: 'var(--on-surface-variant)' }}>No hay datos para este servicio en el periodo seleccionado</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-
