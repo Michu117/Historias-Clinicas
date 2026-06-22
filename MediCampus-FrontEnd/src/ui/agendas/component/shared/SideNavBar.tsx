@@ -11,6 +11,7 @@ export interface NavItem {
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: 'Citas', icon: 'calendar', path: '/agendas/mi-agenda', match: '/agendas/mi-agenda' },
   { label: 'Historias Clinicas', icon: 'certificate', path: '/historias', match: '/historias' },
+  { label: 'Notificaciones', icon: 'notifications', path: '/notificaciones', match: '/notificaciones' },
 ];
 
 interface SideNavBarProps {

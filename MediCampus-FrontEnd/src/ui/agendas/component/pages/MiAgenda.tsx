@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAgenda } from '../../hooks/useAgenda';
 import { SideNavBar } from '../shared/SideNavBar';
+import { NotificationBell } from '../../../notificaciones';
+import { useNotifications, useMarkAsRead } from '../../../notificaciones';
 import { Cita, EstadoCita } from '../../types';
 import { citaService } from '../../services/api/citaService';
 import { startedConsultaStorage } from '../../services/storage/startedConsultaStorage';
@@ -89,6 +91,8 @@ function addDays(date: Date, days: number): Date {
 export const MiAgenda: React.FC = () => {
   const navigate = useNavigate();
   const { citas, loading, error, loadAgenda } = useAgenda();
+  const { notifications, isLoading: notifLoading, error: notifError } = useNotifications();
+  const markAsRead = useMarkAsRead();
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => toISODate(new Date()));
@@ -189,6 +193,12 @@ export const MiAgenda: React.FC = () => {
           style={{ backgroundColor: 'rgba(255,255,255,0.8)', borderColor: 'var(--outline)', backdropFilter: 'blur(8px)' }}
         >
           <div className="flex items-center gap-4">
+            <NotificationBell
+              notifications={notifications}
+              isLoading={notifLoading}
+              onMarkAsRead={markAsRead}
+              error={notifError || undefined}
+            />
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2"
               style={{ backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)', borderColor: 'var(--outline)' }}

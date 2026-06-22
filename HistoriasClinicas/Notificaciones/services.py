@@ -1,8 +1,12 @@
+import logging
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 
 from .models import Notificacion
+from .email_service import enviar_email_notificacion
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -65,6 +69,10 @@ def create_notification(validated_data, created_by=None):
         origen_evento=validated_data['origen_evento'],
         detalles=validated_data.get('detalles') or {},
     )
+    try:
+        enviar_email_notificacion(notification)
+    except Exception as e:
+        logger.error('Error al enviar email para notificación %s: %s', notification.id, e)
     return notification
 
 

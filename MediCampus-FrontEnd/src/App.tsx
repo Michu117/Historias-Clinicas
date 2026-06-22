@@ -22,6 +22,7 @@ import MiHistoriaClinicaPage from "./ui/historias-clinicas/pages/MiHistoriaClini
 
 // Importaciones Globales y Reportes
 import LandingPage from './ui/global/LandingPage';
+import { NotificationCenter } from './ui/notificaciones';
 import HomePage from './ui/global/HomePage';
 import ReportesDashboardPage from './ui/reportes/ReportesDashboardPage';
 import ReportesRangoPage from './ui/reportes/ReportesRangoPage';
@@ -98,6 +99,8 @@ export default function App() {
               <Route path="audit/:logId" element={<AuditLogDetailPage />} />
               <Route path="alerts" element={<CriticalAlertsPage />} />
             </Route>
+
+            <Route path="/notificaciones" element={<NotificationCenter />} />
 
             {/* Rutas de Agendas */}
             <Route path="/AgendarCita" element={<AuthGuard><AgendarCita /></AuthGuard>} />
