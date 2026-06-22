@@ -41,6 +41,7 @@ export default function EditarHistoriaClinicaPage() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     if (!isAuthorized) {
@@ -48,7 +49,7 @@ export default function EditarHistoriaClinicaPage() {
       return;
     }
     if (!role || role !== 'MEDICO' || !permissions?.canEditHistoria) {
-      navigate('/home', { replace: true });
+      setAccessDenied(true);
       return;
     }
   }, [role, permissions, isAuthorized, navigate]);
