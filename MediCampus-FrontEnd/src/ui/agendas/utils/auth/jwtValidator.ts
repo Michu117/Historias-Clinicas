@@ -21,7 +21,9 @@ export const parseJWT = (token: string): JWTPayload => {
     }
 
     // Decodificar payload (segunda parte)
-    const payload = parts[1];
+    let payload = parts[1]
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
     // Agregar padding si es necesario
     const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
     const decoded = atob(padded); // Base64 decode
@@ -81,8 +83,16 @@ export const getTokenExpiresIn = (token: string): number => {
   }
 };
 
-const PROFESSIONAL_ROLES = new Set(['PROFESIONAL', 'medico', 'psicologo', 'odontologo', 'trabajador_social']);
-const ADMIN_ROLES = new Set(['ADMIN', 'admin', 'Administrador']);
+const normalizarRol = (rol?: string): string =>
+  String(rol ?? '')
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_');
+
+const PROFESSIONAL_ROLES = new Set(['profesional', 'medico', 'psicologo', 'odontologo', 'trabajador_social', 'trabajo_social']);
+const ADMIN_ROLES = new Set(['admin', 'administrador']);
 
 /**
  * Verifica que el rol del token coincida con el esperado
@@ -94,7 +104,7 @@ const ADMIN_ROLES = new Set(['ADMIN', 'admin', 'Administrador']);
 export const getTokenRole = (token: string): string | null => {
   try {
     const payload = parseJWT(token);
-    return payload.rol || null;
+    return normalizarRol(payload.rol) || null;
   } catch {
     return null;
   }
@@ -103,16 +113,17 @@ export const getTokenRole = (token: string): string | null => {
 export const validateTokenRole = (token: string, expectedRole: string): boolean => {
   try {
     const payload = parseJWT(token);
+    const rolNormalizado = normalizarRol(payload.rol);
 
     const expectedUpper = expectedRole.toUpperCase();
     if (expectedUpper === 'PROFESIONAL') {
-      return PROFESSIONAL_ROLES.has(payload.rol);
+      return PROFESSIONAL_ROLES.has(rolNormalizado);
     }
     if (expectedUpper === 'ADMIN') {
-      return ADMIN_ROLES.has(payload.rol);
+      return ADMIN_ROLES.has(rolNormalizado);
     }
 
-    return payload.rol === expectedRole;
+    return rolNormalizado === normalizarRol(expectedRole);
   } catch (error) {
     console.error('Error al validar rol del token:', error);
     return false;

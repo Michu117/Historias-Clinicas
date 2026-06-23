@@ -75,6 +75,14 @@ export const historiasClinicasService = {
   return (data || []).map(mapApiHistoriaToModel);
   },
 
+  obtenerMiHistoriaClinica: async (): Promise<HistoriaClinica> => {
+    const response = await apiClient.get<any>(
+      '/historias/historias_clinicas/mi_historia/'
+    );
+    const data = response.data ?? response;
+    return mapApiHistoriaToModel(data);
+  },
+
   obtenerHistoriaClinicaPorId: async (id: string): Promise<HistoriaClinica> => {
   try {
     const response = await apiClient.get<any>(
@@ -220,11 +228,17 @@ export const historiasClinicasService = {
       : response.data ?? response.results ?? [];
     return (data || []).map((api: any) => ({
       id: String(api.id ?? ''),
+      historiaClinicaId: String(api.historia_clinica_id ?? api.historiaClinicaId ?? ''),
       tipo: api.tipo ?? '',
       fecha: api.fecha ?? '',
       motivo: api.motivo ?? '',
       estado: api.estado ?? '',
       observaciones: api.observaciones ?? '',
+      anamnesis: api.anamnesis ?? null,
+      diagnostico: api.diagnostico ?? null,
+      tratamiento: api.tratamiento ?? null,
+      signosVitales: api.signos_vitales ?? api.signosVitales ?? null,
+      servicios: Array.isArray(api.servicios) ? api.servicios : [],
     }));
   },
 
@@ -291,13 +305,11 @@ export const historiasClinicasService = {
   id: string,
   payload: {
     alergia?: string;
-    condicionPreexistente?: string;
     factorRiesgo?: string;
   }
 ): Promise<HistoriaClinica> => {
   const body: Record<string, string> = {};
   if (payload.alergia !== undefined) body.alergia = payload.alergia;
-  if (payload.condicionPreexistente !== undefined) body.condicion_preexistente = payload.condicionPreexistente;
   if (payload.factorRiesgo !== undefined) body.factor_riesgo = payload.factorRiesgo;
 
   const response = await apiClient.patch<any>(

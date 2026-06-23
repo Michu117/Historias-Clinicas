@@ -529,14 +529,43 @@ class DocumentoDetailView(BaseHistoriasView):
         return self.ok({})
 
 
-class RegistroClinicoHistoriaListCreateView(BaseHistoriasView):
-    def get(self, request, historia_id):
-        if not self._es_medico(request) and not self._es_trabajador_social(request):
-            return self._denied("No tienes permisos para ver registros clínicos.")
+class MiHistoriaClinicaView(BaseHistoriasView):
+    def get(self, request):
+        if self._es_admin(request):
+            return self._denied()
+
+        perfil = getattr(request.user, 'perfil', None)
+        if not perfil:
+            return self.not_found()
+
         try:
-            historia = HistoriaClinica.objects.get(pk=historia_id)
+            historia = HistoriaClinica.objects.get(usuario=perfil)
         except HistoriaClinica.DoesNotExist:
             return self.not_found()
+
+        return self.ok(HistoriaClinicaSerializer(historia).data)
+
+
+class RegistroClinicoHistoriaListCreateView(BaseHistoriasView):
+    def get(self, request, historia_id):
+        if self._es_admin(request):
+            return self._denied()
+
+        if self._es_paciente(request):
+            try:
+                historia = HistoriaClinica.objects.get(
+                    pk=historia_id, usuario__cuenta=request.user
+                )
+            except HistoriaClinica.DoesNotExist:
+                return self.not_found()
+        elif self._es_medico(request) or self._es_trabajador_social(request):
+            try:
+                historia = HistoriaClinica.objects.get(pk=historia_id)
+            except HistoriaClinica.DoesNotExist:
+                return self.not_found()
+        else:
+            return self._denied("No tienes permisos para ver registros clínicos.")
+
         registros = RegistroClinicoHistoria.objects.filter(
             historia_clinica=historia, activo=True
         ).select_related("medico_registro")
@@ -594,19 +623,37 @@ class HistoriaConsultasListView(BaseHistoriasView):
         for model_cls, tipo_label in TIPO_CONSULTA_MAP.items():
             qs = model_cls.objects.filter(
                 historia_clinica_id=historia_id
-            ).select_related("cita").only(
-                "id", "cita", "observaciones"
-            )
+            ).select_related("cita").prefetch_related("servicios")
+
             for c in qs:
                 cita = c.cita
                 motivo = cita.motivo or tipo_label
+
+                signos_vitales = None
+                if hasattr(c, 'signos_vitales') and c.signos_vitales is not None:
+                    sv = c.signos_vitales
+                    signos_vitales = {
+                        "peso_kg": getattr(sv, "peso_kg", None),
+                        "temperatura": getattr(sv, "temperatura", None),
+                        "presion_arterial": getattr(sv, "presion_arterial", None),
+                        "frecuencia_cardiaca": getattr(sv, "frecuencia_cardiaca", None),
+                    }
+
+                servicios = list(c.servicios.values_list("nombre", flat=True)) if c.pk else []
+
                 consultas.append({
                     "id": c.id,
                     "tipo": tipo_label,
                     "fecha": cita.fecha_hora,
                     "motivo": motivo,
                     "estado": cita.estado,
-                    "observaciones": getattr(c, "observaciones", ""),
+                    "observaciones": c.observaciones or "",
+                    "anamnesis": getattr(c, "anamnesis", None),
+                    "diagnostico": getattr(c, "diagnostico", None),
+                    "tratamiento": getattr(c, "tratamiento", None),
+                    "signos_vitales": signos_vitales,
+                    "servicios": servicios,
+                    "historia_clinica_id": c.historia_clinica_id,
                 })
 
         consultas.sort(key=lambda x: x["fecha"], reverse=True)
