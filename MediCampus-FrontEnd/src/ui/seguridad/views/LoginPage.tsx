@@ -3,9 +3,17 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../../components/Button'
 import { Input } from '../../components/Input'
 import { Card, CardTitle } from '../../components/Card'
-import { login } from '../utils/authApi'
+import { login, User } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
 import { normalizeRole } from '../../historias-clinicas/utils/historiaClinicaPermissions'
+
+const PROFESSIONAL_ROLES = [
+  'MEDICO',
+  'ODONTOLOGO',
+  'PSICOLOGO',
+  'TRABAJADOR_SOCIAL',
+  'TRABAJO_SOCIAL',
+];
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
@@ -23,10 +31,20 @@ const LoginPage: React.FC = () => {
     try {
       const res = await login({ correo, clave })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      const roleName = normalizeRole(res.usuario.rol?.nombre ?? '');
-      if (roleName === 'MEDICO' || roleName === 'TRABAJADOR_SOCIAL') {
+
+      localStorage.setItem('access_token', res.tokens.access);
+
+      if (res.usuario.mustChangePassword) {
+        navigate('/seguridad/cambiar-clave');
+        return;
+      }
+
+      const roleName = res.usuario.rol?.nombre || '';
+      const rolNormalizado = normalizeRole(roleName) || '';
+
+      if (PROFESSIONAL_ROLES.includes(rolNormalizado)) {
         navigate('/agendas/mi-agenda');
-      } else if (roleName === 'ADMINISTRADOR') {
+      } else if (rolNormalizado === 'ADMINISTRADOR') {
         navigate('/seguridad/dashboard');
       } else {
         navigate('/home');
@@ -96,6 +114,12 @@ const LoginPage: React.FC = () => {
           <Button type="submit" variant="primary" className="w-full" disabled={loading}>
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </Button>
+
+          <div className="text-center">
+            <Link to="/seguridad/forgot-password" className="text-sm text-hc-primary font-medium hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </form>
 
         <p className="text-center text-sm text-[var(--on-surface-variant)] mt-4">
