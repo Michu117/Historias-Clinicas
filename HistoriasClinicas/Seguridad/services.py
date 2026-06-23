@@ -138,7 +138,7 @@ def obtener_bitacoras(
     if fecha_desde:
         qs = qs.filter(fecha_hora__gte=fecha_desde)
     if fecha_hasta:
-        qs = qs.filter(fecha_hora__lte=fecha_hasta)
+        qs = qs.filter(fecha_hora__date__lte=fecha_hasta)
     if tipo_accion:
         qs = qs.filter(tipo_accion=tipo_accion)
     if usuario_correo:
