@@ -15,7 +15,7 @@ def migrar_rol_fk_a_m2m(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('Seguridad', '0002_bitacora_add_ip'),
+        ('Seguridad', '0003_cuenta_must_change_password'),
     ]
 
     operations = [

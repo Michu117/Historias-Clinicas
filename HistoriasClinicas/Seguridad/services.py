@@ -66,12 +66,16 @@ def registrar_cuenta(
     fecha_nacimiento,
     sexo: str,
     roles_nombre: list[str] | None = None,
+    must_change_password: bool = False,
 ) -> Cuenta:
     cuenta = Cuenta.objects.create_user(
         correo=correo,
         password=clave,
     )
     cuenta.roles.set([crear_rol(r) for r in (roles_nombre or ['usuario'])])
+    if must_change_password:
+        cuenta.must_change_password = True
+        cuenta.save(update_fields=['must_change_password'])
     Usuario.objects.create(
         cuenta=cuenta,
         nombres=nombre,
@@ -94,6 +98,7 @@ def crear_usuario(
     fecha_nacimiento,
     sexo: str,
     roles_nombre: list[str] | None = None,
+    must_change_password: bool = False,
 ) -> Cuenta:
     return registrar_cuenta(
         correo=correo,
@@ -104,6 +109,7 @@ def crear_usuario(
         fecha_nacimiento=fecha_nacimiento,
         sexo=sexo,
         roles_nombre=roles_nombre,
+        must_change_password=must_change_password,
     )
 
 

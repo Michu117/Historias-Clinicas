@@ -73,7 +73,7 @@ const HomePage: React.FC = () => {
             <Card>
               <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Administración de Citas</h3>
               <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Gestiona la agenda diaria de atención a pacientes.</p>
-              <Button variant="secondary" className="mt-3" onClick={() => navigate('/agendas/mi-agenda')}>
+              <Button variant="primary" className="mt-3" onClick={() => navigate('/agendas/mi-agenda')}>
                 Ir a Mi Agenda
               </Button>
             </Card>

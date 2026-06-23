@@ -30,6 +30,7 @@ export interface User {
     fechaNacimiento: string;
     sexo: string;
   } | null;
+  mustChangePassword?: boolean;
 }
 
 export interface Tokens {

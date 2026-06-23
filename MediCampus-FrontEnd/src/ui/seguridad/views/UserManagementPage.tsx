@@ -364,14 +364,14 @@ const UserManagementPage: React.FC = () => {
               <Input placeholder="Nombres" value={createForm.nombre} onChange={handleCreateField('nombre')} required />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Apellido<span className="text-red-500 ml-0.5">*</span></label>
                 <Input placeholder="Apellidos" value={createForm.apellido} onChange={handleCreateField('apellido')} required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula<span className="text-red-500 ml-0.5">*</span></label>
-                <Input placeholder="0102030405" value={createForm.cedula} onChange={handleCreateField('cedula')} required />
+                <Input placeholder="0102030405" value={createForm.cedula} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 10); setCreateForm((p) => ({ ...p, cedula: v })) }} required />
               </div>
             </div>
 
@@ -386,7 +386,7 @@ const UserManagementPage: React.FC = () => {
               <p className="text-xs text-[var(--on-surface-variant)] mt-1">El usuario deberá cambiarla en su primer ingreso.</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Fecha de nacimiento<span className="text-red-500 ml-0.5">*</span></label>
                 <Input type="date" value={createForm.fechaNacimiento} onChange={handleCreateField('fechaNacimiento')} required />

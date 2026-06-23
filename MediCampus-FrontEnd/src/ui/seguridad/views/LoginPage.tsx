@@ -27,6 +27,11 @@ const LoginPage: React.FC = () => {
 
       localStorage.setItem('access_token', res.tokens.access);
 
+      if (res.usuario.mustChangePassword) {
+        navigate('/seguridad/cambiar-clave');
+        return;
+      }
+
       const roleName = res.usuario.roles?.[0]?.nombre?.toLowerCase() || '';
       if (PROFESSIONAL_ROLES.has(roleName)) {
         navigate('/agendas/mi-agenda');

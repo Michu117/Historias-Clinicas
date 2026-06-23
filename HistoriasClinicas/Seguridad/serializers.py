@@ -4,6 +4,8 @@ from rest_framework import serializers
 from .models import Bitacora, Cuenta, Rol, Usuario
 from .services import crear_rol, crear_usuario, actualizar_perfil_usuario, autenticar_cuenta
 
+PROFESSIONAL_ROLES = frozenset({'medico', 'psicologo', 'odontologo', 'trabajador_social'})
+
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,10 +43,11 @@ class CuentaSerializer(serializers.ModelSerializer):
     esActiva = serializers.BooleanField(source='is_active')
     usuario = UsuarioSerializer(source='perfil', read_only=True)
     roles = RolSerializer(many=True, read_only=True)
+    mustChangePassword = serializers.BooleanField(source='must_change_password')
 
     class Meta:
         model = Cuenta
-        fields = ('id', 'correo', 'esActiva', 'roles', 'usuario')
+        fields = ('id', 'correo', 'esActiva', 'roles', 'usuario', 'mustChangePassword')
 
 
 class CuentaSimpleSerializer(serializers.ModelSerializer):
@@ -102,6 +105,7 @@ class RegistroSerializer(serializers.Serializer):
             fecha_nacimiento=validated_data['fechaNacimiento'],
             sexo=validated_data['sexo'],
             roles_nombre=roles_nombre,
+            must_change_password=bool(PROFESSIONAL_ROLES & set(roles_nombre)),
         )
 
 
@@ -147,7 +151,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cuenta
-        fields = ('id', 'correo', 'esActiva', 'roles', 'usuario')
+        fields = ('id', 'correo', 'esActiva', 'roles', 'usuario', 'mustChangePassword')
 
 
 class UserCreateSerializer(serializers.Serializer):
@@ -189,6 +193,7 @@ class UserCreateSerializer(serializers.Serializer):
             fecha_nacimiento=validated_data['fechaNacimiento'],
             sexo=validated_data['sexo'],
             roles_nombre=roles_nombre,
+            must_change_password=bool(PROFESSIONAL_ROLES & set(roles_nombre)),
         )
 
 

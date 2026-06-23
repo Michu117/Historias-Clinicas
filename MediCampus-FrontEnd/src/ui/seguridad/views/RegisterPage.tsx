@@ -115,7 +115,7 @@ const RegisterPage: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula <span className="text-red-500">*</span></label>
-            <Input placeholder="0102030405" value={form.cedula} onChange={handleChange('cedula')} required />
+            <Input placeholder="0102030405" value={form.cedula} onChange={handleChange('cedula')} maxLength={10} required onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '') }} />
           </div>
 
           <div>

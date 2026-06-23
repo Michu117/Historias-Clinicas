@@ -13,11 +13,13 @@ const CambiarClavePage: React.FC = () => {
   const [confirmClave, setConfirmClave] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     if (!PASSWORD_REGEX.test(clave)) {
       setError('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.')
@@ -32,7 +34,8 @@ const CambiarClavePage: React.FC = () => {
     setLoading(true)
     try {
       await changePassword({ clave_nueva: clave })
-      navigate('/home')
+      setSuccess('Contraseña actualizada correctamente. Redirigiendo...')
+      setTimeout(() => navigate('/home'), 1500)
     } catch (err: any) {
       if (err.status === 400) {
         setError('La contraseña no cumple con los requisitos de seguridad.')
@@ -97,6 +100,11 @@ const CambiarClavePage: React.FC = () => {
           {error && (
             <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-global p-3" role="alert">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-global p-3" role="status">
+              {success}
             </div>
           )}
 
