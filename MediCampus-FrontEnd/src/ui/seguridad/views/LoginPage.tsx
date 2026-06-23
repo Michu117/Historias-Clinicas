@@ -8,11 +8,11 @@ import { useSession } from '../hooks/useSession'
 import { normalizeRole } from '../../historias-clinicas/utils/historiaClinicaPermissions'
 
 const PROFESSIONAL_ROLES = [
-  'MEDICO',
-  'ODONTOLOGO',
-  'PSICOLOGO',
-  'TRABAJADOR_SOCIAL',
-  'TRABAJO_SOCIAL',
+  'medico',
+  'odontologo',
+  'psicologo',
+  'trabajador_social',
+  'trabajo_social',
 ];
 
 const LoginPage: React.FC = () => {
@@ -40,9 +40,9 @@ const LoginPage: React.FC = () => {
       }
 
       const roleName = res.usuario.roles?.[0]?.nombre?.toLowerCase() || '';
-      if (PROFESSIONAL_ROLES.has(roleName)) {
+      if (PROFESSIONAL_ROLES.includes(roleName)) {
         navigate('/agendas/mi-agenda');
-      } else if (rolNormalizado === 'ADMINISTRADOR') {
+      } else if (roleName === 'admin' || roleName === 'administrador') {
         navigate('/seguridad/dashboard');
       } else {
         navigate('/home');

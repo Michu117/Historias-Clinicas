@@ -25,7 +25,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({ navItems: customNavItems
   const isActive = (match: string) => window.location.pathname.startsWith(match);
 
   const handleNavigate = (path: string) => {
-    window.location.href = path;
+    navigate(path);
   };
 
   return (

@@ -68,6 +68,10 @@ export interface Role {
   descripcion: string;
 }
 
+export interface ChangePasswordPayload {
+  clave_nueva: string;
+}
+
 function getToken(): string | null {
   try {
     return localStorage.getItem('token');
@@ -156,6 +160,14 @@ export async function listAuditLogs(filters?: AuditLogFilters): Promise<AuditLog
   if (filters?.limite) params.set('limite', String(filters.limite));
   const qs = params.toString();
   return fetchJSON(`${AUTH_BASE}/logs${qs ? `?${qs}` : ''}`, token || undefined);
+}
+
+export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+  const token = getToken();
+  await fetchJSON(`${AUTH_BASE}/cambiar-clave`, token || undefined, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function exportAuditLogs(filters?: AuditLogFilters): Promise<void> {

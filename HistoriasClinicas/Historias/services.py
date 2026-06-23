@@ -71,6 +71,7 @@ def normalizar_rol(nombre_rol: str | None) -> str | None:
         'trabajadorsocial': 'trabajador_social',
         'trabajo social': 'trabajador_social',
         'paciente': 'paciente',
+        'usuario': 'paciente',
         'administrador': 'administrador',
         'admin': 'administrador',
     }

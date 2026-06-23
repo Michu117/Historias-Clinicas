@@ -360,13 +360,13 @@ export const MiAgenda: React.FC = () => {
                 return (
                   <div
                     key={cita.id}
-                    className="bg-white border-2 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm transition-all hover:shadow-md gap-4"
+                    className="bg-white border-2 rounded-2xl p-6 flex flex-col shadow-sm transition-all hover:shadow-md gap-4"
                     style={{
                       borderColor: isInProgress ? 'var(--primary)' : 'var(--outline)',
                       ...(isInProgress ? { ring: '1px solid var(--primary)' } : {}),
                     }}
                   >
-                    <div className="flex items-center gap-6 sm:gap-10 w-full sm:w-auto">
+                    <div className="flex items-center gap-6 sm:gap-10 w-full">
                       <div className="text-center w-20 shrink-0">
                         <p className="text-2xl font-black leading-tight" style={{ color: 'var(--hc-text)' }}>
                           {cita.hora?.split(':').slice(0, 2).join(':') || '--:--'}
@@ -386,7 +386,7 @@ export const MiAgenda: React.FC = () => {
                           <h3 className="text-lg font-black truncate" style={{ color: 'var(--hc-text)' }}>
                             {nombreCompleto}
                           </h3>
-                          <div className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--on-surface-variant)' }}>
+                          <div className="flex items-center gap-1.5 text-sm min-w-0" style={{ color: 'var(--on-surface-variant)' }}>
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
@@ -396,7 +396,7 @@ export const MiAgenda: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <div className="flex items-center gap-3 w-full">
                       <span className="px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5 shrink-0"
                         style={{ backgroundColor: statusInfo.bgClass, color: statusInfo.textClass }}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

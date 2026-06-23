@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../ui/components/Button';
 import { Card } from '../../../ui/components/Card';
-import { HistoriasClinicasDashboardLayout } from '../components/HistoriasClinicasDashboardLayout';
 import { HistoriasClinicasHeader } from '../components/HistoriasClinicasHeader';
 import DocumentosClinicosList from '../components/DocumentosClinicosList';
 import { historiasClinicasService } from '../services/historiasClinicasService';
@@ -119,12 +118,13 @@ export const MiHistoriaClinicaPage = () => {
   }
 
   return (
-    <HistoriasClinicasDashboardLayout>
-      <HistoriasClinicasHeader
-        title="Mi Historia Clínica"
-        subtitle={historia ? `Paciente: ${historia.usuario.nombre}` : 'Cargando...'}
-        backTo="/historias"
-      />
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--hc-bg)' }}>
+      <main className="mx-auto flex h-full w-full max-w-[1600px] flex-col gap-5 px-6 py-6">
+        <HistoriasClinicasHeader
+          title="Mi Historia Clínica"
+          subtitle={historia ? `Paciente: ${historia.usuario.nombre}` : 'Cargando...'}
+          backTo="/home"
+        />
 
       {loading && (
         <section className="flex-1">
@@ -290,7 +290,8 @@ export const MiHistoriaClinicaPage = () => {
           </div>
         </section>
       )}
-    </HistoriasClinicasDashboardLayout>
+      </main>
+    </div>
   );
 };
 

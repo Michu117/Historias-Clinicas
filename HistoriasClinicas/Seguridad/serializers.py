@@ -147,6 +147,7 @@ class UserListSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer(source='perfil', read_only=True)
     roles = RolSerializer(many=True, read_only=True)
     esActiva = serializers.BooleanField(source='is_active')
+    mustChangePassword = serializers.BooleanField(source='must_change_password')
 
     class Meta:
         model = Cuenta
@@ -208,3 +209,11 @@ class UserUpdateSerializer(serializers.Serializer):
             cuenta.is_active = validated_data['is_active']
             cuenta.save()
         return cuenta
+
+
+class CambiarClaveSerializer(serializers.Serializer):
+    clave_nueva = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
+
+    def validate_clave_nueva(self, value):
+        validate_password(value)
+        return value
