@@ -1,0 +1,390 @@
+@startuml MediCampus C4 Model
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+' === LAYOUT SETTINGS ===
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+
+' ============================================================
+' LEVEL 1 — SYSTEM CONTEXT
+' ============================================================
+
+Person(paciente, "Paciente", "Usuario que agenda citas y consulta sus historias")
+Person(profesional, "Profesional", "Médico/enfermera que gestiona agenda, consultas y derivaciones")
+Person(admin, "Administrador", "Gestiona usuarios, roles, permisos y auditoría")
+Person(jefeServicio, "Jefe de Servicio", "Consulta reportes y estadísticas del servicio")
+
+System_Boundary(medicampus, "MediCampus") {
+    Container(spa, "FrontEnd SPA", "React 18 + TypeScript + Vite + Tailwind", "Interfaz web de la aplicación")
+    Container(api, "Backend API", "Django REST", "API REST JSON con JWT Auth")
+}
+
+Rel(paciente, spa, "Agenda citas, consulta información", "HTTPS")
+Rel(profesional, spa, "Gestiona agenda, consultas, derivaciones e HC", "HTTPS")
+Rel(admin, spa, "Administra seguridad del sistema", "HTTPS")
+Rel(jefeServicio, spa, "Visualiza reportes y dashboards", "HTTPS")
+Rel(spa, api, "Consume API REST", "HTTPS/JSON")
+
+' ============================================================
+' LEVEL 2 — CONTAINER
+' ============================================================
+
+System_Boundary(frontend, "FrontEnd SPA") {
+    Container(router, "Router", "react-router-dom v7", "Define rutas y layouts de la aplicación")
+    Container(sharedUI, "Shared UI", "Componentes atómicos", "Button, Card, Table, Modal, Input, Sidebar, etc.")
+    Container(seguridad, "Módulo Seguridad", "Feature Module", "Auth, usuarios, roles, permisos, auditoría")
+    Container(agendas, "Módulo Agendas", "Feature Module", "Agendamiento, consultas, derivaciones")
+    Container(hc, "Módulo HC", "Feature Module", "Historias clínicas, antecedentes, casos, documentos")
+    Container(reportes, "Módulo Reportes", "Feature Module", "Reportes, charts, exportación")
+    Container(notif, "Módulo Notificaciones", "Feature Module", "Notificaciones internas")
+    ContainerDb(localStorage, "localStorage", "Persistencia", "Tokens JWT y sesión de usuario")
+}
+
+System_Ext(backend, "Backend API", "Django REST API")
+
+Rel(router, sharedUI, "Renderiza páginas que usan componentes")
+Rel(router, seguridad, "Sirve rutas /seguridad/*")
+Rel(router, agendas, "Sirve rutas /agendas/*, /AgendarCita")
+Rel(router, hc, "Sirve rutas /historias/*")
+Rel(router, reportes, "Sirve rutas /reportes/*")
+Rel(router, notif, "Renderiza componentes de notificación")
+Rel(seguridad, localStorage, "Guarda/lee tokens y sesión")
+Rel(agendas, localStorage, "Guarda/lee tokens")
+Rel(hc, localStorage, "Guarda/lee tokens")
+Rel(reportes, localStorage, "Guarda/lee tokens")
+Rel(seguridad, backend, "Auth CRUD, auditoría", "fetch/HTTP")
+Rel(agendas, backend, "Citas, consultas, derivaciones", "Axios/HTTP")
+Rel(hc, backend, "Historias clínicas", "fetch/HTTP")
+Rel(reportes, backend, "Reportes y estadísticas", "Axios/HTTP")
+
+' ============================================================
+' LEVEL 3 — COMPONENT (FrontEnd SPA)
+' ============================================================
+
+' --- COMPONENT BOUNDARY: Shared UI ---
+Container_Boundary(sharedUI_c, "Shared UI") {
+    Component(btn, "Button", "React Component", "Botones con variantes primary/secondary/danger")
+    Component(card, "Card", "React Component", "Contenedor con título")
+    Component(table, "Table", "React Component", "Tabla genérica con TableHead/Row/Cell")
+    Component(input, "Input", "React Component", "Campo de texto")
+    Component(select, "Select", "React Component", "Selector desplegable")
+    Component(modal, "Modal", "React Component", "Diálogo overlay")
+    Component(badge, "Badge", "React Component", "Etiqueta de estado")
+    Component(sidebar, "Sidebar", "React Component", "Barra lateral de navegación")
+    Component(topbar, "Topbar", "React Component", "Barra superior")
+    Component(pagination, "Pagination", "React Component", "Navegación de páginas")
+    Component(searchInput, "SearchInput", "React Component", "Búsqueda con debounce")
+    Component(toggle, "ToggleSwitch", "React Component", "Switch booleano")
+}
+
+' --- COMPONENT BOUNDARY: Seguridad ---
+Container_Boundary(seguridad_c, "Módulo Seguridad") {
+    Component(loginPage, "LoginPage", "Page Component", "Formulario de inicio de sesión")
+    Component(registerPage, "RegisterPage", "Page Component", "Formulario de registro")
+    Component(securityLayout, "SecurityLayout", "Layout Component", "Sidebar + Outlet para /seguridad/*")
+    Component(userMngmt, "UserManagementPage", "Page Component", "CRUD de usuarios")
+    Component(permPage, "PermissionAssignmentPage", "Page Component", "Asignación de roles/permisos")
+    Component(auditDash, "AuditDashboardPage", "Page Component", "Dashboard de logs de auditoría")
+    Component(auditDetail, "AuditLogDetailPage", "Page Component", "Detalle de log de auditoría")
+    Component(alertsPage, "CriticalAlertsPage", "Page Component", "Alertas críticas")
+    Component(securityDash, "SecurityDashboard", "Page Component", "Dashboard de seguridad")
+    Component(forbidden, "ForbiddenPage", "Page Component", "Página 403")
+    Component(protectedRoute, "ProtectedRoute", "Wrapper Component", "Gatea rutas por permiso")
+
+    Component(userTable, "UserTable", "UI Component", "Tabla de usuarios con acciones")
+    Component(auditTable, "AuditLogTable", "UI Component", "Tabla de logs")
+    Component(auditDashComp, "AuditDashboard", "UI Component", "Dashboard de auditoría")
+
+    Component(useSession, "useSession", "Hook", "Lee/escribe sesión en localStorage")
+    Component(useAuth, "useAuth", "Hook", "Parsea JWT, verifica expiración")
+    Component(useAuthorization, "useAuthorization", "Hook", "Verifica permisos del usuario")
+    Component(useAuditLogs, "useAuditLogs", "Hook", "Obtiene y filtra logs de auditoría")
+    Component(useAuditFilters, "useAuditFilters", "Hook", "Estado de filtros de auditoría")
+
+    Component(authApi, "authApi", "Service", "Endpoints de auth: login, register, users, roles, audit")
+    Component(apiClient, "apiClient (fetchJSON)", "Service", "Cliente fetch base con auth")
+    Component(jwtUtils, "jwtUtils", "Util", "parseClaims, isExpired, getToken")
+}
+
+' --- COMPONENT BOUNDARY: Agendas ---
+Container_Boundary(agendas_c, "Módulo Agendas") {
+    Component(agendarCita, "AgendarCita", "Page Component", "Wizard de agendamiento de citas")
+    Component(miAgenda, "MiAgenda", "Page Component", "Agenda diaria del profesional")
+    Component(consulta, "Consulta", "Page Component", "Registro de consulta médica")
+    Component(derivaciones, "Derivaciones", "Page Component", "Gestión de derivaciones")
+    Component(certificados, "Certificados", "Page Component", "Generación de certificados")
+
+    Component(serviceSelector, "ServiceSelector", "UI Component", "Selección de servicio")
+    Component(profSelector, "ProfessionalSelector", "UI Component", "Selección de profesional")
+    Component(dateTimeSelector, "DateTimeSlotSelector", "UI Component", "Selección de fecha/hora")
+    Component(agendaTable, "AgendaTable", "UI Component", "Tabla de agenda del día")
+    Component(citaRow, "CitaRow", "UI Component", "Fila de cita en agenda")
+    Component(agendaFilters, "AgendaFilters", "UI Component", "Filtros de agenda")
+
+    Component(consultaMedica, "ConsultaMedicaForm", "UI Component", "Formulario consulta médica")
+    Component(consultaOdonto, "ConsultaOdontologicaForm", "UI Component", "Formulario consulta odontológica")
+    Component(consultaPsico, "ConsultaPsicologicaForm", "UI Component", "Formulario consulta psicológica")
+    Component(consultaSocial, "ConsultaSocialForm", "UI Component", "Formulario consulta social")
+    Component(signosVitales, "SignosVitalesInput", "UI Component", "Input de signos vitales")
+    Component(consultaBase, "ConsultaBaseForm", "UI Component", "Base común de formulario de consulta")
+
+    Component(derivModal, "DerivacionModal", "UI Component", "Modal de creación de derivación")
+    Component(derivInbox, "DerivacionInbox", "UI Component", "Bandeja de derivaciones")
+    Component(derivCard, "DerivacionCard", "UI Component", "Card de derivación")
+
+    Component(citaModal, "CitaModal", "UI Component", "Modal de detalle de cita")
+    Component(confirmDialog, "ConfirmDialog", "UI Component", "Diálogo de confirmación")
+    Component(errorAlert, "ErrorAlert", "UI Component", "Alerta de error")
+    Component(loadingSpinner, "LoadingSpinner", "UI Component", "Spinner de carga")
+    Component(successNotif, "SuccessNotification", "UI Component", "Notificación de éxito")
+    Component(estadoBadge, "EstadoBadge", "UI Component", "Badge de estado de cita")
+    Component(certButton, "CertificateButton", "UI Component", "Botón de certificado")
+    Component(topNav, "TopNavBar", "UI Component", "Barra de navegación superior")
+    Component(sideNav, "SideNavBar", "UI Component", "Barra de navegación lateral")
+    Component(selectorField, "SelectorField", "UI Component", "Campo selector reutilizable")
+
+    Component(useAgenda, "useAgenda", "Hook", "Estado y lógica de agenda diaria")
+    Component(useAgendamiento, "useAgendamiento", "Hook", "Lógica de agendamiento")
+    Component(useConsulta, "useConsulta", "Hook", "Estado de formulario de consulta")
+    Component(useDerivacion, "useDerivacion", "Hook", "Estado de derivaciones")
+    Component(useAvailability, "useAvailability", "Hook", "Disponibilidad de horarios")
+    Component(useCertificado, "useCertificado", "Hook", "Generación de certificados")
+
+    Component(axiosConfig, "axiosConfig", "Service", "Axios instance con JWT interceptor")
+    Component(agendaService, "agendaService", "Service", "API de agendas")
+    Component(citaService, "citaService", "Service", "API de citas")
+    Component(consultaService, "consultaService", "Service", "API de consultas")
+    Component(derivacionService, "derivacionService", "Service", "API de derivaciones")
+    Component(pacienteService, "pacienteService", "Service", "API de pacientes")
+    Component(servicioService, "servicioService", "Service", "API de servicios")
+    Component(certificadoService, "certificadoService", "Service", "API de certificados")
+}
+
+' --- COMPONENT BOUNDARY: Historias Clínicas ---
+Container_Boundary(hc_c, "Módulo Historias Clínicas") {
+    Component(gestionHCPage, "GestionHistoriasClinicasPage", "Page Component", "Listado y gestión de HC")
+    Component(nuevaHCPage, "NuevaHistoriaClinicaPage", "Page Component", "Creación de nueva HC")
+    Component(detalleHCPage, "DetalleHistoriaClinicaPage", "Page Component", "Detalle completo de HC")
+    Component(editarHCPage, "EditarHistoriaClinicaPage", "Page Component", "Edición de HC")
+
+    Component(hcForm, "HistoriaClinicaForm", "UI Component", "Formulario de historia clínica")
+    Component(hcDetail, "HistoriaClinicaDetail", "UI Component", "Vista de detalle de HC")
+    Component(hcTable, "HistoriasClinicasTable", "UI Component", "Tabla de HC")
+    Component(hcFilters, "HistoriasClinicasFilters", "UI Component", "Controles de filtro")
+    Component(hcFiltersPanel, "HistoriasClinicasFiltersPanel", "UI Component", "Panel de filtros expandido")
+    Component(hcHeader, "HistoriasClinicasHeader", "UI Component", "Encabezado del módulo")
+    Component(hcPagination, "HistoriasClinicasPagination", "UI Component", "Paginación")
+    Component(hcStats, "HistoriasClinicasStats", "UI Component", "Estadísticas")
+    Component(hcStatsCards, "HistoriasClinicasStatsCards", "UI Component", "Cards de estadísticas")
+    Component(hcDashboardLayout, "HistoriasClinicasDashboardLayout", "UI Component", "Layout del dashboard")
+    Component(messageBanner, "MessageBanner", "UI Component", "Banner de mensajes")
+
+    Component(antecedenteForm, "AntecedenteClinicoForm", "UI Component", "Formulario de antecedente")
+    Component(antecedentesList, "AntecedentesClinicosList", "UI Component", "Lista de antecedentes")
+    Component(casoForm, "CasoClinicoForm", "UI Component", "Formulario de caso clínico")
+    Component(casosTable, "CasosClinicosTable", "UI Component", "Tabla de casos clínicos")
+    Component(docForm, "DocumentoClinicoForm", "UI Component", "Formulario de documento")
+    Component(docsList, "DocumentosClinicosList", "UI Component", "Lista de documentos")
+    Component(cierreModal, "ConfirmarCierreHistoriaModal", "UI Component", "Modal de cierre de HC")
+    Component(detailBlock, "DetailBlock", "UI Component", "Bloque de detalle genérico")
+
+    Component(useHC, "useHistoriasClinicas", "Hook", "Estado CRUD de HC con búsqueda/filtro")
+    Component(useHCAuth, "useHistoriasClinicasAuth", "Hook", "Auth específica para HC")
+
+    Component(hcApiClient, "SimpleApiClient", "Service", "Cliente fetch con auth y redirect 401")
+    Component(hcService, "historiasClinicasService", "Service", "API de historias clínicas")
+}
+
+' --- COMPONENT BOUNDARY: Reportes ---
+Container_Boundary(reportes_c, "Módulo Reportes") {
+    Component(reportesDash, "ReportesDashboardPage", "Page Component", "Dashboard principal de reportes")
+    Component(reportesRango, "ReportesRangoPage", "Page Component", "Reportes por rango de fechas")
+
+    Component(reportFilterBar, "ReportFilterBar", "UI Component", "Barra de filtros (fechas, servicio)")
+    Component(metricCard, "MetricCard", "UI Component", "Card de métrica individual")
+    Component(kpisGrid, "KPIsGrid", "UI Component", "Grid de indicadores")
+    Component(chartContainer, "ChartContainer", "UI Component", "Contenedor de charts")
+    Component(chartRango, "ChartConsultasRango", "UI Component", "Chart de consultas por rango")
+    Component(chartGenero, "ChartConsultasGenero", "UI Component", "Chart por género")
+    Component(chartFecha, "ChartConsultasFecha", "UI Component", "Chart por fecha")
+    Component(chartBrush, "ChartBrushNavigator", "UI Component", "Navegador brush de charts")
+    Component(dataTable, "DataTable", "UI Component", "Tabla de datos genérica")
+    Component(reportDataTable, "ReportDataTable", "UI Component", "Tabla de reportes")
+    Component(exportBtn, "ExportButton", "UI Component", "Botón de exportación")
+    Component(exportBtnGroup, "ExportButtonGroup", "UI Component", "Grupo de botones de exportación")
+    Component(loadingState, "LoadingState", "UI Component", "Estado de carga")
+    Component(errorState, "ErrorState", "UI Component", "Estado de error")
+    Component(auditInfo, "AuditInfo", "UI Component", "Información de auditoría")
+
+    Component(useReportesDash, "useReportesDashboard", "Hook", "Estado del dashboard de reportes")
+    Component(useReportesGrales, "useReportesGenerales", "Hook", "Datos de reportes generales")
+    Component(useReportesGenero, "useReportesGenero", "Hook", "Datos por género")
+    Component(useReportesRango, "useReportesRango", "Hook", "Datos por rango")
+    Component(useReportesServicio, "useReportesServicio", "Hook", "Datos por servicio")
+    Component(useRolePerms, "useRolePermissions", "Hook", "Permisos del usuario en reportes")
+    Component(useTimePeriod, "useTimePeriodValidation", "Hook", "Validación de períodos")
+    Component(useMemoChart, "useMemoizedChartData", "Hook", "Datos memoizados para charts")
+
+    Component(reportService, "reportService", "Service", "API de reportes (Axios)")
+    Component(exportService, "exportService", "Service", "Exportación CSV/PDF cliente")
+    Component(exportOrch, "exportOrchestrator", "Service", "Orquestador de exportación")
+    Component(auditService, "auditService", "Service", "API de auditoría para reportes")
+}
+
+' --- COMPONENT BOUNDARY: Notificaciones ---
+Container_Boundary(notif_c, "Módulo Notificaciones") {
+    Component(notifBadge, "NotificationBadge", "UI Component", "Badge de notificaciones no leídas")
+    Component(notifCard, "NotificationCard", "UI Component", "Card de notificación individual")
+}
+
+' ============================================================
+' RELATIONSHIPS — Shared UI
+' ============================================================
+
+Rel(loginPage, btn, "Usa")
+Rel(loginPage, input, "Usa")
+Rel(userMngmt, table, "Usa")
+Rel(userMngmt, modal, "Usa")
+Rel(userMngmt, btn, "Usa")
+Rel(auditDash, table, "Usa")
+Rel(gestionHCPage, table, "Usa")
+Rel(gestionHCPage, pagination, "Usa")
+Rel(gestionHCPage, searchInput, "Usa")
+Rel(reportesDash, card, "Usa")
+Rel(reportesDash, btn, "Usa")
+
+' ============================================================
+' RELATIONSHIPS — Seguridad
+' ============================================================
+
+Rel(securityDash, userMngmt, "Navega a")
+Rel(securityDash, auditDash, "Navega a")
+Rel(userMngmt, userTable, "Renderiza")
+Rel(auditDash, auditTable, "Renderiza")
+Rel(auditDash, auditDashComp, "Renderiza")
+Rel(loginPage, authApi, "Llama", "POST /auth/login")
+Rel(registerPage, authApi, "Llama", "POST /auth/register")
+Rel(userMngmt, authApi, "Llama", "CRUD /auth/users")
+Rel(auditDash, authApi, "Llama", "GET /auth/logs")
+Rel(authApi, apiClient, "Usa")
+Rel(loginPage, useSession, "Usa")
+Rel(registerPage, useSession, "Usa")
+Rel(useSession, localStorage, "Guarda/lee")
+Rel(useAuth, jwtUtils, "Usa")
+Rel(protectedRoute, useAuthorization, "Usa")
+Rel(useAuditLogs, authApi, "Usa")
+
+' ============================================================
+' RELATIONSHIPS — Agendas
+' ============================================================
+
+Rel(agendarCita, serviceSelector, "Renderiza paso 1")
+Rel(agendarCita, profSelector, "Renderiza paso 2")
+Rel(agendarCita, dateTimeSelector, "Renderiza paso 3")
+Rel(agendarCita, citaModal, "Muestra detalle")
+Rel(agendarCita, errorAlert, "Muestra errores")
+Rel(agendarCita, loadingSpinner, "Muestra carga")
+
+Rel(miAgenda, agendaFilters, "Renderiza")
+Rel(miAgenda, agendaTable, "Renderiza")
+Rel(miAgenda, certButton, "Renderiza")
+Rel(miAgenda, confirmDialog, "Renderiza")
+Rel(agendaTable, citaRow, "Renderiza filas")
+Rel(citaRow, estadoBadge, "Renderiza")
+
+Rel(consulta, consultaMedica, "Renderiza (según tipo)")
+Rel(consulta, consultaOdonto, "Renderiza (según tipo)")
+Rel(consulta, consultaPsico, "Renderiza (según tipo)")
+Rel(consulta, consultaSocial, "Renderiza (según tipo)")
+Rel(consulta, signosVitales, "Renderiza")
+Rel(consultaMedica, consultaBase, "Extiende")
+
+Rel(derivaciones, derivInbox, "Renderiza")
+Rel(derivaciones, derivModal, "Renderiza")
+Rel(derivInbox, derivCard, "Renderiza")
+
+Rel(agendarCita, servicioService, "Llama")
+Rel(agendarCita, citaService, "Llama")
+Rel(miAgenda, agendaService, "Llama")
+Rel(miAgenda, citaService, "Llama")
+Rel(consulta, consultaService, "Llama")
+Rel(derivaciones, derivacionService, "Llama")
+
+Rel(agendaService, axiosConfig, "Usa")
+Rel(citaService, axiosConfig, "Usa")
+Rel(consultaService, axiosConfig, "Usa")
+Rel(derivacionService, axiosConfig, "Usa")
+Rel(pacienteService, axiosConfig, "Usa")
+Rel(servicioService, axiosConfig, "Usa")
+Rel(certificadoService, axiosConfig, "Usa")
+
+' ============================================================
+' RELATIONSHIPS — Historias Clínicas
+' ============================================================
+
+Rel(gestionHCPage, hcTable, "Renderiza")
+Rel(gestionHCPage, hcFilters, "Renderiza")
+Rel(gestionHCPage, hcFiltersPanel, "Renderiza")
+Rel(gestionHCPage, hcHeader, "Renderiza")
+Rel(gestionHCPage, hcPagination, "Renderiza")
+Rel(gestionHCPage, hcStatsCards, "Renderiza")
+Rel(gestionHCPage, messageBanner, "Renderiza")
+
+Rel(nuevaHCPage, hcForm, "Renderiza")
+Rel(editarHCPage, hcForm, "Renderiza")
+
+Rel(detalleHCPage, hcDetail, "Renderiza")
+Rel(hcDetail, antecedentesList, "Renderiza")
+Rel(hcDetail, casosTable, "Renderiza")
+Rel(hcDetail, docsList, "Renderiza")
+Rel(hcDetail, cierreModal, "Renderiza")
+Rel(antecedentesList, antecedenteForm, "Renderiza")
+Rel(casosTable, casoForm, "Renderiza")
+Rel(docsList, docForm, "Renderiza")
+
+Rel(gestionHCPage, useHC, "Usa")
+Rel(detalleHCPage, useHC, "Usa")
+Rel(useHC, hcService, "Llama")
+Rel(hcService, hcApiClient, "Usa")
+
+' ============================================================
+' RELATIONSHIPS — Reportes
+' ============================================================
+
+Rel(reportesDash, reportFilterBar, "Renderiza")
+Rel(reportesDash, kpisGrid, "Renderiza")
+Rel(reportesDash, chartContainer, "Renderiza")
+Rel(reportesDash, dataTable, "Renderiza")
+Rel(reportesDash, exportBtnGroup, "Renderiza")
+Rel(reportesRango, reportFilterBar, "Renderiza")
+Rel(reportesRango, chartRango, "Renderiza")
+Rel(reportesRango, chartContainer, "Renderiza")
+
+Rel(reportesDash, useReportesDash, "Usa")
+Rel(reportesRango, useReportesRango, "Usa")
+Rel(useReportesDash, reportService, "Llama")
+Rel(useReportesRango, reportService, "Llama")
+Rel(exportBtnGroup, exportService, "Usa")
+Rel(exportService, exportOrch, "Coordina")
+
+' ============================================================
+' RELATIONSHIPS — Notificaciones
+' ============================================================
+
+Rel(topbar, notifBadge, "Renderiza")
+Rel(notifBadge, notifCard, "Muestra")
+
+' ============================================================
+' SYSTEM BOUNDARY — Backend (Referencia)
+' ============================================================
+
+System_Ext(backendApi, "Backend API", "Django REST API")
+
+Rel(authApi, backendApi, "HTTP", "fetch")
+Rel(axiosConfig, backendApi, "HTTP", "Axios")
+Rel(hcApiClient, backendApi, "HTTP", "fetch")
+Rel(reportService, backendApi, "HTTP", "Axios")
+
+SHOW_LEGEND()
+@enduml

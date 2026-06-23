@@ -33,12 +33,12 @@ export default function GenerarReportesGenerales(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--hc-bg)' }}>
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Reportes Generales</h1>
-          <p className="mt-2 text-gray-600">Estadísticas de consultas médicas y servicios</p>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--on-surface)' }}>Reportes Generales</h1>
+          <p className="mt-2" style={{ color: 'var(--on-surface-variant)' }}>Estadisticas de consultas medicas y servicios</p>
         </div>
 
         {/* Filter Bar */}
@@ -54,17 +54,17 @@ export default function GenerarReportesGenerales(): JSX.Element {
         )}
 
         {/* Loading State */}
-        {loading && <LoadingState message="Cargando estadísticas..." />}
+        {loading && <LoadingState message="Cargando estadisticas..." />}
 
         {/* KPIs Grid + Data Table */}
         {kpis && !loading && !error && (
           <div className="space-y-8">
             <KPIsGrid
-              title="Métricas Principales (KPIs)"
+              title="Metricas Principales (KPIs)"
               metrics={[
                 { value: kpis.totalConsultas, label: 'Total Consultas', trend: 'up', delta: 12 },
-                { value: kpis.consultasPromedioDia, label: 'Prom. Consultas/Día', trend: 'neutral' },
-                { value: kpis.diagnosticosFrecuentes.length, label: 'Diagnósticos Únicos', trend: 'up', delta: 5 },
+                { value: kpis.consultasPromedioDia, label: 'Prom. Consultas/Dia', trend: 'neutral' },
+                { value: kpis.diagnosticosFrecuentes.length, label: 'Diagnosticos Unicos', trend: 'up', delta: 5 },
                 { value: kpis.serviciosMasUsados.length, label: 'Servicios Activos', trend: 'neutral' },
               ]}
             />
@@ -78,12 +78,11 @@ export default function GenerarReportesGenerales(): JSX.Element {
 
         {/* Empty State */}
         {!loading && !error && !kpis && (
-          <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center">
-            <p className="text-gray-600">Selecciona un rango de fechas para ver estadísticas</p>
+          <div className="rounded-lg border border-dashed p-12 text-center" style={{ borderColor: 'var(--outline)' }}>
+            <p style={{ color: 'var(--on-surface-variant)' }}>Selecciona un rango de fechas para ver estadisticas</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-

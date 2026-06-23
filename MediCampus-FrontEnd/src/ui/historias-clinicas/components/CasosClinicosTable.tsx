@@ -21,50 +21,55 @@ interface Props {
   onCreate: (payload: Partial<CasoClinico>) => Promise<void>
   onUpdate: (id: string, payload: Partial<CasoClinico>) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  readOnly?: boolean
 }
 
-const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelete }) => {
+const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelete, readOnly = false }) => {
   const [editing, setEditing] = useState<CasoClinico | null>(null)
   const [deleting, setDeleting] = useState<CasoClinico | null>(null)
 
   return (
     <div className="space-y-4">
-      <div className="rounded-global border border-slate-200 bg-white p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-800">Nuevo caso clínico</h3>
-        <CasoClinicoForm onSubmit={onCreate} />
-      </div>
+      {!readOnly && (
+        <div className="rounded-lg p-4" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+          <h3 className="mb-3 text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>Nuevo caso clínico</h3>
+          <CasoClinicoForm onSubmit={onCreate} />
+        </div>
+      )}
 
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500">No hay casos clínicos registrados.</p>
+        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No hay casos clínicos registrados.</p>
       ) : (
-        <div className="overflow-hidden rounded-global border border-slate-200">
+        <div className="overflow-hidden rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-600">
+              <tr className="text-left text-xs font-semibold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
                 <th className="px-4 py-3">Fecha apertura</th>
                 <th className="px-4 py-3">Fecha cierre</th>
                 <th className="px-4 py-3">Estado</th>
                 <th className="px-4 py-3">Prioridad</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+                {!readOnly && <th className="px-4 py-3 text-right">Acciones</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
               {items.map((c) => (
                 <tr key={c.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{c.fechaApertura}</td>
-                  <td className="px-4 py-3 text-slate-600">{c.fechaCierre || '—'}</td>
-                  <td className="px-4 py-3 text-slate-600">{ESTADO_LABELS[c.estado] ?? c.estado}</td>
-                  <td className="px-4 py-3 text-slate-600">{PRIORIDAD_LABELS[c.prioridad] ?? c.prioridad}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button type="button" variant="tertiary" size="sm" onClick={() => setEditing(c)}>
-                        Editar
-                      </Button>
-                      <Button type="button" variant="danger" size="sm" onClick={() => setDeleting(c)}>
-                        Eliminar
-                      </Button>
-                    </div>
-                  </td>
+                  <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{c.fechaApertura}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.fechaCierre || '—'}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{ESTADO_LABELS[c.estado] ?? c.estado}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{PRIORIDAD_LABELS[c.prioridad] ?? c.prioridad}</td>
+                  {!readOnly && (
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button type="button" variant="tertiary" size="sm" onClick={() => setEditing(c)}>
+                          Editar
+                        </Button>
+                        <Button type="button" variant="danger" size="sm" onClick={() => setDeleting(c)}>
+                          Eliminar
+                        </Button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -88,7 +93,7 @@ const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelet
       <Modal open={deleting !== null} onClose={() => setDeleting(null)} title="Confirmar eliminación">
         {deleting && (
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
               ¿Está seguro de eliminar este caso clínico? Esta acción no se puede deshacer.
             </p>
             <div className="flex justify-end gap-2">

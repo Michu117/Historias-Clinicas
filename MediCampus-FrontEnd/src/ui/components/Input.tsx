@@ -2,8 +2,15 @@ import React from 'react';
 
 export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', ...props }) => {
   return (
-    <input 
-      className={`w-full px-3 py-2 border border-slate-300 rounded-global text-sm focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 disabled:bg-slate-50 disabled:text-slate-400 ${className}`}
+    <input
+      className={`w-full px-3 py-2 rounded-lg text-sm outline-none transition-all ${className}`}
+      style={{
+        backgroundColor: 'var(--surface-container-low)',
+        border: '1px solid var(--outline-variant)',
+        color: 'var(--on-surface)',
+      }}
+      onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; }}
+      onBlur={(e) => { e.target.style.borderColor = 'var(--outline-variant)'; }}
       {...props}
     />
   );

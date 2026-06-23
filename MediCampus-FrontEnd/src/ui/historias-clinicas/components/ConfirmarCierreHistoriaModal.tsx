@@ -24,12 +24,13 @@ export const ConfirmarCierreHistoriaModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-cierre-title"
-        className="w-full max-w-md rounded-global bg-white p-6 shadow-lg"
+        className="w-full max-w-md rounded-lg p-6 shadow-lg"
+        style={{ backgroundColor: 'var(--card-bg)' }}
       >
-        <h2 id="modal-cierre-title" className="text-lg font-semibold text-slate-900">
+        <h2 id="modal-cierre-title" className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>
           Confirmar cierre
         </h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm" style={{ color: 'var(--on-surface-variant)' }}>
           ¿Desea cerrar la historia clínica {historia?.id ?? ''}? Esta acción marcará el proceso como concluido.
         </p>
         <div className="mt-6 flex justify-end gap-2">

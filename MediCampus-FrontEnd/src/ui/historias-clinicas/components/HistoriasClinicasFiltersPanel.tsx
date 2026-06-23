@@ -22,11 +22,11 @@ export const HistoriasClinicasFiltersPanel = ({
 }: HistoriasClinicasFiltersPanelProps) => {
   return (
     <Card className="shrink-0 p-3">
-      <div className="grid gap-3 md:grid-cols-[2fr,1fr,auto,auto] md:items-end">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-[2fr,1fr,auto] md:items-end">
         <div className="flex flex-col gap-1">
           <label
             htmlFor="historia-search"
-            className="text-sm font-medium text-slate-700"
+            className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}
           >
             Buscar historia clínica
           </label>

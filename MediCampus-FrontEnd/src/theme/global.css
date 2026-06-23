@@ -4,90 +4,151 @@
 
 @layer base {
   :root {
-    /* --- COLORES BASE  --- */
-    --hc-bg: #f8fafc; /* Fondo general (Gris) */
-    --hc-text: #0f172a; /* Texto (Gris oscuro) */
+    /* === SURFACE / BACKGROUND === */
+    --hc-bg: #f9f9ff;
+    --surface: #f9f9ff;
+    --surface-dim: #d5dae7;
+    --surface-bright: #f9f9ff;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f0f3ff;
+    --surface-container: #e9eefc;
+    --surface-container-high: #e4e8f6;
+    --surface-container-highest: #dee2f0;
+    --inverse-surface: #2b303b;
+    --inverse-on-surface: #ecf0fe;
 
-    /* --- TOKENS DE ACCIÓN  --- */
+    /* === ON SURFACE === */
+    --on-surface: #171c25;
+    --on-surface-variant: #424752;
+    --hc-text: #171c25;
 
-    /* Primario: Acción principal (Ej. Agendar Cita).  */
-    --btn-primary-bg: #475569;
-    --btn-primary-hover: #334155;
-    --btn-primary-text: #ffffff;
+    /* === OUTLINE === */
+    --outline: #727784;
+    --outline-variant: #c2c6d4;
 
-    /* Secundario: Acciones alternativas (Ej. Cancelar modal, Volver) */
-    --btn-secondary-bg: #e2e8f0; /* Gris muy clarito */
-    --btn-secondary-hover: #cbd5e1;
-    --btn-secondary-text: #334155;
+    /* === SURFACE TINT === */
+    --surface-tint: #115cb9;
 
-    /* Terciario: Botones invisibles/fantasma (Ej. Iconos, Editar) */
+    /* === PRIMARY (Deep Clinical Blue) === */
+    --primary: #003f87;
+    --on-primary: #ffffff;
+    --primary-container: #0056b3;
+    --on-primary-container: #bbd0ff;
+    --primary-fixed: #d7e2ff;
+    --primary-fixed-dim: #acc7ff;
+    --on-primary-fixed: #001a40;
+    --on-primary-fixed-variant: #004491;
+    --inverse-primary: #acc7ff;
+
+    /* === SECONDARY (Medical Teal) === */
+    --secondary: #006a61;
+    --on-secondary: #ffffff;
+    --secondary-container: #86f2e4;
+    --on-secondary-container: #006f66;
+    --secondary-fixed: #89f5e7;
+    --secondary-fixed-dim: #6bd8cb;
+    --on-secondary-fixed: #00201d;
+    --on-secondary-fixed-variant: #005049;
+
+    /* === TERTIARY (Insight Indigo) === */
+    --tertiary: #2d18c7;
+    --on-tertiary: #ffffff;
+    --tertiary-container: #473ddd;
+    --on-tertiary-container: #cdcbff;
+    --tertiary-fixed: #e2dfff;
+    --tertiary-fixed-dim: #c3c0ff;
+    --on-tertiary-fixed: #0f0069;
+    --on-tertiary-fixed-variant: #3323cc;
+
+    /* === ERROR / SEMANTIC === */
+    --error: #ba1a1a;
+    --on-error: #ffffff;
+    --error-container: #ffdad6;
+    --on-error-container: #93000a;
+
+    /* === BTN TOKENS (mapped from design tokens) === */
+    --btn-primary-bg: var(--primary);
+    --btn-primary-hover: var(--on-primary-fixed-variant);
+    --btn-primary-text: var(--on-primary);
+
+    --btn-secondary-bg: var(--surface-container-low);
+    --btn-secondary-hover: var(--surface-container-high);
+    --btn-secondary-text: var(--secondary);
+
     --btn-tertiary-bg: transparent;
-    --btn-tertiary-hover: #f1f5f9;
-    --btn-tertiary-text: #475569;
+    --btn-tertiary-hover: var(--surface-container-low);
+    --btn-tertiary-text: var(--on-surface-variant);
 
-    /* --- TOKENS SEMÁNTICOS (Para testing y lógica) --- */
+    --btn-danger-bg: var(--error);
+    --btn-danger-hover: var(--on-error-container);
+    --btn-danger-text: var(--on-error);
 
-    /* Destructivo: Alertas, Eliminar, Cancelar (HU-03) */
-    --btn-danger-bg: #ef4444; /* Rojo estándar */
-    --btn-danger-hover: #dc2626;
-    --btn-danger-text: #ffffff;
+    --btn-success-bg: var(--secondary);
+    --btn-success-hover: var(--secondary-fixed-dim);
+    --btn-success-text: var(--on-secondary);
 
-    /* Éxito: Guardado correcto, Descarga de archivos exitosa */
-    --btn-success-bg: #22c55e; /* Verde estándar */
-    --btn-success-hover: #16a34a;
-    --btn-success-text: #ffffff;
+    --btn-info-bg: var(--primary);
+    --btn-info-hover: var(--on-primary-fixed-variant);
+    --btn-info-text: var(--on-primary);
 
-    /* Informativo / Advertencia (Filtros de fechas activos) */
-    --btn-info-bg: #3b82f6; /* Azul estándar */
-    --btn-info-hover: #2563eb;
-    --btn-info-text: #ffffff;
+    /* === CARD TOKENS === */
+    --card-bg: var(--surface-container-lowest);
+    --card-border: var(--outline-variant);
+    --card-text-muted: var(--on-surface-variant);
 
-    /* --- TOKENS PARA DASHBOARD Y COMPONENTES (FRONTEND) --- */
+    /* === CHART TOKENS === */
+    --chart-line-primary: var(--primary);
+    --chart-bar-male: var(--primary);
+    --chart-bar-female: var(--tertiary);
+    --chart-bar-other: var(--on-surface-variant);
+    --chart-grid: var(--surface-container-low);
 
-    /* Tarjetas de KPI (Resumen estadístico) */
-    --card-bg: #ffffff;
-    --card-border: #e2e8f0;
-    --card-text-muted: #64748b; /* Gris para etiquetas como "Total atenciones" */
+    /* === TABLE TOKENS === */
+    --table-header-bg: var(--surface-container-low);
+    --table-row-hover: var(--surface-container-low);
 
-    /* Gráficos de Datos (Atenciones por Fecha / Distribución por Género) */
-    --chart-line-primary: #3b82f6;  /* Azul para la línea de atenciones */
-    --chart-bar-male: #0284c7;      /* Azul oscuro para género Masculino */
-    --chart-bar-female: #ec4899;    /* Rosado para género Femenino */
-    --chart-bar-other: #64748b;     /* Gris para Otros */
-    --chart-grid: #f1f5f9;          /* Color para las rejillas del fondo del gráfico */
-
-    /* Tablas de Reportes */
-    --table-header-bg: #f1f5f9;
-    --table-row-hover: #f8fafc;
-
-    /* --- MATERIAL DESIGN TOKENS (PROTOTIPO) --- */
-    --primary: #2563eb;
-    --surface-container-low: #f1f5f9;
-    --primary-fixed: #dbeafe;
-    --on-surface: #0f172a;
-    --outline-variant: #cbd5e1;
-
-    /* --- BORDES --- */
-    --radius-md: 0.375rem;
-    --radius-lg: 0.5rem; /* Para contenedores grandes como los gráficos */
+    /* === BORDER RADIUS === */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-full: 9999px;
   }
 }
 
 body {
   background-color: var(--hc-bg);
-  color: var(--hc-text);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--on-surface);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* --- CLASES DE UTILIDAD PARA TU FRONTEND (OPCIONAL) --- */
 @layer components {
-  /* Estilo base para las tarjetas del Dashboard */
   .hc-dashboard-card {
-    @apply bg-[value(--card-bg)] border border-[value(--card-border)] rounded-[value(--radius-lg)] p-6 shadow-sm;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
 
-  /* Contenedor adaptativo de los gráficos */
   .hc-chart-container {
-    @apply w-full h-[300px] relative;
+    width: 100%;
+    height: 300px;
+    position: relative;
   }
+}
+
+@layer utilities {
+  /* hc-* utility classes map to CSS variables */
+  .bg-hc-bg { background-color: var(--hc-bg); }
+  .bg-hc-primary { background-color: var(--btn-primary-bg); }
+  .bg-hc-primary-hover { background-color: var(--btn-primary-hover); }
+
+  .text-hc-primary { color: var(--btn-primary-bg); }
+  .text-hc-primary-text { color: var(--btn-primary-text); }
+  .text-hc-text { color: var(--hc-text); }
+  .text-hc-muted { color: var(--card-text-muted); }
+
+  .border-hc-border { border-color: var(--card-border); }
+  .border-hc-outline { border-color: var(--outline); }
 }

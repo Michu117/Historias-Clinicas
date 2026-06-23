@@ -1,17 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '../../../ui/components/Button';
 import { Card } from '../../../ui/components/Card';
 import { Input } from '../../../ui/components/Input';
+import { Modal } from '../../../ui/components/Modal';
 import { HistoriasClinicasDashboardLayout } from '../components/HistoriasClinicasDashboardLayout';
 import { HistoriasClinicasHeader } from '../components/HistoriasClinicasHeader';
 import { MessageBanner } from '../components/MessageBanner';
+import AntecedentesClinicosList from '../components/AntecedentesClinicosList';
+import DocumentosClinicosList from '../components/DocumentosClinicosList';
 import { historiasClinicasService } from '../services/historiasClinicasService';
+import { useHistoriasClinicasAuth } from '../hooks/useHistoriasClinicasAuth';
+import { getNombreMedico } from '../utils/getNombreMedico';
 
 import type { HistoriaClinica, HistoriaClinicaFormValues } from '../types/historiaClinica.types';
-import type { AntecedenteClinico, TipoAntecedenteClinico } from '../types/antecedenteClinico.types';
-import type { CasoClinico, EstadoCasoClinico, PrioridadCasoClinico } from '../types/casoClinico.types';
+import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
+import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
 
 const initialFormValues: HistoriaClinicaFormValues = {
   usuarioNombre: '',
@@ -21,99 +26,81 @@ const initialFormValues: HistoriaClinicaFormValues = {
   factorRiesgo: '',
 };
 
-const TIPO_ANTECEDENTE_OPTIONS: { value: TipoAntecedenteClinico | ''; label: string }[] = [
-  { value: '', label: 'Seleccione...' },
-  { value: 'HEREDOFAMILIARES', label: 'Heredofamiliares' },
-  { value: 'PERSONALES_NO_PATOLOGICOS', label: 'Personales no patológicos' },
-  { value: 'PERSONALES_PATOLOGICOS', label: 'Personales patológicos' },
-  { value: 'GINECO_OBSTETRICOS', label: 'Gineco obstétricos' },
-];
-
-const ESTADO_CASO_OPTIONS: { value: EstadoCasoClinico; label: string }[] = [
-  { value: 'ABIERTO', label: 'Abierto' },
-  { value: 'EN_SEGUIMIENTO', label: 'En seguimiento' },
-  { value: 'CERRADO', label: 'Cerrado' },
-];
-
-const PRIORIDAD_OPTIONS: { value: PrioridadCasoClinico; label: string }[] = [
-  { value: 'ALTA', label: 'Alta' },
-  { value: 'MEDIA', label: 'Media' },
-  { value: 'BAJA', label: 'Baja' },
-];
-
 export default function EditarHistoriaClinicaPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { role, isAuthorized } = useHistoriasClinicasAuth();
 
   const [historia, setHistoria] = useState<HistoriaClinica | null>(null);
   const [values, setValues] = useState<HistoriaClinicaFormValues>(initialFormValues);
 
-  const [antecedenteExistente, setAntecedenteExistente] = useState<AntecedenteClinico | null>(null);
-  const [antTipo, setAntTipo] = useState<TipoAntecedenteClinico | ''>('');
-  const [antDescripcion, setAntDescripcion] = useState('');
-  const [antFecha, setAntFecha] = useState('');
-
-  const [casoExistente, setCasoExistente] = useState<CasoClinico | null>(null);
-  const [casoFechaApertura, setCasoFechaApertura] = useState('');
-  const [casoFechaCierre, setCasoFechaCierre] = useState('');
-  const [casoEstado, setCasoEstado] = useState<EstadoCasoClinico>('ABIERTO');
-  const [casoPrioridad, setCasoPrioridad] = useState<PrioridadCasoClinico>('MEDIA');
+  const [antecedentes, setAntecedentes] = useState<AntecedenteClinico[]>([]);
+  const [documentosRefreshKey, setDocumentosRefreshKey] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const [registros, setRegistros] = useState<RegistroClinicoHistoria[]>([]);
+  const [nuevaAlergia, setNuevaAlergia] = useState('');
+  const [nuevoFactorRiesgo, setNuevoFactorRiesgo] = useState('');
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      if (!id) {
-        setError('No se recibió el ID de la historia clínica.');
-        setLoading(false);
-        return;
-      }
+    if (!isAuthorized) {
+      navigate('/', { replace: true });
+      return;
+    }
 
-      try {
-        setLoading(true);
-        setError('');
-        setMessage('');
+    if (role === 'PACIENTE') {
+      navigate('/historias/mi-historia', { replace: true });
+      return;
+    }
 
-        const hc = await historiasClinicasService.obtenerHistoriaClinicaPorId(id);
-        setHistoria(hc);
-        setValues({
-          usuarioNombre: hc.usuario?.nombre ?? '',
-          usuarioIdentificacion: hc.usuario?.identificacion ?? '',
-          alergia: hc.alergia ?? '',
-          condicionPreexistente: hc.condicionPreexistente ?? '',
-          factorRiesgo: hc.factorRiesgo ?? '',
-        });
+    if (role !== 'MEDICO') {
+      navigate('/historias', { replace: true });
+      return;
+    }
+  }, [isAuthorized, role, navigate]);
 
-        const [ants, casos] = await Promise.all([
-          historiasClinicasService.listarAntecedentesPorHistoria(id),
-          historiasClinicasService.listarCasosPorHistoria(id),
-        ]);
+  const cargarDatos = useCallback(async () => {
+    if (!id) {
+      setError('No se recibió el ID de la historia clínica.');
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      setError('');
+      setMessage('');
 
-        const ant = ants[0] ?? null;
-        setAntecedenteExistente(ant);
-        setAntTipo((ant?.tipo as TipoAntecedenteClinico) ?? '');
-        setAntDescripcion(ant?.descripcion ?? '');
-        setAntFecha(ant?.fecha ?? '');
-
-        const cs = casos[0] ?? null;
-        setCasoExistente(cs);
-        setCasoFechaApertura(cs?.fechaApertura ?? '');
-        setCasoFechaCierre(cs?.fechaCierre ?? '');
-        setCasoEstado((cs?.estado as EstadoCasoClinico) ?? 'ABIERTO');
-        setCasoPrioridad((cs?.prioridad as PrioridadCasoClinico) ?? 'MEDIA');
-      } catch (err) {
-        console.error('Error al cargar:', err);
-        setError('No se pudo cargar la información para edición.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargarDatos();
+      const [hc, registrosData, ants] = await Promise.all([
+        historiasClinicasService.obtenerHistoriaClinicaPorId(id),
+        historiasClinicasService.listarRegistrosClinicosPorHistoria(id),
+        historiasClinicasService.listarAntecedentesPorHistoria(id),
+      ]);
+      setHistoria(hc);
+      setValues({
+        usuarioNombre: hc.usuario?.nombre ?? '',
+        usuarioIdentificacion: hc.usuario?.identificacion ?? '',
+        alergia: hc.alergia ?? '',
+        condicionPreexistente: hc.condicionPreexistente ?? '',
+        factorRiesgo: hc.factorRiesgo ?? '',
+      });
+      setRegistros(registrosData);
+      setAntecedentes(ants);
+    } catch (err) {
+      console.error('Error al cargar:', err);
+      setError('No se pudo cargar la información para edición.');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    void cargarDatos();
+  }, [cargarDatos]);
 
   const handleChange = (field: keyof HistoriaClinicaFormValues, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
@@ -127,60 +114,17 @@ export default function EditarHistoriaClinicaPage() {
       return;
     }
 
-    if (!values.alergia.trim()) { setMessage('La alergia es obligatoria.'); return; }
     if (!values.condicionPreexistente.trim()) { setMessage('La condición preexistente es obligatoria.'); return; }
-    if (!values.factorRiesgo.trim()) { setMessage('El factor de riesgo es obligatorio.'); return; }
 
     setIsSubmitting(true);
     setMessage('');
     setError('');
 
     try {
-      // 1. Actualizar historia clínica
       const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {
-        alergia: values.alergia,
         condicionPreexistente: values.condicionPreexistente,
-        factorRiesgo: values.factorRiesgo,
       });
       setHistoria(hcActualizada);
-
-      // 2. Antecedente — actualizar o crear
-      const hayAntecedente = antTipo && antDescripcion.trim() && antFecha;
-      if (antecedenteExistente && hayAntecedente) {
-        await historiasClinicasService.actualizarAntecedente(antecedenteExistente.id, {
-          tipo: antTipo,
-          descripcion: antDescripcion.trim(),
-          fecha: antFecha,
-        });
-      } else if (!antecedenteExistente && hayAntecedente) {
-        const creado = await historiasClinicasService.crearAntecedenteClinico({
-          historiaClinicaId: id,
-          tipo: antTipo,
-          descripcion: antDescripcion.trim(),
-          fecha: antFecha,
-        });
-        setAntecedenteExistente(creado);
-      }
-
-      // 3. Caso — actualizar o crear
-      if (casoExistente && casoFechaApertura) {
-        await historiasClinicasService.actualizarCaso(casoExistente.id, {
-          fechaApertura: casoFechaApertura,
-          fechaCierre: casoFechaCierre || null,
-          estado: casoEstado,
-          prioridad: casoPrioridad,
-        });
-      } else if (!casoExistente && casoFechaApertura) {
-        const creado = await historiasClinicasService.crearCasoClinico({
-          historiaClinicaId: id,
-          fechaApertura: casoFechaApertura,
-          fechaCierre: casoFechaCierre || null,
-          estado: casoEstado,
-          prioridad: casoPrioridad,
-        });
-        setCasoExistente(creado);
-      }
-
       setMessage('Historia clínica actualizada correctamente.');
     } catch (err: any) {
       console.error('Error al actualizar:', err);
@@ -190,16 +134,68 @@ export default function EditarHistoriaClinicaPage() {
     }
   };
 
-  const handleCancel = () => {
-    navigate('/historias');
+  const handleAgregarAlergia = async () => {
+    if (!id || !nuevaAlergia.trim()) return;
+    try {
+      await historiasClinicasService.crearRegistroClinico(id, {
+        tipo: 'ALERGIA',
+        descripcion: nuevaAlergia.trim(),
+      });
+      setNuevaAlergia('');
+      const registrosData = await historiasClinicasService.listarRegistrosClinicosPorHistoria(id);
+      setRegistros(registrosData);
+    } catch (err: any) {
+      setError(err?.message ?? 'No se pudo agregar la alergia.');
+    }
   };
+
+  const handleAgregarFactorRiesgo = async () => {
+    if (!id || !nuevoFactorRiesgo.trim()) return;
+    try {
+      await historiasClinicasService.crearRegistroClinico(id, {
+        tipo: 'FACTOR_RIESGO',
+        descripcion: nuevoFactorRiesgo.trim(),
+      });
+      setNuevoFactorRiesgo('');
+      const registrosData = await historiasClinicasService.listarRegistrosClinicosPorHistoria(id);
+      setRegistros(registrosData);
+    } catch (err: any) {
+      setError(err?.message ?? 'No se pudo agregar el factor de riesgo.');
+    }
+  };
+
+  const handleCrearAntecedente = async (payload: Partial<AntecedenteClinico>) => {
+    if (!id) return;
+    await historiasClinicasService.crearAntecedenteClinico({
+      ...payload,
+      historiaClinicaId: id,
+    });
+    const ants = await historiasClinicasService.listarAntecedentesPorHistoria(id);
+    setAntecedentes(ants);
+  };
+
+  const handleActualizarAntecedente = async (anteId: string, payload: Partial<AntecedenteClinico>) => {
+    await historiasClinicasService.actualizarAntecedente(anteId, payload);
+    const ants = await historiasClinicasService.listarAntecedentesPorHistoria(id!);
+    setAntecedentes(ants);
+  };
+
+  const handleCancel = () => {
+    setShowCancelModal(true);
+  };
+
+  const registrosAlergias = registros.filter((r) => r.tipo === 'ALERGIA');
+  const registrosFactores = registros.filter((r) => r.tipo === 'FACTOR_RIESGO');
+
+  if (!isAuthorized) return null;
+  if (role !== 'MEDICO') return null;
 
   if (loading) {
     return (
       <HistoriasClinicasDashboardLayout>
         <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
         <section className="min-h-0 flex-1">
-          <Card><p className="text-sm text-slate-600">Cargando historia clínica para edición...</p></Card>
+          <Card><p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>Cargando historia clínica para edición...</p></Card>
         </section>
       </HistoriasClinicasDashboardLayout>
     );
@@ -212,7 +208,7 @@ export default function EditarHistoriaClinicaPage() {
         <section className="min-h-0 flex-1">
           <Card>
             <MessageBanner type="error" message={error} />
-            <p className="text-sm text-slate-500">No se pudo cargar la información de la historia clínica.</p>
+            <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No se pudo cargar la información de la historia clínica.</p>
           </Card>
         </section>
       </HistoriasClinicasDashboardLayout>
@@ -224,7 +220,7 @@ export default function EditarHistoriaClinicaPage() {
       <HistoriasClinicasDashboardLayout>
         <HistoriasClinicasHeader title="Editar Historia Clínica" backTo="/historias" />
         <section className="min-h-0 flex-1">
-          <Card><p className="text-sm text-slate-500">No se encontró la historia clínica solicitada.</p></Card>
+          <Card><p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>No se encontró la historia clínica solicitada.</p></Card>
         </section>
       </HistoriasClinicasDashboardLayout>
     );
@@ -242,131 +238,141 @@ export default function EditarHistoriaClinicaPage() {
       {error && <MessageBanner type="error" message={error} />}
 
       <section className="w-full">
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* ── Datos generales ── */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <form onSubmit={handleSubmit}>
             <Card>
-              <h2 className="mb-3 text-base font-semibold text-slate-900">Datos generales</h2>
+              <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Datos generales</h2>
               <div className="space-y-3">
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Nombre del usuario</label>
-                  <Input value={values.usuarioNombre} placeholder="Nombre completo del usuario"
-                    onChange={(e) => handleChange('usuarioNombre', e.target.value)} />
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Nombre del usuario</label>
+                  <Input value={values.usuarioNombre} placeholder="Nombre completo del usuario" readOnly
+                    className="bg-slate-100 text-slate-700 cursor-not-allowed" />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Identificación</label>
-                  <Input value={values.usuarioIdentificacion} placeholder="Documento de identificación"
-                    onChange={(e) => handleChange('usuarioIdentificacion', e.target.value)} />
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Identificación</label>
+                  <Input value={values.usuarioIdentificacion} placeholder="Documento de identificación" readOnly
+                    className="bg-slate-100 text-slate-700 cursor-not-allowed" />
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Alergias</label>
-                  <Input value={values.alergia} placeholder="Alergias reportadas"
-                    onChange={(e) => handleChange('alergia', e.target.value)} />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Condición preexistente</label>
+                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Condición preexistente</label>
                   <Input value={values.condicionPreexistente} placeholder="Condiciones preexistentes"
                     onChange={(e) => handleChange('condicionPreexistente', e.target.value)} />
                 </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Factor de riesgo</label>
-                  <Input value={values.factorRiesgo} placeholder="Factores de riesgo identificados"
-                    onChange={(e) => handleChange('factorRiesgo', e.target.value)} />
-                </div>
+              </div>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button type="button" variant="danger" onClick={handleCancel}>
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="primary" disabled={isSubmitting}>
+                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+                </Button>
               </div>
             </Card>
+          </form>
 
-            {/* ── Antecedentes clínicos ── */}
-            <Card>
-              <h2 className="mb-3 text-base font-semibold text-slate-900">Antecedentes clínicos</h2>
-              <div className="space-y-3">
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Tipo de antecedente</label>
-                  <select value={antTipo}
-                    onChange={(e) => setAntTipo(e.target.value as TipoAntecedenteClinico)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
-                    {TIPO_ANTECEDENTE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Descripción</label>
-                  <textarea value={antDescripcion}
-                    onChange={(e) => setAntDescripcion(e.target.value)} rows={3}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary"
-                    placeholder="Describa el antecedente" />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Fecha</label>
-                  <input type="date" value={antFecha}
-                    onChange={(e) => setAntFecha(e.target.value)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
-                </div>
+          <Card>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Alergias</h2>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={nuevaAlergia}
+                  placeholder="Nueva alergia..."
+                  onChange={(e) => setNuevaAlergia(e.target.value)}
+                />
+                <Button type="button" variant="primary" onClick={handleAgregarAlergia}
+                  disabled={!nuevaAlergia.trim()}>
+                  Agregar
+                </Button>
               </div>
-            </Card>
-          </div>
-
-          {/* ── Casos clínicos ── */}
-          <Card className="mt-4">
-            <h2 className="mb-3 text-base font-semibold text-slate-900">Casos clínicos</h2>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Fecha de apertura</label>
-                  <input type="date" value={casoFechaApertura}
-                    onChange={(e) => setCasoFechaApertura(e.target.value)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">
-                    Fecha de cierre <span className="text-slate-400">(opcional)</span>
-                  </label>
-                  <input type="date" value={casoFechaCierre}
-                    onChange={(e) => setCasoFechaCierre(e.target.value)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Estado del caso</label>
-                  <select value={casoEstado}
-                    onChange={(e) => {
-                      const val = e.target.value as EstadoCasoClinico;
-                      setCasoEstado(val);
-                      if (val !== 'CERRADO') setCasoFechaCierre('');
-                    }}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
-                    {ESTADO_CASO_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium text-slate-700">Prioridad</label>
-                  <select value={casoPrioridad}
-                    onChange={(e) => setCasoPrioridad(e.target.value as PrioridadCasoClinico)}
-                    className="block w-full rounded-global border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-hc-primary focus:outline-none focus:ring-1 focus:ring-hc-primary">
-                    {PRIORIDAD_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
+              <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+                {registrosAlergias.length === 0 ? (
+                  <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                ) : (
+                  registrosAlergias.map((r) => (
+                    <div key={r.id} className="rounded-lg p-2"
+                      style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                      <p className="text-[11px]" style={{ color: 'var(--card-text-muted)' }}>
+                        {new Date(r.fecha_registro).toLocaleDateString()}
+                        {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </Card>
 
-          {/* ── Botones ── */}
-          <div className="mt-4 flex justify-end gap-2">
-            <Button type="button" variant="danger" onClick={handleCancel}>
-              Cancelar
+          <Card>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Factores de riesgo</h2>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={nuevoFactorRiesgo}
+                  placeholder="Nuevo factor de riesgo..."
+                  onChange={(e) => setNuevoFactorRiesgo(e.target.value)}
+                />
+                <Button type="button" variant="primary" onClick={handleAgregarFactorRiesgo}
+                  disabled={!nuevoFactorRiesgo.trim()}>
+                  Agregar
+                </Button>
+              </div>
+              <div className="mt-2 max-h-48 space-y-1 overflow-y-auto">
+                {registrosFactores.length === 0 ? (
+                  <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                ) : (
+                  registrosFactores.map((r) => (
+                    <div key={r.id} className="rounded-lg p-2"
+                      style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                      <p className="text-[11px]" style={{ color: 'var(--card-text-muted)' }}>
+                        {new Date(r.fecha_registro).toLocaleDateString()}
+                        {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Antecedentes clínicos</h2>
+            <AntecedentesClinicosList
+              items={antecedentes}
+              onCreate={handleCrearAntecedente}
+              onUpdate={handleActualizarAntecedente}
+            />
+          </Card>
+        </div>
+
+        <Card className="mt-4">
+          <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Documentos clínicos</h2>
+          <DocumentosClinicosList
+            key={documentosRefreshKey}
+            historiaClinicaId={id!}
+            historia={historia}
+            medicoNombre={getNombreMedico()}
+            showFilters={false}
+          />
+        </Card>
+      </section>
+
+      <Modal open={showCancelModal} onClose={() => setShowCancelModal(false)} title="Cancelar edición">
+        <div className="space-y-4">
+          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
+            ¿Está seguro de que desea salir sin guardar? Los cambios no guardados se perderán.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setShowCancelModal(false)}>
+              No, continuar editando
             </Button>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+            <Button type="button" variant="danger" onClick={() => navigate('/historias')}>
+              Sí, salir sin guardar
             </Button>
           </div>
-        </form>
-      </section>
+        </div>
+      </Modal>
     </HistoriasClinicasDashboardLayout>
   );
 }

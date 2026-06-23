@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from Seguridad.models import Usuario
+
 from .models import (
     Antecedente,
     Caso,
@@ -7,6 +9,7 @@ from .models import (
     EstadoCaso,
     HistoriaClinica,
     Prioridad,
+    RegistroClinicoHistoria,
     TipoAntecedente,
     TipoDocumento,
 )
@@ -71,15 +74,85 @@ class DocumentoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
         return value.strip()
 
+class RegistroClinicoHistoriaSerializer(serializers.ModelSerializer):
+    medico_registro_nombre = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RegistroClinicoHistoria
+        fields = (
+            "id",
+            "historia_clinica",
+            "tipo",
+            "descripcion",
+            "fecha_registro",
+            "medico_registro",
+            "medico_registro_nombre",
+            "activo",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "historia_clinica",
+            "fecha_registro",
+            "medico_registro",
+            "medico_registro_nombre",
+            "activo",
+            "created_at",
+            "updated_at",
+        )
+
+    def get_medico_registro_nombre(self, obj):
+        if obj.medico_registro:
+            return obj.medico_registro.nombre_completo
+        return None
+
+    def validate_descripcion(self, value):
+        if value is None or not value.strip():
+            raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
+        return value.strip()
+
+
+class ConsultaHistoriaSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    tipo = serializers.CharField(read_only=True)
+    fecha = serializers.DateTimeField(read_only=True)
+    motivo = serializers.CharField(read_only=True)
+    estado = serializers.CharField(read_only=True)
+    observaciones = serializers.CharField(read_only=True, allow_blank=True)
+
+
+class UsuarioHistoriaSerializer(serializers.ModelSerializer):
+    nombre = serializers.CharField(source="nombre_completo", read_only=True)
+    identificacion = serializers.CharField(source="cedula", read_only=True)
+
+    class Meta:
+        model = Usuario
+        fields = (
+            "id",
+            "nombre",
+            "identificacion",
+            "nombres",
+            "apellidos",
+            "cedula",
+        )
+
+
 class HistoriaClinicaSerializer(serializers.ModelSerializer):
     casos = CasoSerializer(many=True, read_only=True)
     antecedentes = AntecedenteSerializer(many=True, read_only=True)
     documentos = DocumentoSerializer(many=True, read_only=True)
-    usuario = serializers.PrimaryKeyRelatedField(read_only=True)
+    usuario = UsuarioHistoriaSerializer(read_only=True)
+    usuario_id = serializers.PrimaryKeyRelatedField(
+        source="usuario",
+        queryset=Usuario.objects.all(),
+        write_only=True,
+        required=False,
+    )
 
     class Meta:
         model = HistoriaClinica
-        fields = ("id","usuario","alergia","condicion_preexistente","factor_riesgo","created_at","updated_at","casos","antecedentes","documentos",)
+        fields = ("id","usuario","usuario_id","alergia","condicion_preexistente","factor_riesgo","created_at","updated_at","casos","antecedentes","documentos",)
         read_only_fields = ("id", "usuario", "created_at", "updated_at")
 
     def validate_alergia(self, value):

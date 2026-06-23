@@ -56,6 +56,52 @@ def obtener_por_relacion(modelo, **filtros):
     return modelo.objects.filter(**filtros)
 
 
+import unicodedata
+
+
+def normalizar_rol(nombre_rol: str | None) -> str | None:
+    if not nombre_rol:
+        return None
+    mapeo = {
+        'medico': 'medico',
+        'psicologo': 'medico',
+        'odontologo': 'medico',
+        'trabajador social': 'trabajador_social',
+        'trabajador_social': 'trabajador_social',
+        'trabajadorsocial': 'trabajador_social',
+        'trabajo social': 'trabajador_social',
+        'paciente': 'paciente',
+        'administrador': 'administrador',
+        'admin': 'administrador',
+    }
+    sin_acentos = ''.join(
+        c for c in unicodedata.normalize('NFKD', nombre_rol)
+        if not unicodedata.combining(c)
+    )
+    normalizado = sin_acentos.lower().strip()
+    return mapeo.get(normalizado)
+
+
+def _rol_nombre(user):
+    return getattr(getattr(user, 'rol', None), 'nombre', '')
+
+
+def es_medico(user):
+    return normalizar_rol(_rol_nombre(user)) == 'medico'
+
+
+def es_trabajador_social(user):
+    return normalizar_rol(_rol_nombre(user)) == 'trabajador_social'
+
+
+def es_paciente(user):
+    return normalizar_rol(_rol_nombre(user)) == 'paciente'
+
+
+def es_administrador(user):
+    return normalizar_rol(_rol_nombre(user)) == 'administrador'
+
+
 def obtener_historias_clinicas():
     return HistoriaClinica.objects.prefetch_related("casos", "antecedentes", "documentos").all()
 

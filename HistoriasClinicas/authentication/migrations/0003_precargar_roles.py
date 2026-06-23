@@ -10,6 +10,8 @@ def preload_roles(apps, schema_editor):
         {'nombre': 'admin', 'descripcion': 'Administrador del sistema con acceso total'},
         {'nombre': 'medico', 'descripcion': 'Profesional médico con acceso a información clínica'},
         {'nombre': 'psicologo', 'descripcion': 'Profesional psicólogo con acceso a registros psicológicos'},
+        {'nombre': 'odontologo', 'descripcion': 'Profesional odontólogo con acceso a registros odontológicos'},
+        {'nombre': 'trabajador_social', 'descripcion': 'Profesional de trabajo social con acceso a registros sociales'},
         {'nombre': 'estudiante', 'descripcion': 'Estudiante con acceso limitado a su propia información'},
     ]
     
@@ -22,7 +24,7 @@ def preload_roles(apps, schema_editor):
 
 def reverse_roles(apps, schema_editor):
     Rol = apps.get_model('authentication', 'Rol')
-    Rol.objects.filter(nombre__in=['admin', 'medico', 'psicologo', 'estudiante']).delete()
+    Rol.objects.filter(nombre__in=['admin', 'medico', 'psicologo', 'odontologo', 'trabajador_social', 'estudiante']).delete()
 
 
 class Migration(migrations.Migration):

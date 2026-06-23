@@ -18,7 +18,7 @@ export default function ReportesGeneroPagina({
   const [filters, setFilters] = useState<ReportFilter | null>(initialFilters || null);
   const { loading, error, genderData, chartData, timestamp, queryDuration } = useReportesGenero(filters);
 
-  // Memoización optimizada del gráfico
+  // Memoizacion optimizada del grafico
   const memoizedChartData = useMemoizedChartData(genderData, 'gender', [genderData]);
 
   const handleApplyFilters = (newFilters: { fecha_inicio: string; fecha_fin: string }) => {
@@ -41,13 +41,13 @@ export default function ReportesGeneroPagina({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--hc-bg)' }}>
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Reportes por Género</h1>
-          <p className="mt-2 text-gray-600">
-            Análisis epidemiológico de consultas distribuidas por género del paciente
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--on-surface)' }}>Reportes por Genero</h1>
+          <p className="mt-2" style={{ color: 'var(--on-surface-variant)' }}>
+            Analisis epidemiologico de consultas distribuidas por genero del paciente
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function ReportesGeneroPagina({
         )}
 
         {/* Loading State */}
-        {loading && <LoadingState message="Cargando estadísticas por género..." />}
+        {loading && <LoadingState message="Cargando estadisticas por genero..." />}
 
         {/* Charts and Statistics */}
         {!loading && !error && genderData && memoizedChartData && (
@@ -72,7 +72,7 @@ export default function ReportesGeneroPagina({
             {/* Chart Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ChartContainer
-                title="Distribución de Consultas por Género (Pastel)"
+                title="Distribucion de Consultas por Genero (Pastel)"
                 type="pie"
                 data={memoizedChartData}
                 showLegend={true}
@@ -80,24 +80,25 @@ export default function ReportesGeneroPagina({
               />
 
               {/* Statistics Table */}
-              <div className="rounded-lg border border-gray-200 bg-white shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Estadísticas Detalladas</h3>
+              <div className="rounded-lg shadow-sm p-6" style={{ border: '1px solid var(--outline-variant)', backgroundColor: 'var(--surface-container-lowest)' }}>
+                <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--on-surface)' }}>Estadisticas Detalladas</h3>
                 <div className="space-y-3">
                   {genderData &&
                     Object.entries(genderData).map(([key, value]: [string, any]) => (
                       <div
                         key={key}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-lg transition-colors"
+                        style={{ backgroundColor: 'var(--surface-container-low)', border: '1px solid var(--outline-variant)' }}
                       >
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">{getGenderLabel(key)}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-medium" style={{ color: 'var(--on-surface)' }}>{getGenderLabel(key)}</p>
+                          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
                             {value.count} consulta{value.count !== 1 ? 's' : ''}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-blue-600">{value.percent}%</p>
-                          <p className="text-xs text-gray-500">del total</p>
+                          <p className="text-2xl font-bold" style={{ color: 'var(--primary)' }}>{value.percent}%</p>
+                          <p className="text-xs" style={{ color: 'var(--card-text-muted)' }}>del total</p>
                         </div>
                       </div>
                     ))}
@@ -116,20 +117,17 @@ export default function ReportesGeneroPagina({
 
         {/* Empty State */}
         {!loading && !error && !genderData && filters && (
-          <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center">
-            <p className="text-gray-600">Selecciona un rango de fechas para ver estadísticas por género</p>
+          <div className="rounded-lg border border-dashed p-12 text-center" style={{ borderColor: 'var(--outline)' }}>
+            <p style={{ color: 'var(--on-surface-variant)' }}>Selecciona un rango de fechas para ver estadisticas por genero</p>
           </div>
         )}
 
         {!loading && !error && !genderData && !filters && (
-          <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center">
-            <p className="text-gray-600">Selecciona un rango de fechas para comenzar</p>
+          <div className="rounded-lg border border-dashed p-12 text-center" style={{ borderColor: 'var(--outline)' }}>
+            <p style={{ color: 'var(--on-surface-variant)' }}>Selecciona un rango de fechas para comenzar</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-
-

@@ -1,12 +1,19 @@
 import { apiClient } from './api';
+import { normalizarFecha } from '../utils/dateFormatter';
 import type { EstadoHistoriaClinica, HistoriaClinica, HistoriaClinicaFormValues } from '../types/historiaClinica.types';
 import type { AntecedenteClinico, TipoAntecedenteClinico } from '../types/antecedenteClinico.types';
 import type { CasoClinico, PrioridadCasoClinico, EstadoCasoClinico } from '../types/casoClinico.types';
+import type { ConsultaClinico } from '../types/consultaClinico.types';
+import type { DocumentoClinico, TipoDocumentoClinico } from '../types/documentoClinico.types';
+import type { RegistroClinicoHistoria, TipoRegistroClinico } from '../types/registroClinico.types';
 
 const mapApiHistoriaToModel = (api: any): HistoriaClinica => {
   // Mapea de la respuesta del API (snake_case) a nuestro modelo frontend (camelCase)
   const usuario = typeof api.usuario === 'object' && api.usuario !== null
-    ? { nombre: api.usuario.nombre || '', identificacion: api.usuario.identificacion || '' }
+    ? {
+        nombre: api.usuario.nombre ?? api.usuario.nombre_completo ?? api.usuario.nombreCompleto ?? '',
+        identificacion: api.usuario.identificacion ?? api.usuario.cedula ?? api.usuario.documento ?? '',
+      }
     : { nombre: '', identificacion: '' };
 
   return {
@@ -14,8 +21,8 @@ const mapApiHistoriaToModel = (api: any): HistoriaClinica => {
     alergia: api.alergia ?? '',
     condicionPreexistente: api.condicion_preexistente ?? api.condicionPreexistente ?? '',
     factorRiesgo: api.factor_riesgo ?? api.factorRiesgo ?? '',
-    fechaApertura: api.created_at ?? undefined,
-    ultimaActualizacion: api.updated_at ?? undefined,
+    fechaApertura: normalizarFecha(api.created_at) || undefined,
+    ultimaActualizacion: normalizarFecha(api.updated_at) || undefined,
     estado: (api.estado as EstadoHistoriaClinica) ?? 'ACTIVA',
     usuario,
     responsable: api.responsable ?? undefined,
@@ -43,16 +50,29 @@ const mapApiCasoToModel = (api: any): CasoClinico => ({
   actualizadoEn: api.updated_at ?? undefined,
 });
 
+const mapApiDocumentoToModel = (api: any): DocumentoClinico => ({
+  id: String(api.id ?? api.pk ?? ''),
+  historiaClinicaId: String(api.historia_clinica ?? ''),
+  fecha: api.fecha ?? '',
+  encabezado: api.encabezado ?? '',
+  cuerpo: api.cuerpo ?? '',
+  tipo: (api.tipo_documento ?? '') as TipoDocumentoClinico,
+  creadoEn: api.created_at ?? undefined,
+  actualizadoEn: api.updated_at ?? undefined,
+});
+
 export const historiasClinicasService = {
   listarHistoriasClinicas: async (): Promise<HistoriaClinica[]> => {
   const response = await apiClient.get<any>('/historias/historias_clinicas/');
-  const data = Array.isArray(response) ? response : response.data
 
+  const data = Array.isArray(response)
+    ? response
+    : response.data ?? response.results ?? [];
 
-    console.log('RESPUESTA HISTORIAS:', response)
-    console.log('DATA HISTORIAS:', data)
+  console.log('RESPUESTA HISTORIAS:', response);
+  console.log('DATA HISTORIAS:', data);
 
-    return (data || []).map(mapApiHistoriaToModel);
+  return (data || []).map(mapApiHistoriaToModel);
   },
 
   obtenerHistoriaClinicaPorId: async (id: string): Promise<HistoriaClinica> => {
@@ -96,30 +116,42 @@ export const historiasClinicasService = {
   },
 
   listarAntecedentesPorHistoria: async (historiaId: string): Promise<AntecedenteClinico[]> => {
-    const response = await apiClient.get<any>('/historias/antecedentes/');
-    const data = Array.isArray(response) ? response : response.data
-    const all = (data || []).map(mapApiAntecedenteToModel);
-    return all.filter((a: AntecedenteClinico) => String(a.historiaClinicaId) === String(historiaId));
+  const response = await apiClient.get<any>('/historias/antecedentes/');
+
+  const data = Array.isArray(response)
+    ? response
+    : response.data ?? response.results ?? [];
+
+  const all = (data || []).map(mapApiAntecedenteToModel);
+
+  return all.filter(
+    (a: AntecedenteClinico) =>
+      String(a.historiaClinicaId) === String(historiaId)
+  );
   },
 
   crearAntecedenteClinico: async (payload: Partial<AntecedenteClinico>): Promise<AntecedenteClinico> => {
     const body: any = {
       historia_clinica: payload.historiaClinicaId,
       descripcion: payload.descripcion,
-      fecha: payload.fecha,
+      fecha: normalizarFecha(payload.fecha),
       tipo_antecedente: payload.tipo,
     };
-    const data = await apiClient.post<any>('/historias/antecedentes/', body);
+    console.log('Payload antecedente enviado:', body);
+    const response = await apiClient.post<any>('/historias/antecedentes/', body);
+    const data = response.data ?? response;
     return mapApiAntecedenteToModel(data);
   },
 
   actualizarAntecedente: async (id: string, payload: Partial<AntecedenteClinico>): Promise<AntecedenteClinico> => {
     const body: any = {
       descripcion: payload.descripcion,
-      fecha: payload.fecha,
+      fecha: normalizarFecha(payload.fecha),
       tipo_antecedente: payload.tipo,
     };
-    const data = await apiClient.patch<any>(`/historias/antecedentes/${id}/`, body);
+    console.log('Payload antecedente enviado:', body);
+    const response = await apiClient.patch<any>(`/historias/antecedentes/${id}/`, body);
+    const data = response.data ?? response;
     return mapApiAntecedenteToModel(data);
   },
 
@@ -128,10 +160,28 @@ export const historiasClinicasService = {
   },
 
   listarCasosPorHistoria: async (historiaId: string): Promise<CasoClinico[]> => {
-    const response = await apiClient.get<any>('/historias/casos/');
-    const data = Array.isArray(response) ? response : response.data
-    const all = (data || []).map(mapApiCasoToModel);
-    return all.filter((c: CasoClinico) => String(c.historiaClinicaId) === String(historiaId));
+  const response = await apiClient.get<any>('/historias/casos/');
+
+  const data = Array.isArray(response)
+    ? response
+    : response.data ?? response.results ?? [];
+
+  const all = (data || []).map(mapApiCasoToModel);
+
+  return all.filter(
+    (c: CasoClinico) =>
+      String(c.historiaClinicaId) === String(historiaId)
+  );
+  },
+
+  listarTodosLosCasos: async (): Promise<CasoClinico[]> => {
+  const response = await apiClient.get<any>('/historias/casos/');
+
+  const data = Array.isArray(response)
+    ? response
+    : response.data ?? response.results ?? [];
+
+  return (data || []).map(mapApiCasoToModel);
   },
 
   crearCasoClinico: async (payload: Partial<CasoClinico>): Promise<CasoClinico> => {
@@ -160,20 +210,95 @@ export const historiasClinicasService = {
   eliminarCaso: async (id: string): Promise<void> => {
     await apiClient.delete<void>(`/historias/casos/${id}/`);
   },
-  
+
+  listarCasosClinicosPorHistoria: async (historiaId: string): Promise<ConsultaClinico[]> => {
+    const response = await apiClient.get<any>(
+      `/historias/historias_clinicas/${historiaId}/consultas/`
+    );
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    return (data || []).map((api: any) => ({
+      id: String(api.id ?? ''),
+      tipo: api.tipo ?? '',
+      fecha: api.fecha ?? '',
+      motivo: api.motivo ?? '',
+      estado: api.estado ?? '',
+      observaciones: api.observaciones ?? '',
+    }));
+  },
+
+  listarTodosLosAntecedentes: async (): Promise<AntecedenteClinico[]> => {
+    const response = await apiClient.get<any>('/historias/antecedentes/');
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    return (data || []).map(mapApiAntecedenteToModel);
+  },
+
+  listarDocumentosPorHistoria: async (historiaId: string): Promise<DocumentoClinico[]> => {
+    const response = await apiClient.get<any>('/historias/documentos/');
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    const all = (data || []).map(mapApiDocumentoToModel);
+    return all.filter(
+      (d: DocumentoClinico) =>
+        String(d.historiaClinicaId) === String(historiaId)
+    );
+  },
+
+  listarTodosLosDocumentos: async (): Promise<DocumentoClinico[]> => {
+    const response = await apiClient.get<any>('/historias/documentos/');
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    return (data || []).map(mapApiDocumentoToModel);
+  },
+
+  crearDocumentoClinico: async (payload: Partial<DocumentoClinico>): Promise<DocumentoClinico> => {
+    const body: any = {
+      historia_clinica: payload.historiaClinicaId,
+      fecha: normalizarFecha(payload.fecha),
+      encabezado: payload.encabezado,
+      cuerpo: payload.cuerpo,
+      tipo_documento: payload.tipo,
+    };
+    console.log('Payload documento enviado:', body);
+    const response = await apiClient.post<any>('/historias/documentos/', body);
+    const data = response.data ?? response;
+    return mapApiDocumentoToModel(data);
+  },
+
+  actualizarDocumento: async (id: string, payload: Partial<DocumentoClinico>): Promise<DocumentoClinico> => {
+    const body: any = {
+      fecha: normalizarFecha(payload.fecha),
+      encabezado: payload.encabezado,
+      cuerpo: payload.cuerpo,
+      tipo_documento: payload.tipo,
+    };
+    console.log('Payload documento enviado:', body);
+    const response = await apiClient.patch<any>(`/historias/documentos/${id}/`, body);
+    const data = response.data ?? response;
+    return mapApiDocumentoToModel(data);
+  },
+
+  eliminarDocumento: async (id: string): Promise<void> => {
+    await apiClient.delete<void>(`/historias/documentos/${id}/`);
+  },
+
   actualizarHistoriaClinica: async (
   id: string,
   payload: {
-    alergia: string;
-    condicionPreexistente: string;
-    factorRiesgo: string;
+    alergia?: string;
+    condicionPreexistente?: string;
+    factorRiesgo?: string;
   }
 ): Promise<HistoriaClinica> => {
-  const body = {
-    alergia: payload.alergia,
-    condicion_preexistente: payload.condicionPreexistente,
-    factor_riesgo: payload.factorRiesgo,
-  };
+  const body: Record<string, string> = {};
+  if (payload.alergia !== undefined) body.alergia = payload.alergia;
+  if (payload.condicionPreexistente !== undefined) body.condicion_preexistente = payload.condicionPreexistente;
+  if (payload.factorRiesgo !== undefined) body.factor_riesgo = payload.factorRiesgo;
 
   const response = await apiClient.patch<any>(
     `/historias/historias_clinicas/${id}/`,
@@ -183,5 +308,53 @@ export const historiasClinicasService = {
   const data = response.data ?? response;
 
   return mapApiHistoriaToModel(data);
-},
+  },
+
+  listarRegistrosClinicosPorHistoria: async (historiaId: string): Promise<RegistroClinicoHistoria[]> => {
+    const response = await apiClient.get<any>(
+      `/historias/historias_clinicas/${historiaId}/registros/`
+    );
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    return (data || []).map((api: any) => ({
+      id: String(api.id ?? ''),
+      historia_clinica: api.historia_clinica,
+      tipo: api.tipo as TipoRegistroClinico,
+      descripcion: api.descripcion ?? '',
+      fecha_registro: api.fecha_registro ?? '',
+      medico_registro: api.medico_registro ?? null,
+      medico_registro_nombre: api.medico_registro_nombre ?? null,
+      activo: api.activo ?? true,
+      created_at: api.created_at ?? '',
+      updated_at: api.updated_at ?? '',
+    }));
+  },
+
+  crearRegistroClinico: async (
+    historiaId: string,
+    payload: { tipo: TipoRegistroClinico; descripcion: string }
+  ): Promise<RegistroClinicoHistoria> => {
+    const body = {
+      tipo: payload.tipo,
+      descripcion: payload.descripcion,
+    };
+    const response = await apiClient.post<any>(
+      `/historias/historias_clinicas/${historiaId}/registros/`,
+      body
+    );
+    const data = response.data ?? response;
+    return {
+      id: String(data.id ?? ''),
+      historia_clinica: data.historia_clinica,
+      tipo: data.tipo as TipoRegistroClinico,
+      descripcion: data.descripcion ?? '',
+      fecha_registro: data.fecha_registro ?? '',
+      medico_registro: data.medico_registro ?? null,
+      medico_registro_nombre: data.medico_registro_nombre ?? null,
+      activo: data.activo ?? true,
+      created_at: data.created_at ?? '',
+      updated_at: data.updated_at ?? '',
+    };
+  },
 };

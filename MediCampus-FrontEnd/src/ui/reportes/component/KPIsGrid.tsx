@@ -24,7 +24,7 @@ export default function KPIsGrid({
   return (
     <div>
       {title && (
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
+        <h2 className="mb-4 text-xl font-semibold" style={{ color: 'var(--on-surface)' }}>{title}</h2>
       )}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric, idx) => (
@@ -41,4 +41,3 @@ export default function KPIsGrid({
     </div>
   );
 }
-
