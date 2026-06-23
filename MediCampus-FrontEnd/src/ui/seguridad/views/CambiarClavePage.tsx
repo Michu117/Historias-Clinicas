@@ -1,18 +1,16 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/Button'
 import { Input } from '../../components/Input'
 import { Card, CardTitle } from '../../components/Card'
-import { login, User } from '../utils/authApi'
-import { useSession } from '../hooks/useSession'
+import { changePassword } from '../utils/authApi'
 
-const PROFESSIONAL_ROLES = new Set(['medico', 'psicologo', 'odontologo', 'trabajador_social']);
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
 
-const LoginPage: React.FC = () => {
+const CambiarClavePage: React.FC = () => {
   const navigate = useNavigate()
-  const { saveSession } = useSession()
-  const [correo, setCorreo] = useState('')
   const [clave, setClave] = useState('')
+  const [confirmClave, setConfirmClave] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,26 +18,26 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!PASSWORD_REGEX.test(clave)) {
+      setError('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.')
+      return
+    }
+
+    if (clave !== confirmClave) {
+      setError('Las contraseñas no coinciden.')
+      return
+    }
+
     setLoading(true)
     try {
-      const res = await login({ correo, clave })
-      saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-
-      localStorage.setItem('access_token', res.tokens.access);
-
-      const roleName = res.usuario.roles?.[0]?.nombre?.toLowerCase() || '';
-      if (PROFESSIONAL_ROLES.has(roleName)) {
-        navigate('/agendas/mi-agenda');
-      } else if (roleName === 'admin' || roleName === 'administrador') {
-        navigate('/seguridad/dashboard');
-      } else {
-        navigate('/home');
-      }
+      await changePassword({ clave_nueva: clave })
+      navigate('/home')
     } catch (err: any) {
       if (err.status === 400) {
-        setError('Credenciales inválidas. Verifica tu correo y contraseña.')
+        setError('La contraseña no cumple con los requisitos de seguridad.')
       } else {
-        setError(err.message || 'Error al iniciar sesión. Intenta de nuevo.')
+        setError(err.message || 'Error al cambiar la contraseña.')
       }
     } finally {
       setLoading(false)
@@ -53,25 +51,13 @@ const LoginPage: React.FC = () => {
           <div className="mx-auto w-12 h-12 bg-[var(--primary)] rounded-full flex items-center justify-center mb-4">
             <span className="text-hc-primaryText text-xl font-bold">M</span>
           </div>
-          <CardTitle>Iniciar Sesión</CardTitle>
-          <p className="text-sm text-[var(--on-surface-variant)] mt-1">Accede al panel de seguridad de MediCampus</p>
+          <CardTitle>Cambiar Contraseña</CardTitle>
+          <p className="text-sm text-[var(--on-surface-variant)] mt-1">Debes cambiar tu contraseña antes de continuar.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Correo electrónico <span className="text-red-500">*</span></label>
-            <Input
-              type="email"
-              placeholder="tu@correo.com"
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
-              required
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Contraseña <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Nueva contraseña <span className="text-red-500">*</span></label>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
@@ -79,6 +65,7 @@ const LoginPage: React.FC = () => {
                 value={clave}
                 onChange={(e) => setClave(e.target.value)}
                 required
+                minLength={8}
                 className="pr-10"
               />
               <button
@@ -89,6 +76,22 @@ const LoginPage: React.FC = () => {
                 <span className="material-symbols-outlined text-[18px] leading-none">{showPassword ? 'visibility_off' : 'visibility'}</span>
               </button>
             </div>
+            <p className="text-xs text-[var(--on-surface-variant)] mt-1">Mínimo 8 caracteres, una mayúscula, una minúscula y un número.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Confirmar contraseña <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={confirmClave}
+                onChange={(e) => setConfirmClave(e.target.value)}
+                required
+                minLength={8}
+                className="pr-10"
+              />
+            </div>
           </div>
 
           {error && (
@@ -98,25 +101,12 @@ const LoginPage: React.FC = () => {
           )}
 
           <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {loading ? 'Cambiando...' : 'Cambiar Contraseña'}
           </Button>
-
-          <div className="text-center">
-            <Link to="/seguridad/forgot-password" className="text-sm text-hc-primary font-medium hover:underline">
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
         </form>
-
-        <p className="text-center text-sm text-[var(--on-surface-variant)] mt-4">
-          ¿No tienes cuenta?{' '}
-          <Link to="/seguridad/register" className="text-hc-primary font-medium hover:underline">
-            Registrarse
-          </Link>
-        </p>
       </Card>
     </div>
   )
 }
 
-export default LoginPage
+export default CambiarClavePage
