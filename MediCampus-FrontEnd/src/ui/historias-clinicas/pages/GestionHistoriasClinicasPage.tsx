@@ -18,6 +18,7 @@ import type { HistoriaClinica } from '../types/historiaClinica.types';
 import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
 import type { DocumentoClinico } from '../types/documentoClinico.types';
 import type { ConsultaClinico } from '../types/consultaClinico.types';
+import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
 
 const PAGE_SIZE = 3;
 
@@ -42,6 +43,7 @@ const MedicoContent = () => {
   const [todosLosAntecedentes, setTodosLosAntecedentes] = useState<AntecedenteClinico[]>([]);
   const [todosLosDocumentos, setTodosLosDocumentos] = useState<DocumentoClinico[]>([]);
   const [todosLosCasos, setTodosLosCasos] = useState<ConsultaClinico[]>([]);
+  const [todosLosRegistros, setTodosLosRegistros] = useState<RegistroClinicoHistoria[]>([]);
 
   const {
     historias,
@@ -108,10 +110,11 @@ const MedicoContent = () => {
       setTodosLosAntecedentes([]);
       setTodosLosDocumentos([]);
       setTodosLosCasos([]);
+      setTodosLosRegistros([]);
       return;
     }
     const cargarActividadRelacionada = async () => {
-      const [antecedentes, documentos, casosPorHistoria] = await Promise.all([
+      const [antecedentes, documentos, casosPorHistoria, registrosPorHistoria] = await Promise.all([
         historiasClinicasService.listarTodosLosAntecedentes(),
         historiasClinicasService.listarTodosLosDocumentos(),
         Promise.all(
@@ -123,15 +126,22 @@ const MedicoContent = () => {
               )
           )
         ),
+        Promise.all(
+          rawHistorias.map((h) =>
+            historiasClinicasService.listarRegistrosClinicosPorHistoria(h.id)
+          )
+        ),
       ])
       setTodosLosAntecedentes(antecedentes)
       setTodosLosDocumentos(documentos)
       setTodosLosCasos(casosPorHistoria.flat())
+      setTodosLosRegistros(registrosPorHistoria.flat())
     }
     cargarActividadRelacionada().catch(() => {
       setTodosLosAntecedentes([]);
       setTodosLosDocumentos([]);
       setTodosLosCasos([]);
+      setTodosLosRegistros([]);
     });
   }, [rawHistorias]);
 
@@ -149,26 +159,38 @@ const MedicoContent = () => {
 
   const obtenerFechaHistoria = (historia: HistoriaClinica) =>
     historia.ultimaActualizacion ??
+    (historia as any).ultima_actualizacion ??
     (historia as any).updated_at ??
     (historia as any).updatedAt ??
     (historia as any).fechaActualizacion ??
+    (historia as any).fecha_actualizacion ??
+    (historia as any).fechaCreacion ??
+    (historia as any).fecha_creacion ??
     historia.fechaApertura ??
+    (historia as any).fecha_apertura ??
     (historia as any).created_at ??
-    (historia as any).createdAt
+    (historia as any).createdAt ??
+    (historia as any).fecha ??
+    (historia as any).fecha_registro
 
   const obtenerFechasRelacionadas = (item: any): string[] =>
     [
       item?.ultimaActualizacion,
+      item?.ultima_actualizacion,
       item?.updated_at,
       item?.updatedAt,
       item?.fechaActualizacion,
+      item?.fecha_actualizacion,
       item?.fechaCreacion,
+      item?.fecha_creacion,
       item?.fechaApertura,
+      item?.fecha_apertura,
       item?.created_at,
       item?.createdAt,
       item?.creadoEn,
       item?.actualizadoEn,
       item?.fecha,
+      item?.fecha_registro,
     ].filter(Boolean)
 
   const obtenerHistoriaIdRelacionada = (item: any): string =>
@@ -198,10 +220,16 @@ const MedicoContent = () => {
     if (actividadDocumentos) return true
 
     const actividadCasos = todosLosCasos
-      .filter((c) => String(c.historiaClinicaId ?? '') === historiaId)
+      .filter((c) => obtenerHistoriaIdRelacionada(c) === historiaId)
       .some((c) => obtenerFechasRelacionadas(c).some(esFechaDeHoy))
 
-    return actividadCasos
+    if (actividadCasos) return true
+
+    const actividadRegistros = todosLosRegistros
+      .filter((r) => obtenerHistoriaIdRelacionada(r) === historiaId)
+      .some((r) => obtenerFechasRelacionadas(r).some(esFechaDeHoy))
+
+    return actividadRegistros
   }
 
   const historiasActualizadasHoy = rawHistorias.filter(historiaTieneActividadHoy).length
@@ -367,14 +395,14 @@ export const GestionHistoriasClinicasPage = () => {
       navigate('/home', { replace: true });
       return;
     }
-    if (role !== 'MEDICO') {
+    if (role !== 'MEDICO' && role !== 'TRABAJADOR_SOCIAL') {
       navigate('/home', { replace: true });
       return;
     }
   }, [isAuthorized, role, permissions, navigate]);
 
   if (!isAuthorized) return null;
-  if (role !== 'MEDICO') return null;
+  if (role !== 'MEDICO' && role !== 'TRABAJADOR_SOCIAL') return null;
 
   return <MedicoContent />;
 };

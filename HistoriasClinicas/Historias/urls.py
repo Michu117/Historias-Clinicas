@@ -15,4 +15,6 @@ urlpatterns = [
     ),
     path("historias_clinicas/<int:historia_id>/consultas/",views.HistoriaConsultasListView.as_view(),name="historia-consultas",
     ),
+    path("historias_clinicas/<int:historia_id>/registros/",views.RegistroClinicoHistoriaListCreateView.as_view(),name="registro-clinico-list",
+    ),
 ]
