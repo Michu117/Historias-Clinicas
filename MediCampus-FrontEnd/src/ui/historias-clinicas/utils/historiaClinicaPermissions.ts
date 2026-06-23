@@ -83,6 +83,7 @@ const ROLE_ALIASES: Record<string, UserRole> = {
   'trabajador social': 'TRABAJADOR_SOCIAL',
   trabajadorsocial: 'TRABAJADOR_SOCIAL',
   'trabajo social': 'TRABAJADOR_SOCIAL',
+  trabajo_social: 'TRABAJADOR_SOCIAL',
 };
 
 export function normalizeRole(raw: string): UserRole | null {

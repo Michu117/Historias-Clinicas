@@ -6,6 +6,7 @@ import { Select } from '../../components/Select'
 import { Card, CardTitle } from '../../components/Card'
 import { register } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
+import { normalizeRole } from '../../historias-clinicas/utils/historiaClinicaPermissions'
 
 const SEXO_OPTIONS = [
   { value: 'H', label: 'Hombre' },

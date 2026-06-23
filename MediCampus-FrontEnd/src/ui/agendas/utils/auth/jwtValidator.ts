@@ -20,7 +20,11 @@ export const parseJWT = (token: string): JWTPayload => {
       throw new Error('JWT inválido: debe tener 3 partes (header.payload.signature)');
     }
 
-    const payload = parts[1];
+    // Decodificar payload (segunda parte)
+    let payload = parts[1]
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    // Agregar padding si es necesario
     const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
     const decoded = atob(padded);
     const parsed = JSON.parse(decoded);
@@ -66,8 +70,16 @@ export const getTokenExpiresIn = (token: string): number => {
   }
 };
 
-const PROFESSIONAL_ROLES = new Set(['PROFESIONAL', 'medico', 'psicologo', 'odontologo', 'trabajador_social']);
-const ADMIN_ROLES = new Set(['ADMIN', 'admin', 'Administrador']);
+const normalizarRol = (rol?: string): string =>
+  String(rol ?? '')
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_');
+
+const PROFESSIONAL_ROLES = new Set(['profesional', 'medico', 'psicologo', 'odontologo', 'trabajador_social', 'trabajo_social']);
+const ADMIN_ROLES = new Set(['admin', 'administrador']);
 
 /**
  * Obtiene el primer rol del token
@@ -75,8 +87,7 @@ const ADMIN_ROLES = new Set(['ADMIN', 'admin', 'Administrador']);
 export const getTokenRole = (token: string): string | null => {
   try {
     const payload = parseJWT(token);
-    const roles = getRolesArray(payload);
-    return roles[0] ?? null;
+    return normalizarRol(payload.rol) || null;
   } catch {
     return null;
   }
@@ -101,18 +112,19 @@ export const getTokenRoles = (token: string): string[] => {
 export const validateTokenRole = (token: string, expectedRole: string): boolean => {
   try {
     const payload = parseJWT(token);
-    const roles = getRolesArray(payload);
+    const rolNormalizado = normalizarRol(payload.rol);
 
     const expectedUpper = expectedRole.toUpperCase();
     if (expectedUpper === 'PROFESIONAL') {
-      return roles.some(r => PROFESSIONAL_ROLES.has(r));
+      return PROFESSIONAL_ROLES.has(rolNormalizado);
     }
     if (expectedUpper === 'ADMIN') {
-      return roles.some(r => ADMIN_ROLES.has(r));
+      return ADMIN_ROLES.has(rolNormalizado);
     }
 
-    return roles.includes(expectedRole);
-  } catch {
+    return rolNormalizado === normalizarRol(expectedRole);
+  } catch (error) {
+    console.error('Error al validar rol del token:', error);
     return false;
   }
 };

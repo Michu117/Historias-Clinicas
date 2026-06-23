@@ -5,8 +5,15 @@ import { Input } from '../../components/Input'
 import { Card, CardTitle } from '../../components/Card'
 import { login, User } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
+import { normalizeRole } from '../../historias-clinicas/utils/historiaClinicaPermissions'
 
-const PROFESSIONAL_ROLES = new Set(['medico', 'psicologo', 'odontologo', 'trabajador_social']);
+const PROFESSIONAL_ROLES = [
+  'MEDICO',
+  'ODONTOLOGO',
+  'PSICOLOGO',
+  'TRABAJADOR_SOCIAL',
+  'TRABAJO_SOCIAL',
+];
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
@@ -35,7 +42,7 @@ const LoginPage: React.FC = () => {
       const roleName = res.usuario.roles?.[0]?.nombre?.toLowerCase() || '';
       if (PROFESSIONAL_ROLES.has(roleName)) {
         navigate('/agendas/mi-agenda');
-      } else if (roleName === 'admin' || roleName === 'administrador') {
+      } else if (rolNormalizado === 'ADMINISTRADOR') {
         navigate('/seguridad/dashboard');
       } else {
         navigate('/home');
