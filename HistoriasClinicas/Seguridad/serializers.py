@@ -41,10 +41,11 @@ class CuentaSerializer(serializers.ModelSerializer):
     esActiva = serializers.BooleanField(source='is_active')
     usuario = UsuarioSerializer(source='perfil', read_only=True)
     rol = RolSerializer(read_only=True)
+    mustChangePassword = serializers.BooleanField(source='must_change_password')
 
     class Meta:
         model = Cuenta
-        fields = ('id', 'correo', 'esActiva', 'rol', 'usuario')
+        fields = ('id', 'correo', 'esActiva', 'rol', 'usuario', 'mustChangePassword')
 
 
 class TokenPairSerializer(serializers.Serializer):
@@ -133,10 +134,11 @@ class UserListSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer(source='perfil', read_only=True)
     rol = RolSerializer(read_only=True)
     esActiva = serializers.BooleanField(source='is_active')
+    mustChangePassword = serializers.BooleanField(source='must_change_password')
 
     class Meta:
         model = Cuenta
-        fields = ('id', 'correo', 'esActiva', 'rol', 'usuario')
+        fields = ('id', 'correo', 'esActiva', 'rol', 'usuario', 'mustChangePassword')
 
 
 class UserCreateSerializer(serializers.Serializer):
@@ -174,6 +176,7 @@ class UserCreateSerializer(serializers.Serializer):
             fecha_nacimiento=validated_data['fechaNacimiento'],
             sexo=validated_data['sexo'],
             rol_nombre=rol_nombre,
+            must_change_password=True,
         )
 
 
@@ -189,3 +192,25 @@ class UserUpdateSerializer(serializers.Serializer):
             cuenta.is_active = validated_data['is_active']
             cuenta.save()
         return cuenta
+
+
+class CambiarClaveSerializer(serializers.Serializer):
+    clave_nueva = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
+
+    def validate_clave_nueva(self, value):
+        validate_password(value)
+        return value
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    correo = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uidb64 = serializers.CharField()
+    token = serializers.CharField()
+    clave_nueva = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
+
+    def validate_clave_nueva(self, value):
+        validate_password(value)
+        return value

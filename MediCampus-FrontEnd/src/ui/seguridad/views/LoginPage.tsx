@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../../components/Button'
 import { Input } from '../../components/Input'
 import { Card, CardTitle } from '../../components/Card'
-import { login } from '../utils/authApi'
+import { login, User } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
 
 const PROFESSIONAL_ROLES = new Set(['medico', 'psicologo', 'odontologo', 'trabajador_social']);
@@ -26,6 +26,11 @@ const LoginPage: React.FC = () => {
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
 
       localStorage.setItem('access_token', res.tokens.access);
+
+      if (res.usuario.mustChangePassword) {
+        navigate('/seguridad/cambiar-clave');
+        return;
+      }
 
       const roleName = res.usuario.rol?.nombre?.toLowerCase() || '';
       if (PROFESSIONAL_ROLES.has(roleName)) {
@@ -100,6 +105,12 @@ const LoginPage: React.FC = () => {
           <Button type="submit" variant="primary" className="w-full" disabled={loading}>
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </Button>
+
+          <div className="text-center">
+            <Link to="/seguridad/forgot-password" className="text-sm text-hc-primary font-medium hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </form>
 
         <p className="text-center text-sm text-[var(--on-surface-variant)] mt-4">
