@@ -13,10 +13,7 @@ import UserManagementPage from './ui/seguridad/views/UserManagementPage';
 import PermissionAssignmentPage from './ui/seguridad/views/PermissionAssignmentPage';
 import CriticalAlertsPage from './ui/seguridad/views/CriticalAlertsPage';
 import AuditLogDetailPage from './ui/seguridad/views/AuditLogDetailPage';
-import CambiarClavePage from './ui/seguridad/views/CambiarClavePage';
 import ForbiddenPage from './ui/seguridad/views/ForbiddenPage';
-import ForgotPasswordPage from './ui/seguridad/views/ForgotPasswordPage';
-import PasswordResetConfirmPage from './ui/seguridad/views/PasswordResetConfirmPage';
 import GestionHistoriasClinicasPage from "./ui/historias-clinicas/pages/GestionHistoriasClinicasPage";
 import NuevaHistoriaClinicaPage from "./ui/historias-clinicas/pages/NuevaHistoriaClinicaPage";
 import {DetalleHistoriaClinicaPage} from "./ui/historias-clinicas/pages/DetalleHistoriaClinicaPage";
@@ -91,9 +88,6 @@ export default function App() {
             {/* Rutas de Seguridad */}
             <Route path="/seguridad/login" element={<LoginPage />} />
             <Route path="/seguridad/register" element={<RegisterPage />} />
-            <Route path="/seguridad/cambiar-clave" element={<CambiarClavePage />} />
-            <Route path="/seguridad/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/seguridad/reset-password/:uidb64/:token" element={<PasswordResetConfirmPage />} />
             <Route path="/seguridad/403" element={<ForbiddenPage />} />
 
             <Route path="/seguridad" element={<SecurityLayout />}>

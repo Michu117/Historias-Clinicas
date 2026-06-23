@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { ProtectedRoute } from '../components/ProtectedRoute'
 import { Card, CardTitle } from '../../components/Card'
 import { Badge } from '../../components/Badge'
 import { Button } from '../../components/Button'
 import { Modal } from '../../components/Modal'
 import { Input } from '../../components/Input'
-import { exportAuditLogs, listAuditLogs, AuditLogEntry } from '../utils/authApi'
+import { exportAuditLogs } from '../utils/authApi'
 
 interface Incident {
   time: string
@@ -14,62 +14,37 @@ interface Incident {
   severity: 'critical' | 'warning' | 'info'
 }
 
-const SEVERITY_MAP: Record<string, { severity: Incident['severity']; title: string }> = {
-  'Registro': { severity: 'info', title: 'Registro de Nueva Cuenta' },
-  'Inicio de sesión': { severity: 'info', title: 'Inicio de Sesión' },
-  'Inicio de sesión fallido': { severity: 'critical', title: 'Intento de Acceso Crítico' },
-  'Refresco de token': { severity: 'info', title: 'Refresco de Token' },
-  'Acceso': { severity: 'info', title: 'Acceso a Módulo' },
-  'Cambio de rol': { severity: 'warning', title: 'Escalada de Privilegios' },
-}
-
-function formatTime(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
-}
-
-function logToIncident(log: AuditLogEntry): Incident {
-  const config = SEVERITY_MAP[log.tipoAccion] || { severity: 'info' as const, title: log.tipoAccion }
-  let description = log.detalle || `Usuario: ${log.correo}`
-  if (log.direccionIp) {
-    description += ` desde IP ${log.direccionIp}`
-  }
-  return {
-    time: formatTime(log.fechaHora),
-    title: config.title,
-    description,
-    severity: config.severity,
-  }
-}
-
-const PAGE_SIZE = 10
+const INCIDENTS: Incident[] = [
+  {
+    time: '10:42 AM',
+    title: 'Intento de Acceso Crítico',
+    description: 'Intento no autorizado de acceder a la base de datos de Pacientes desde IP desconocida 192.168.1.104 (ID: SYS_UNKNOWN)',
+    severity: 'critical',
+  },
+  {
+    time: '09:15 AM',
+    title: 'Escalada de Privilegios',
+    description: "El usuario 'dr.smith' elevó su rol a Administrador fuera de la ventana de mantenimiento programada",
+    severity: 'warning',
+  },
+  {
+    time: '08:02 AM',
+    title: 'Exportación Masiva de Datos',
+    description: 'Exportación masiva de registros de facturación iniciada por un servicio de fondo no reconocido',
+    severity: 'warning',
+  },
+]
 
 const CriticalAlertsPage: React.FC = () => {
-  const [incidents, setIncidents] = useState<Incident[]>([])
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [showExport, setShowExport] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [exportForm, setExportForm] = useState({ startDate: '', endDate: '' })
-
-  useEffect(() => {
-    listAuditLogs({ limite: 50 })
-      .then((logs) => setIncidents(logs.map(logToIncident)))
-      .catch(() => setError('No se pudieron cargar las alertas.'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const visible = incidents.slice(0, visibleCount)
-  const hasMore = visibleCount < incidents.length
 
   const severityVariant = (s: Incident['severity']): 'danger' | 'warning' | 'neutral' => {
     if (s === 'critical') return 'danger'
     if (s === 'warning') return 'warning'
     return 'neutral'
   }
-
-  const criticalCount = incidents.filter((i) => i.severity === 'critical').length
 
   return (
     <ProtectedRoute permission="alerts.view">
@@ -91,7 +66,7 @@ const CriticalAlertsPage: React.FC = () => {
                 <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
                 <CardTitle>Amenazas Activas</CardTitle>
               </div>
-              <span className="text-3xl font-bold text-red-600">{criticalCount}</span>
+              <span className="text-3xl font-bold text-red-600">{INCIDENTS.filter((i) => i.severity === 'critical').length}</span>
               <p className="text-sm text-[var(--on-surface-variant)] mt-1">Requieren revisión inmediata</p>
             </Card>
 
@@ -106,39 +81,23 @@ const CriticalAlertsPage: React.FC = () => {
 
           <Card>
             <CardTitle className="mb-4">Línea de Tiempo de Incidentes</CardTitle>
-            {loading ? (
-              <p className="text-sm text-[var(--on-surface-variant)]">Cargando alertas...</p>
-            ) : error ? (
-              <p className="text-sm text-red-600">{error}</p>
-            ) : incidents.length === 0 ? (
-              <p className="text-sm text-[var(--on-surface-variant)]">No hay incidentes registrados.</p>
-            ) : (
-              <div className="space-y-4">
-                {visible.map((incident, idx) => (
-                  <div key={idx} className="relative pl-6 pb-4 border-l-2 border-[var(--outline)] last:pb-0">
-                    <div className={`absolute left-[-5px] top-1 w-2 h-2 rounded-full ${
-                      incident.severity === 'critical' ? 'bg-red-500' : incident.severity === 'warning' ? 'bg-yellow-500' : 'bg-slate-400'
-                    }`} />
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-[var(--on-surface-variant)]">{incident.time}</span>
-                      <Badge variant={severityVariant(incident.severity)}>
-                        {incident.severity === 'critical' ? 'Crítico' : incident.severity === 'warning' ? 'Advertencia' : 'Info'}
-                      </Badge>
-                    </div>
-                    <h4 className="font-medium text-[var(--hc-text)] text-sm">{incident.title}</h4>
-                    <p className="text-sm text-[var(--on-surface-variant)] mt-1">{incident.description}</p>
+            <div className="space-y-4">
+              {INCIDENTS.map((incident, idx) => (
+                <div key={idx} className="relative pl-6 pb-4 border-l-2 border-[var(--outline)] last:pb-0">
+                  <div className={`absolute left-[-5px] top-1 w-2 h-2 rounded-full ${
+                    incident.severity === 'critical' ? 'bg-red-500' : incident.severity === 'warning' ? 'bg-yellow-500' : 'bg-slate-400'
+                  }`} />
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-[var(--on-surface-variant)]">{incident.time}</span>
+                    <Badge variant={severityVariant(incident.severity)}>
+                      {incident.severity === 'critical' ? 'Crítico' : incident.severity === 'warning' ? 'Advertencia' : 'Info'}
+                    </Badge>
                   </div>
-                ))}
-                {hasMore && (
-                  <button
-                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                    className="w-full text-sm text-[var(--primary)] hover:underline py-2 cursor-pointer bg-transparent border-none"
-                  >
-                    Ver más ({incidents.length - visibleCount} restantes)
-                  </button>
-                )}
-              </div>
-            )}
+                  <h4 className="font-medium text-[var(--hc-text)] text-sm">{incident.title}</h4>
+                  <p className="text-sm text-[var(--on-surface-variant)] mt-1">{incident.description}</p>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
 

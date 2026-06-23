@@ -14,6 +14,16 @@ import type { DocumentoClinico } from '../types/documentoClinico.types';
 import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
 import DocumentosClinicosList from '../components/DocumentosClinicosList';
 
+const Field = ({ label, value, className = '' }: { label: string; value: string | null | undefined; className?: string }) => {
+  if (!value) return null;
+  return (
+    <div className={className}>
+      <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>{label}</p>
+      <p className="mt-0.5 text-sm" style={{ color: 'var(--on-surface)' }}>{value}</p>
+    </div>
+  );
+};
+
 const TIPO_ANT_LABELS: Record<string, string> = {
   HEREDOFAMILIARES: 'Heredofamiliares',
   PERSONALES_NO_PATOLOGICOS: 'Personales no patológicos',
@@ -159,7 +169,14 @@ export const DetalleHistoriaClinicaPage = () => {
                 </div>
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
                   <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Condición preexistente</p>
-                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.condicionPreexistente || '—'}</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
+                    {(() => {
+                      const atendidas = casos.filter(c => c.estado === 'ATENDIDA');
+                      if (atendidas.length === 0) return '—';
+                      const ultima = atendidas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
+                      return ultima.diagnostico ?? ultima.observaciones ?? ultima.motivo ?? 'Sin resumen disponible';
+                    })()}
+                  </p>
                 </div>
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
                   <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Alergias</p>
@@ -253,27 +270,16 @@ export const DetalleHistoriaClinicaPage = () => {
             {casos.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin casos clínicos registrados</p>
             ) : (
-              <div className="overflow-hidden rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-xs font-semibold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
-                      <th className="px-4 py-3">Fecha</th>
-                      <th className="px-4 py-3">Motivo / Caso</th>
-                      <th className="px-4 py-3">Tipo</th>
-                      <th className="px-4 py-3">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
-                    {casos.map((c, i) => (
-                      <tr key={c.id || i} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{c.fecha}</td>
-                        <td className="px-4 py-3" style={{ color: 'var(--on-surface)' }}>{c.motivo}</td>
-                        <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.tipo}</td>
-                        <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.estado}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-3">
+                {casos.map((c, i) => (
+                  <div key={c.id || i} className="rounded-lg p-4" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                    <div className="grid grid-cols-3 gap-x-6 gap-y-2">
+                      <Field label="Fecha" value={c.fecha} />
+                      <Field label="Tipo" value={c.tipo} />
+                      <Field label="Estado" value={c.estado} />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </Card>

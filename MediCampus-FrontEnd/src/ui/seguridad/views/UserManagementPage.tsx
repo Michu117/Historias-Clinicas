@@ -359,45 +359,45 @@ const UserManagementPage: React.FC = () => {
             <p className="text-sm text-[var(--on-surface-variant)] mb-4">Ingresa los datos para registrar un nuevo perfil en el sistema.</p>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Nombre completo<span className="text-red-500 ml-0.5">*</span></label>
-              <Input placeholder="Nombres" value={createForm.nombre} onChange={handleCreateField('nombre')} required />
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Nombre completo</label>
+              <Input placeholder="Nombre y apellido" value={createForm.nombre} onChange={handleCreateField('nombre')} required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Apellido<span className="text-red-500 ml-0.5">*</span></label>
-                <Input placeholder="Apellidos" value={createForm.apellido} onChange={handleCreateField('apellido')} required />
+                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Apellido</label>
+                <Input placeholder="Apellido" value={createForm.apellido} onChange={handleCreateField('apellido')} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula<span className="text-red-500 ml-0.5">*</span></label>
+                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula</label>
                 <Input placeholder="0102030405" value={createForm.cedula} onChange={handleCreateField('cedula')} required />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Correo institucional<span className="text-red-500 ml-0.5">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Correo institucional</label>
               <Input type="email" placeholder="correo@hospital.com" value={createForm.correo} onChange={handleCreateField('correo')} required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Contraseña provisional<span className="text-red-500 ml-0.5">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Contraseña provisional</label>
               <Input type="password" placeholder="••••••••" value={createForm.clave} onChange={handleCreateField('clave')} required minLength={8} />
               <p className="text-xs text-[var(--on-surface-variant)] mt-1">El usuario deberá cambiarla en su primer ingreso.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Fecha de nacimiento<span className="text-red-500 ml-0.5">*</span></label>
+                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Fecha de nacimiento</label>
                 <Input type="date" value={createForm.fechaNacimiento} onChange={handleCreateField('fechaNacimiento')} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Sexo<span className="text-red-500 ml-0.5">*</span></label>
+                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Sexo</label>
                 <Select options={SEXO_OPTIONS} value={createForm.sexo} onChange={handleCreateField('sexo')} required />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Rol del sistema<span className="text-red-500 ml-0.5">*</span></label>
+              <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Rol del sistema</label>
               <Select options={roleOptions} value={createForm.rol} onChange={handleCreateField('rol')} required />
             </div>
 

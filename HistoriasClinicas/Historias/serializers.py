@@ -120,6 +120,12 @@ class ConsultaHistoriaSerializer(serializers.Serializer):
     motivo = serializers.CharField(read_only=True)
     estado = serializers.CharField(read_only=True)
     observaciones = serializers.CharField(read_only=True, allow_blank=True)
+    anamnesis = serializers.CharField(read_only=True, allow_null=True)
+    diagnostico = serializers.CharField(read_only=True, allow_null=True)
+    tratamiento = serializers.CharField(read_only=True, allow_null=True)
+    signos_vitales = serializers.JSONField(read_only=True, allow_null=True)
+    servicios = serializers.ListField(child=serializers.CharField(), read_only=True, allow_empty=True)
+    historia_clinica_id = serializers.IntegerField(read_only=True)
 
 
 class UsuarioHistoriaSerializer(serializers.ModelSerializer):
