@@ -6,6 +6,7 @@ import { Select } from '../../components/Select'
 import { Card, CardTitle } from '../../components/Card'
 import { register } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
+import { normalizeRole } from '../../historias-clinicas/utils/historiaClinicaPermissions'
 
 const SEXO_OPTIONS = [
   { value: 'H', label: 'Hombre' },
@@ -72,7 +73,14 @@ const RegisterPage: React.FC = () => {
         sexo: form.sexo,
       })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      navigate(res.usuario.rol?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
+      const roleName = normalizeRole(res.usuario.rol?.nombre ?? '');
+      if (roleName === 'MEDICO' || roleName === 'TRABAJADOR_SOCIAL') {
+        navigate('/agendas/mi-agenda');
+      } else if (roleName === 'ADMINISTRADOR') {
+        navigate('/seguridad/dashboard');
+      } else {
+        navigate('/home');
+      }
     } catch (err: any) {
       if (err.body) {
         try {

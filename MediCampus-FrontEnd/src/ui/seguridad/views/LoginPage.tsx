@@ -5,8 +5,7 @@ import { Input } from '../../components/Input'
 import { Card, CardTitle } from '../../components/Card'
 import { login } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
-
-const PROFESSIONAL_ROLES = new Set(['medico', 'psicologo', 'odontologo', 'trabajador_social']);
+import { normalizeRole } from '../../historias-clinicas/utils/historiaClinicaPermissions'
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
@@ -24,13 +23,10 @@ const LoginPage: React.FC = () => {
     try {
       const res = await login({ correo, clave })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-
-      localStorage.setItem('access_token', res.tokens.access);
-
-      const roleName = res.usuario.rol?.nombre?.toLowerCase() || '';
-      if (PROFESSIONAL_ROLES.has(roleName)) {
+      const roleName = normalizeRole(res.usuario.rol?.nombre ?? '');
+      if (roleName === 'MEDICO' || roleName === 'TRABAJADOR_SOCIAL') {
         navigate('/agendas/mi-agenda');
-      } else if (roleName === 'admin' || roleName === 'administrador') {
+      } else if (roleName === 'ADMINISTRADOR') {
         navigate('/seguridad/dashboard');
       } else {
         navigate('/home');

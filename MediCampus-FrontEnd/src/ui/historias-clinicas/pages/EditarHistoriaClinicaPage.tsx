@@ -16,6 +16,7 @@ import { getNombreMedico } from '../utils/getNombreMedico';
 
 import type { HistoriaClinica, HistoriaClinicaFormValues } from '../types/historiaClinica.types';
 import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
+import type { ConsultaClinico } from '../types/consultaClinico.types';
 import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
 
 const initialFormValues: HistoriaClinicaFormValues = {
@@ -43,6 +44,7 @@ export default function EditarHistoriaClinicaPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
+  const [consultas, setConsultas] = useState<ConsultaClinico[]>([]);
   const [registros, setRegistros] = useState<RegistroClinicoHistoria[]>([]);
   const [nuevaAlergia, setNuevaAlergia] = useState('');
   const [nuevoFactorRiesgo, setNuevoFactorRiesgo] = useState('');
@@ -75,17 +77,19 @@ export default function EditarHistoriaClinicaPage() {
       setError('');
       setMessage('');
 
-      const [hc, registrosData, ants] = await Promise.all([
+      const [hc, registrosData, ants, cs] = await Promise.all([
         historiasClinicasService.obtenerHistoriaClinicaPorId(id),
         historiasClinicasService.listarRegistrosClinicosPorHistoria(id),
         historiasClinicasService.listarAntecedentesPorHistoria(id),
+        historiasClinicasService.listarCasosClinicosPorHistoria(id),
       ]);
       setHistoria(hc);
+      setConsultas(cs);
       setValues({
         usuarioNombre: hc.usuario?.nombre ?? '',
         usuarioIdentificacion: hc.usuario?.identificacion ?? '',
         alergia: hc.alergia ?? '',
-        condicionPreexistente: hc.condicionPreexistente ?? '',
+        condicionPreexistente: '',
         factorRiesgo: hc.factorRiesgo ?? '',
       });
       setRegistros(registrosData);
@@ -114,16 +118,12 @@ export default function EditarHistoriaClinicaPage() {
       return;
     }
 
-    if (!values.condicionPreexistente.trim()) { setMessage('La condición preexistente es obligatoria.'); return; }
-
     setIsSubmitting(true);
     setMessage('');
     setError('');
 
     try {
-      const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {
-        condicionPreexistente: values.condicionPreexistente,
-      });
+      const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {});
       setHistoria(hcActualizada);
       setMessage('Historia clínica actualizada correctamente.');
     } catch (err: any) {
@@ -253,10 +253,16 @@ export default function EditarHistoriaClinicaPage() {
                   <Input value={values.usuarioIdentificacion} placeholder="Documento de identificación" readOnly
                     className="bg-slate-100 text-slate-700 cursor-not-allowed" />
                 </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Condición preexistente</label>
-                  <Input value={values.condicionPreexistente} placeholder="Condiciones preexistentes"
-                    onChange={(e) => handleChange('condicionPreexistente', e.target.value)} />
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Condición preexistente</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
+                    {(() => {
+                      const atendidas = consultas.filter(c => c.estado === 'ATENDIDA');
+                      if (atendidas.length === 0) return '—';
+                      const ultima = atendidas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
+                      return ultima.diagnostico ?? ultima.observaciones ?? ultima.motivo ?? 'Sin resumen disponible';
+                    })()}
+                  </p>
                 </div>
               </div>
               <div className="mt-4 flex justify-end gap-2">
@@ -372,6 +378,14 @@ export default function EditarHistoriaClinicaPage() {
             </Button>
           </div>
         </div>
+        <div className="mt-4 flex justify-end gap-2">
+                <Button type="button" variant="danger" onClick={handleCancel}>
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="primary" disabled={isSubmitting}>
+                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+                </Button>
+              </div>
       </Modal>
     </HistoriasClinicasDashboardLayout>
   );
