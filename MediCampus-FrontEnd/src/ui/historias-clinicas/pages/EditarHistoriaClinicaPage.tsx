@@ -110,29 +110,30 @@ export default function EditarHistoriaClinicaPage() {
     setValues((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+  e?.preventDefault();
 
-    if (!id) {
-      setMessage('No se recibió el ID de la historia clínica.');
-      return;
-    }
+  if (!id) {
+    setMessage('No se recibió el ID de la historia clínica.');
+    return;
+  }
 
-    setIsSubmitting(true);
-    setMessage('');
-    setError('');
+  setIsSubmitting(true);
+  setMessage('');
+  setError('');
 
-    try {
-      const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {});
-      setHistoria(hcActualizada);
-      setMessage('Historia clínica actualizada correctamente.');
-    } catch (err: any) {
-      console.error('Error al actualizar:', err);
-      setError(err?.message ?? 'No se pudo actualizar. Revisa la respuesta del API.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  try {
+    const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {});
+    setHistoria(hcActualizada);
+    alert('Historia clínica actualizada correctamente.');
+    navigate('/historias', { replace: true });
+  } catch (err: any) {
+    console.error('Error al actualizar:', err);
+    setError(err?.message ?? 'No se pudo actualizar. Revisa la respuesta del API.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleAgregarAlergia = async () => {
     if (!id || !nuevaAlergia.trim()) return;
@@ -239,42 +240,80 @@ export default function EditarHistoriaClinicaPage() {
 
       <section className="w-full">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <form onSubmit={handleSubmit}>
-            <Card>
-              <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Datos generales</h2>
-              <div className="space-y-3">
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Nombre del usuario</label>
-                  <Input value={values.usuarioNombre} placeholder="Nombre completo del usuario" readOnly
-                    className="bg-slate-100 text-slate-700 cursor-not-allowed" />
-                </div>
-                <div className="grid gap-1">
-                  <label className="text-xs font-medium" style={{ color: 'var(--on-surface-variant)' }}>Identificación</label>
-                  <Input value={values.usuarioIdentificacion} placeholder="Documento de identificación" readOnly
-                    className="bg-slate-100 text-slate-700 cursor-not-allowed" />
-                </div>
-                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Condición preexistente</p>
-                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
-                    {(() => {
-                      const atendidas = consultas.filter(c => c.estado === 'ATENDIDA');
-                      if (atendidas.length === 0) return '—';
-                      const ultima = atendidas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
-                      return ultima.diagnostico ?? ultima.observaciones ?? ultima.motivo ?? 'Sin resumen disponible';
-                    })()}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 flex justify-end gap-2">
-                <Button type="button" variant="danger" onClick={handleCancel}>
-                  Cancelar
-                </Button>
-                <Button type="submit" variant="primary" disabled={isSubmitting}>
-                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
-                </Button>
-              </div>
-            </Card>
-          </form>
+          <Card>
+  <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>
+    Datos generales
+  </h2>
+
+  <div className="space-y-3">
+    <div className="grid gap-1">
+      <label
+        className="text-xs font-medium"
+        style={{ color: 'var(--on-surface-variant)' }}
+      >
+        Nombre del usuario
+      </label>
+      <Input
+        value={values.usuarioNombre}
+        placeholder="Nombre completo del usuario"
+        readOnly
+        className="bg-slate-100 text-slate-700 cursor-not-allowed"
+      />
+    </div>
+
+    <div className="grid gap-1">
+      <label
+        className="text-xs font-medium"
+        style={{ color: 'var(--on-surface-variant)' }}
+      >
+        Identificación
+      </label>
+      <Input
+        value={values.usuarioIdentificacion}
+        placeholder="Documento de identificación"
+        readOnly
+        className="bg-slate-100 text-slate-700 cursor-not-allowed"
+      />
+    </div>
+
+    <div
+      className="rounded-lg p-3"
+      style={{
+        border: '1px solid var(--card-border)',
+        backgroundColor: 'var(--card-bg)',
+      }}
+    >
+      <p
+        className="text-[11px] font-semibold uppercase tracking-wide"
+        style={{ color: 'var(--card-text-muted)' }}
+      >
+        Condición preexistente
+      </p>
+
+      <p
+        className="mt-1 text-sm font-medium"
+        style={{ color: 'var(--on-surface)' }}
+      >
+        {(() => {
+          const atendidas = consultas.filter((c) => c.estado === 'ATENDIDA');
+
+          if (atendidas.length === 0) return '—';
+
+          const ultima = atendidas.sort(
+            (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+          )[0];
+
+          return (
+            ultima.diagnostico ??
+            ultima.observaciones ??
+            ultima.motivo ??
+            'Sin resumen disponible'
+          );
+        })()}
+      </p>
+    </div>
+  </div>
+</Card>
 
           <Card>
             <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Alergias</h2>
@@ -362,31 +401,54 @@ export default function EditarHistoriaClinicaPage() {
             showFilters={false}
           />
         </Card>
-      </section>
 
-      <Modal open={showCancelModal} onClose={() => setShowCancelModal(false)} title="Cancelar edición">
-        <div className="space-y-4">
-          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
-            ¿Está seguro de que desea salir sin guardar? Los cambios no guardados se perderán.
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setShowCancelModal(false)}>
-              No, continuar editando
+        <div className="mt-4 rounded-2xl border border-slate-300 bg-white p-4 shadow-sm">
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="danger" onClick={handleCancel}>
+              Cancelar
             </Button>
-            <Button type="button" variant="danger" onClick={() => navigate('/historias')}>
-              Sí, salir sin guardar
+
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => handleSubmit()}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
             </Button>
           </div>
         </div>
-        <div className="mt-4 flex justify-end gap-2">
-                <Button type="button" variant="danger" onClick={handleCancel}>
-                  Cancelar
-                </Button>
-                <Button type="submit" variant="primary" disabled={isSubmitting}>
-                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
-                </Button>
-              </div>
-      </Modal>
+      </section>
+
+      <Modal
+  open={showCancelModal}
+  onClose={() => setShowCancelModal(false)}
+  title="Cancelar edición"
+>
+  <div className="space-y-4">
+    <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
+      ¿Está seguro de que desea salir sin guardar? Los cambios no guardados se perderán.
+    </p>
+
+    <div className="flex justify-end gap-2">
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => setShowCancelModal(false)}
+      >
+        No, continuar editando
+      </Button>
+
+      <Button
+        type="button"
+        variant="danger"
+        onClick={() => navigate('/historias', { replace: true })}
+      >
+        Sí, salir sin guardar
+      </Button>
+    </div>
+  </div>
+</Modal>
     </HistoriasClinicasDashboardLayout>
   );
 }
