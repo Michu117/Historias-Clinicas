@@ -22,6 +22,7 @@ export interface User {
   id: number;
   correo: string;
   esActiva: boolean;
+  mustChangePassword?: boolean;
   rol: { id: number; nombre: string; descripcion: string } | null;
   usuario: {
     nombre: string;
@@ -155,6 +156,42 @@ export async function listAuditLogs(filters?: AuditLogFilters): Promise<AuditLog
   if (filters?.limite) params.set('limite', String(filters.limite));
   const qs = params.toString();
   return fetchJSON(`${AUTH_BASE}/logs${qs ? `?${qs}` : ''}`, token || undefined);
+}
+
+export interface ChangePasswordPayload {
+  clave_nueva: string;
+}
+
+export interface PasswordResetRequestPayload {
+  correo: string;
+}
+
+export interface PasswordResetConfirmPayload {
+  uidb64: string;
+  token: string;
+  clave_nueva: string;
+}
+
+export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+  const token = getToken();
+  await fetchJSON(`${AUTH_BASE}/cambiar-clave`, token || undefined, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function requestPasswordReset(payload: PasswordResetRequestPayload): Promise<void> {
+  await fetchJSON(`${AUTH_BASE}/password-reset`, undefined, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function confirmPasswordReset(payload: PasswordResetConfirmPayload): Promise<void> {
+  await fetchJSON(`${AUTH_BASE}/password-reset/confirm`, undefined, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function exportAuditLogs(filters?: AuditLogFilters): Promise<void> {

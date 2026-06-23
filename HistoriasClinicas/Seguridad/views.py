@@ -1,8 +1,14 @@
 import csv
 from io import BytesIO
 
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -21,8 +27,11 @@ from .permissions import IsAdmin, IsOwnerOrAdmin
 from .serializers import (
     AuthResponseSerializer,
     BitacoraListSerializer,
+    CambiarClaveSerializer,
     CuentaSerializer,
     LoginSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     RegistroSerializer,
     RoleCreateSerializer,
     RolSerializer,
@@ -195,6 +204,109 @@ class RefreshView(TokenRefreshView):
                 )
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+class CambiarClaveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        operation_id='auth_cambiar_clave',
+        summary='Cambiar la contraseña del usuario autenticado',
+        request=CambiarClaveSerializer,
+        responses={
+            200: OpenApiResponse(description='Contraseña actualizada correctamente.'),
+            400: OpenApiResponse(description='Datos inválidos.'),
+        },
+    )
+    def post(self, request):
+        serializer = CambiarClaveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        cuenta = request.user
+        cuenta.set_password(serializer.validated_data['clave_nueva'])
+        cuenta.must_change_password = False
+        cuenta.save(update_fields=['password', 'must_change_password'])
+        return Response({'detail': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
+
+
+class CuentaPasswordResetForm(PasswordResetForm):
+    def get_users(self, email):
+        UserModel = get_user_model()
+        active_users = UserModel._default_manager.filter(
+            correo__iexact=email, is_active=True
+        )
+        return (u for u in active_users if u.has_usable_password())
+
+    def send_mail(self, subject_template_name, email_template_name,
+                  context, from_email, to_email,
+                  html_email_template_name=None):
+        subject = 'Restablecimiento de contraseña - MediCampus'
+        reset_url = (
+            f'http://localhost:5173/seguridad/reset-password/'
+            f'{context["uid"]}/{context["token"]}'
+        )
+        body = (
+            f'Hola,\n\n'
+            f'Recibiste este correo porque solicitaste restablecer tu contraseña en MediCampus.\n\n'
+            f'Haz clic en el siguiente enlace para elegir una nueva contraseña:\n'
+            f'{reset_url}\n\n'
+            f'Tu nombre de usuario es: {context["user"].get_username()}\n\n'
+            f'Gracias por usar MediCampus.\n\n'
+            f'El equipo de MediCampus'
+        )
+        send_mail(subject, body, from_email, [to_email])
+        print(f'\n[Restablecimiento de contraseña] Abre este enlace en tu navegador:')
+        print(f'{reset_url}\n')
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        operation_id='auth_password_reset_request',
+        summary='Solicitar restablecimiento de contraseña',
+        request=PasswordResetRequestSerializer,
+        responses={
+            200: OpenApiResponse(description='Correo enviado si la cuenta existe.'),
+        },
+    )
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        form = CuentaPasswordResetForm({'email': serializer.validated_data['correo']})
+        if form.is_valid():
+            form.save(
+                request=request,
+                use_https=request.is_secure(),
+                email_template_name='registration/password_reset_email.html',
+                subject_template_name='registration/password_reset_subject.txt',
+            )
+        return Response({'detail': 'Si el correo está registrado, recibirás un enlace de restablecimiento.'}, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        operation_id='auth_password_reset_confirm',
+        summary='Confirmar restablecimiento de contraseña',
+        request=PasswordResetConfirmSerializer,
+        responses={
+            200: OpenApiResponse(description='Contraseña restablecida correctamente.'),
+            400: OpenApiResponse(description='Enlace inválido o expirado.'),
+        },
+    )
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        uid = urlsafe_base64_decode(serializer.validated_data['uidb64']).decode()
+        user = get_object_or_404(Cuenta, pk=uid)
+        if not default_token_generator.check_token(user, serializer.validated_data['token']):
+            return Response({'detail': 'El enlace es inválido o ha expirado.'}, status=status.HTTP_400_BAD_REQUEST)
+        form = SetPasswordForm(user, {'new_password1': serializer.validated_data['clave_nueva'], 'new_password2': serializer.validated_data['clave_nueva']})
+        if form.is_valid():
+            form.save()
+            return Response({'detail': 'Contraseña restablecida correctamente.'}, status=status.HTTP_200_OK)
+        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserListCreateView(APIView):
