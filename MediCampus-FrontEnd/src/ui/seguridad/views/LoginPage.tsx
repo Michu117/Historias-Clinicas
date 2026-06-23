@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
 
       localStorage.setItem('access_token', res.tokens.access);
 
-      const roleName = res.usuario.rol?.nombre?.toLowerCase() || '';
+      const roleName = res.usuario.roles?.[0]?.nombre?.toLowerCase() || '';
       if (PROFESSIONAL_ROLES.has(roleName)) {
         navigate('/agendas/mi-agenda');
       } else if (roleName === 'admin' || roleName === 'administrador') {

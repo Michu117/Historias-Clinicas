@@ -11,11 +11,13 @@ from .models import Bitacora, Cuenta, Rol, Usuario
 
 def generar_tokens(cuenta: Cuenta) -> dict[str, str]:
     refresh = RefreshToken.for_user(cuenta)
-    rol_nombre = cuenta.rol.nombre if cuenta.rol else ''
-    refresh['rol'] = rol_nombre
+    roles_list = list(cuenta.roles.values_list('nombre', flat=True))
+    refresh['rol'] = roles_list[0] if roles_list else ''
+    refresh['roles'] = roles_list
     refresh['email'] = cuenta.correo
     access = refresh.access_token
-    access['rol'] = rol_nombre
+    access['rol'] = roles_list[0] if roles_list else ''
+    access['roles'] = roles_list
     access['email'] = cuenta.correo
     return {
         'refresh': str(refresh),
@@ -63,14 +65,13 @@ def registrar_cuenta(
     cedula: str,
     fecha_nacimiento,
     sexo: str,
-    rol_nombre: str = 'usuario',
+    roles_nombre: list[str] | None = None,
 ) -> Cuenta:
-    rol = crear_rol(rol_nombre)
     cuenta = Cuenta.objects.create_user(
         correo=correo,
         password=clave,
-        rol=rol,
     )
+    cuenta.roles.set([crear_rol(r) for r in (roles_nombre or ['usuario'])])
     Usuario.objects.create(
         cuenta=cuenta,
         nombres=nombre,
@@ -92,7 +93,7 @@ def crear_usuario(
     cedula: str,
     fecha_nacimiento,
     sexo: str,
-    rol_nombre: str = 'usuario',
+    roles_nombre: list[str] | None = None,
 ) -> Cuenta:
     return registrar_cuenta(
         correo=correo,
@@ -102,7 +103,7 @@ def crear_usuario(
         cedula=cedula,
         fecha_nacimiento=fecha_nacimiento,
         sexo=sexo,
-        rol_nombre=rol_nombre,
+        roles_nombre=roles_nombre,
     )
 
 
@@ -156,9 +157,9 @@ def obtener_usuarios(
     activo: bool | None = None,
     busqueda: str | None = None,
 ):
-    qs = Cuenta.objects.select_related('rol', 'perfil').all()
+    qs = Cuenta.objects.prefetch_related('roles', 'perfil').all()
     if rol_nombre:
-        qs = qs.filter(rol__nombre__iexact=rol_nombre)
+        qs = qs.filter(roles__nombre__iexact=rol_nombre)
     if activo is not None:
         qs = qs.filter(is_active=activo)
     if busqueda:

@@ -72,7 +72,7 @@ const RegisterPage: React.FC = () => {
         sexo: form.sexo,
       })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      navigate(res.usuario.rol?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
+      navigate(res.usuario.roles?.[0]?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
     } catch (err: any) {
       if (err.body) {
         try {

@@ -155,7 +155,8 @@ const UserManagementPage: React.FC = () => {
     setCreateError('')
     setCreating(true)
     try {
-      await createUser(createForm as RegisterPayload)
+      const createPayload: RegisterPayload = { ...createForm, roles: [createForm.rol] }
+      await createUser(createPayload)
       setShowCreateModal(false)
       setCreateForm({ correo: '', clave: '', nombre: '', apellido: '', cedula: '', fechaNacimiento: '', sexo: '', rol: '' })
       loadUsers()
@@ -246,7 +247,7 @@ const UserManagementPage: React.FC = () => {
                       </div>
                       <div className="text-sm text-[var(--on-surface-variant)]">{u.correo}</div>
                     </TableCell>
-                    <TableCell>{u.rol?.nombre || 'Sin rol'}</TableCell>
+                    <TableCell>{u.roles?.[0]?.nombre || 'Sin rol'}</TableCell>
                     <TableCell>{getStatusBadge(u.esActiva)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -307,7 +308,7 @@ const UserManagementPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--on-surface-variant)]">Rol</label>
-                  <p className="text-[var(--hc-text)]">{viewUser.rol?.nombre || 'Sin rol'}</p>
+                  <p className="text-[var(--hc-text)]">{viewUser.roles?.[0]?.nombre || 'Sin rol'}</p>
                 </div>
               </div>
               <div>

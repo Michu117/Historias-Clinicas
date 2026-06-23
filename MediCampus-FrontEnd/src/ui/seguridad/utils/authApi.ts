@@ -15,14 +15,14 @@ export interface RegisterPayload {
   cedula: string;
   fechaNacimiento: string;
   sexo: string;
-  rol?: string;
+  roles?: string[];
 }
 
 export interface User {
   id: number;
   correo: string;
   esActiva: boolean;
-  rol: { id: number; nombre: string; descripcion: string } | null;
+  roles: Array<{ id: number; nombre: string; descripcion: string }>;
   usuario: {
     nombre: string;
     apellido: string;

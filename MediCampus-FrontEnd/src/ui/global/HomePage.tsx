@@ -4,11 +4,13 @@ import { Button } from '../components/Button'
 import { Card, CardTitle } from '../components/Card'
 import { NotificationBell } from '../notificaciones'
 import { useNotifications, useMarkAsRead } from '../notificaciones'
+import { useAuth } from '../agendas/hooks/useAuth'
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate()
   const { notifications, isLoading, error } = useNotifications()
   const markAsRead = useMarkAsRead()
+  const { isProfessional } = useAuth()
   const userName = localStorage.getItem('currentUser')
     ? JSON.parse(localStorage.getItem('currentUser') || '{}').correo
     : 'Usuario'
@@ -67,6 +69,15 @@ const HomePage: React.FC = () => {
               Ver Mi Historia
             </Button>
           </Card>
+          {isProfessional && (
+            <Card>
+              <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Administración de Citas</h3>
+              <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Gestiona la agenda diaria de atención a pacientes.</p>
+              <Button variant="secondary" className="mt-3" onClick={() => navigate('/agendas/mi-agenda')}>
+                Ir a Mi Agenda
+              </Button>
+            </Card>
+          )}
         </div>
       </main>
 
