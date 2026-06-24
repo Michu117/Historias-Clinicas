@@ -43,7 +43,7 @@ urlpatterns = [
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair_v1'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh_v1'),
     path('api/v1/auth/', include('Seguridad.urls')),
-    path('api/v1/historias/', include('historias.urls')),
+    path('api/v1/historias/', include('Historias.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/reportes/', include('Reportes.urls')),
