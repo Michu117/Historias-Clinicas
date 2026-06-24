@@ -3,10 +3,17 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../../components/Button'
 import { Input } from '../../components/Input'
 import { Card, CardTitle } from '../../components/Card'
-import { login } from '../utils/authApi'
+import { login, User } from '../utils/authApi'
 import { useSession } from '../hooks/useSession'
+import { normalizeRole } from '../../historias-clinicas/utils/historiaClinicaPermissions'
 
-const PROFESSIONAL_ROLES = new Set(['medico', 'psicologo', 'odontologo', 'trabajador_social']);
+const PROFESSIONAL_ROLES = [
+  'medico',
+  'odontologo',
+  'psicologo',
+  'trabajador_social',
+  'trabajo_social',
+];
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate()
@@ -27,8 +34,13 @@ const LoginPage: React.FC = () => {
 
       localStorage.setItem('access_token', res.tokens.access);
 
-      const roleName = res.usuario.rol?.nombre?.toLowerCase() || '';
-      if (PROFESSIONAL_ROLES.has(roleName)) {
+      if (res.usuario.mustChangePassword) {
+        navigate('/seguridad/cambiar-clave');
+        return;
+      }
+
+      const roleName = res.usuario.roles?.[0]?.nombre?.toLowerCase() || '';
+      if (PROFESSIONAL_ROLES.includes(roleName)) {
         navigate('/agendas/mi-agenda');
       } else if (roleName === 'admin' || roleName === 'administrador') {
         navigate('/seguridad/dashboard');
@@ -100,6 +112,12 @@ const LoginPage: React.FC = () => {
           <Button type="submit" variant="primary" className="w-full" disabled={loading}>
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </Button>
+
+          <div className="text-center">
+            <Link to="/seguridad/forgot-password" className="text-sm text-hc-primary font-medium hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </form>
 
         <p className="text-center text-sm text-[var(--on-surface-variant)] mt-4">

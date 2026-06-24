@@ -11,7 +11,18 @@ import type { HistoriaClinica } from '../types/historiaClinica.types';
 import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
 import type { ConsultaClinico } from '../types/consultaClinico.types';
 import type { DocumentoClinico } from '../types/documentoClinico.types';
+import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
 import DocumentosClinicosList from '../components/DocumentosClinicosList';
+
+const Field = ({ label, value, className = '' }: { label: string; value: string | null | undefined; className?: string }) => {
+  if (!value) return null;
+  return (
+    <div className={className}>
+      <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>{label}</p>
+      <p className="mt-0.5 text-sm" style={{ color: 'var(--on-surface)' }}>{value}</p>
+    </div>
+  );
+};
 
 const TIPO_ANT_LABELS: Record<string, string> = {
   HEREDOFAMILIARES: 'Heredofamiliares',
@@ -40,6 +51,7 @@ export const DetalleHistoriaClinicaPage = () => {
   const [antecedentes, setAntecedentes] = useState<AntecedenteClinico[]>([]);
   const [casos, setCasos] = useState<ConsultaClinico[]>([]);
   const [documentos, setDocumentos] = useState<DocumentoClinico[]>([]);
+  const [registros, setRegistros] = useState<RegistroClinicoHistoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -54,6 +66,11 @@ export const DetalleHistoriaClinicaPage = () => {
     }
 
     if (role === 'ADMINISTRADOR' || permissions.isAdminBlocked) {
+      navigate('/home', { replace: true });
+      return;
+    }
+
+    if (role === 'PACIENTE' && !id) {
       navigate('/home', { replace: true });
       return;
     }
@@ -80,14 +97,16 @@ export const DetalleHistoriaClinicaPage = () => {
         }
 
         setHistoria(h);
-        const [ants, cs, docs] = await Promise.all([
+        const [ants, cs, docs, regs] = await Promise.all([
           historiasClinicasService.listarAntecedentesPorHistoria(id),
           historiasClinicasService.listarCasosClinicosPorHistoria(id),
           historiasClinicasService.listarDocumentosPorHistoria(id),
+          historiasClinicasService.listarRegistrosClinicosPorHistoria(id),
         ]);
         setAntecedentes(ants);
         setCasos(cs);
         setDocumentos(docs);
+        setRegistros(regs);
       } catch (err: any) {
         const msg = err?.message ?? '';
         if (msg.includes('404') || msg.includes('No se encontró')) {
@@ -103,7 +122,8 @@ export const DetalleHistoriaClinicaPage = () => {
     cargarDatos();
   }, [id, role, permissions, userCedula, isAuthorized, navigate]);
 
-  const isMedico = role === 'MEDICO';
+  const puedeEditar = role === 'MEDICO';
+  const puedeCrearDocumentos = role === 'MEDICO' || role === 'TRABAJADOR_SOCIAL';
 
   return (
     <HistoriasClinicasDashboardLayout>
@@ -112,7 +132,7 @@ export const DetalleHistoriaClinicaPage = () => {
         subtitle={historia ? `Paciente: ${historia.usuario.nombre}` : 'Cargando...'}
         backTo="/historias"
         action={
-          isMedico && historia
+          puedeEditar && historia
             ? {
                 label: 'Editar historia clínica',
                 onClick: () => navigate(`/historias/${historia.id}/editar`),
@@ -140,16 +160,65 @@ export const DetalleHistoriaClinicaPage = () => {
               <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Datos generales</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Alergia</p>
-                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.alergia || '—'}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Nombre </p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.usuario?.nombre || '—'}</p>
+                </div>
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>identificación</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.usuario?.identificacion || '—'}</p>
                 </div>
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
                   <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Condición preexistente</p>
-                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.condicionPreexistente || '—'}</p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
+                    {(() => {
+                      const atendidas = casos.filter(c => c.estado === 'ATENDIDA');
+                      if (atendidas.length === 0) return '—';
+                      const ultima = atendidas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
+                      return ultima.diagnostico ?? ultima.observaciones ?? ultima.motivo ?? 'Sin resumen disponible';
+                    })()}
+                  </p>
                 </div>
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Factor de riesgo</p>
-                  <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{historia.factorRiesgo || '—'}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Alergias</p>
+                  <div className="mt-1 max-h-32 space-y-1 overflow-y-auto">
+                    {(() => {
+                      const alergias = registros.filter((r) => r.tipo === 'ALERGIA');
+                      return alergias.length === 0 ? (
+                        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                      ) : (
+                        alergias.map((r) => (
+                          <div key={r.id}>
+                            <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                            <p className="text-[10px]" style={{ color: 'var(--card-text-muted)' }}>
+                              {new Date(r.fecha_registro).toLocaleDateString()}
+                              {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                            </p>
+                          </div>
+                        ))
+                      );
+                    })()}
+                  </div>
+                </div>
+                <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Factores de riesgo</p>
+                  <div className="mt-1 max-h-32 space-y-1 overflow-y-auto">
+                    {(() => {
+                      const factores = registros.filter((r) => r.tipo === 'FACTOR_RIESGO');
+                      return factores.length === 0 ? (
+                        <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin registros</p>
+                      ) : (
+                        factores.map((r) => (
+                          <div key={r.id}>
+                            <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{r.descripcion}</p>
+                            <p className="text-[10px]" style={{ color: 'var(--card-text-muted)' }}>
+                              {new Date(r.fecha_registro).toLocaleDateString()}
+                              {r.medico_registro_nombre ? ` — ${r.medico_registro_nombre}` : ''}
+                            </p>
+                          </div>
+                        ))
+                      );
+                    })()}
+                  </div>
                 </div>
                 {historia.fechaApertura && (
                   <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
@@ -158,7 +227,7 @@ export const DetalleHistoriaClinicaPage = () => {
                   </div>
                 )}
               </div>
-              {isMedico && (
+              {puedeEditar && (
                 <div className="mt-4 flex justify-end">
 
                 </div>
@@ -201,27 +270,16 @@ export const DetalleHistoriaClinicaPage = () => {
             {casos.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin casos clínicos registrados</p>
             ) : (
-              <div className="overflow-hidden rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-xs font-semibold" style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
-                      <th className="px-4 py-3">Fecha</th>
-                      <th className="px-4 py-3">Motivo / Caso</th>
-                      <th className="px-4 py-3">Tipo</th>
-                      <th className="px-4 py-3">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
-                    {casos.map((c, i) => (
-                      <tr key={c.id || i} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{c.fecha}</td>
-                        <td className="px-4 py-3" style={{ color: 'var(--on-surface)' }}>{c.motivo}</td>
-                        <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.tipo}</td>
-                        <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.estado}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-3">
+                {casos.map((c, i) => (
+                  <div key={c.id || i} className="rounded-lg p-4" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
+                    <div className="grid grid-cols-3 gap-x-6 gap-y-2">
+                      <Field label="Fecha" value={c.fecha} />
+                      <Field label="Tipo" value={c.tipo} />
+                      <Field label="Estado" value={c.estado} />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </Card>
@@ -232,7 +290,7 @@ export const DetalleHistoriaClinicaPage = () => {
               historiaClinicaId={id!}
               historia={historia}
               medicoNombre={getNombreMedico()}
-              readOnly
+              readOnly={!puedeCrearDocumentos}
               showFilters
             />
           </Card>

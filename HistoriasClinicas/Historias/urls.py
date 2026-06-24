@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("historias_clinicas/",views.HistoriaClinicaListCreateView.as_view(),name="historia-clinica-list",),
+    path("historias_clinicas/mi_historia/",views.MiHistoriaClinicaView.as_view(),name="mi-historia-clinica",),
     path("historias_clinicas/<int:pk>/",views.HistoriaClinicaDetailView.as_view(),name="historia-clinica-detail",),
 
     path("casos/",views.CasoListCreateView.as_view(),name="caso-list",),
@@ -14,5 +15,7 @@ urlpatterns = [
     path("documentos/<int:pk>/",views.DocumentoDetailView.as_view(),name="documento-detail",
     ),
     path("historias_clinicas/<int:historia_id>/consultas/",views.HistoriaConsultasListView.as_view(),name="historia-consultas",
+    ),
+    path("historias_clinicas/<int:historia_id>/registros/",views.RegistroClinicoHistoriaListCreateView.as_view(),name="registro-clinico-list",
     ),
 ]

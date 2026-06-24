@@ -9,6 +9,7 @@ from .models import (
     EstadoCaso,
     HistoriaClinica,
     Prioridad,
+    RegistroClinicoHistoria,
     TipoAntecedente,
     TipoDocumento,
 )
@@ -73,6 +74,45 @@ class DocumentoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
         return value.strip()
 
+class RegistroClinicoHistoriaSerializer(serializers.ModelSerializer):
+    medico_registro_nombre = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RegistroClinicoHistoria
+        fields = (
+            "id",
+            "historia_clinica",
+            "tipo",
+            "descripcion",
+            "fecha_registro",
+            "medico_registro",
+            "medico_registro_nombre",
+            "activo",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "historia_clinica",
+            "fecha_registro",
+            "medico_registro",
+            "medico_registro_nombre",
+            "activo",
+            "created_at",
+            "updated_at",
+        )
+
+    def get_medico_registro_nombre(self, obj):
+        if obj.medico_registro:
+            return obj.medico_registro.nombre_completo
+        return None
+
+    def validate_descripcion(self, value):
+        if value is None or not value.strip():
+            raise serializers.ValidationError("Este campo es obligatorio y no puede estar vacio.")
+        return value.strip()
+
+
 class ConsultaHistoriaSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     tipo = serializers.CharField(read_only=True)
@@ -80,6 +120,12 @@ class ConsultaHistoriaSerializer(serializers.Serializer):
     motivo = serializers.CharField(read_only=True)
     estado = serializers.CharField(read_only=True)
     observaciones = serializers.CharField(read_only=True, allow_blank=True)
+    anamnesis = serializers.CharField(read_only=True, allow_null=True)
+    diagnostico = serializers.CharField(read_only=True, allow_null=True)
+    tratamiento = serializers.CharField(read_only=True, allow_null=True)
+    signos_vitales = serializers.JSONField(read_only=True, allow_null=True)
+    servicios = serializers.ListField(child=serializers.CharField(), read_only=True, allow_empty=True)
+    historia_clinica_id = serializers.IntegerField(read_only=True)
 
 
 class UsuarioHistoriaSerializer(serializers.ModelSerializer):

@@ -12,13 +12,14 @@ from Agendas.models import (
     ConsultaPsicologica,
     ConsultaSocial,
 )
-from .models import Antecedente, Caso, Documento, HistoriaClinica
+from .models import Antecedente, Caso, Documento, HistoriaClinica, RegistroClinicoHistoria
 from .serializers import (
     AntecedenteSerializer,
     CasoSerializer,
     ConsultaHistoriaSerializer,
     DocumentoSerializer,
     HistoriaClinicaSerializer,
+    RegistroClinicoHistoriaSerializer,
 )
 from .services import (
     actualizar_historia_clinica,
@@ -26,6 +27,7 @@ from .services import (
     es_administrador,
     es_medico,
     es_paciente,
+    es_trabajador_social,
     normalizar_rol,
     obtener_historia_por_id,
     obtener_historias_clinicas,
@@ -106,12 +108,15 @@ class BaseHistoriasView(APIView):
     def _es_admin(self, request):
         return es_administrador(request.user)
 
+    def _es_trabajador_social(self, request):
+        return es_trabajador_social(request.user)
+
 
 class HistoriaClinicaListCreateView(BaseHistoriasView):
     def get(self, request):
         if self._es_admin(request):
             return self._denied()
-        if self._es_medico(request):
+        if self._es_medico(request) or self._es_trabajador_social(request):
             historias = obtener_historias_clinicas()
             return self.ok_list(HistoriaClinicaSerializer(historias, many=True).data)
         historias = HistoriaClinica.objects.filter(
@@ -140,7 +145,7 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
         if self._es_admin(request):
             return self._denied()
         try:
-            if self._es_medico(request):
+            if self._es_medico(request) or self._es_trabajador_social(request):
                 historia = obtener_historia_por_id(pk)
             else:
                 historia = obtener_historia_por_id(pk, usuario=request.user.perfil)
@@ -206,7 +211,7 @@ class CasoListCreateView(BaseHistoriasView):
     def get(self, request):
         if self._es_admin(request):
             return self._denied()
-        if self._es_medico(request):
+        if self._es_medico(request) or self._es_trabajador_social(request):
             casos = Caso.objects.select_related("historia_clinica").all()
         else:
             casos = Caso.objects.select_related("historia_clinica").filter(
@@ -308,7 +313,7 @@ class AntecedenteListCreateView(BaseHistoriasView):
     def get(self, request):
         if self._es_admin(request):
             return self._denied()
-        if self._es_medico(request):
+        if self._es_medico(request) or self._es_trabajador_social(request):
             antecedentes = Antecedente.objects.select_related("historia_clinica").all()
         else:
             antecedentes = Antecedente.objects.select_related("historia_clinica").filter(
@@ -415,7 +420,7 @@ class DocumentoListCreateView(BaseHistoriasView):
     def get(self, request):
         if self._es_admin(request):
             return self._denied()
-        if self._es_medico(request):
+        if self._es_medico(request) or self._es_trabajador_social(request):
             documentos = Documento.objects.select_related("historia_clinica").all()
         else:
             documentos = Documento.objects.select_related("historia_clinica").filter(
@@ -428,7 +433,7 @@ class DocumentoListCreateView(BaseHistoriasView):
         responses=DocumentoSerializer,
     )
     def post(self, request):
-        if not self._es_medico(request):
+        if not self._es_medico(request) and not self._es_trabajador_social(request):
             return self._denied("No tienes permisos para crear documentos.")
         serializer = DocumentoSerializer(data=request.data)
         if not serializer.is_valid():
@@ -457,7 +462,7 @@ class DocumentoListCreateView(BaseHistoriasView):
 )
 class DocumentoDetailView(BaseHistoriasView):
     def _get_documento(self, pk, request):
-        if self._es_medico(request):
+        if self._es_medico(request) or self._es_trabajador_social(request):
             return Documento.objects.select_related("historia_clinica").get(pk=pk)
         return Documento.objects.select_related("historia_clinica").get(
             pk=pk,
@@ -524,6 +529,75 @@ class DocumentoDetailView(BaseHistoriasView):
         return self.ok({})
 
 
+class MiHistoriaClinicaView(BaseHistoriasView):
+    def get(self, request):
+        if self._es_admin(request):
+            return self._denied()
+
+        perfil = getattr(request.user, 'perfil', None)
+        if not perfil:
+            return self.not_found()
+
+        try:
+            historia = HistoriaClinica.objects.get(usuario=perfil)
+        except HistoriaClinica.DoesNotExist:
+            return self.not_found()
+
+        return self.ok(HistoriaClinicaSerializer(historia).data)
+
+
+class RegistroClinicoHistoriaListCreateView(BaseHistoriasView):
+    def get(self, request, historia_id):
+        if self._es_admin(request):
+            return self._denied()
+
+        if self._es_paciente(request):
+            try:
+                historia = HistoriaClinica.objects.get(
+                    pk=historia_id, usuario__cuenta=request.user
+                )
+            except HistoriaClinica.DoesNotExist:
+                return self.not_found()
+        elif self._es_medico(request) or self._es_trabajador_social(request):
+            try:
+                historia = HistoriaClinica.objects.get(pk=historia_id)
+            except HistoriaClinica.DoesNotExist:
+                return self.not_found()
+        else:
+            return self._denied("No tienes permisos para ver registros clínicos.")
+
+        registros = RegistroClinicoHistoria.objects.filter(
+            historia_clinica=historia, activo=True
+        ).select_related("medico_registro")
+        return self.ok_list(
+            RegistroClinicoHistoriaSerializer(registros, many=True).data
+        )
+
+    @extend_schema(
+        request=RegistroClinicoHistoriaSerializer,
+        responses=RegistroClinicoHistoriaSerializer,
+    )
+    def post(self, request, historia_id):
+        if not self._es_medico(request):
+            return self._denied("No tienes permisos para crear registros clínicos.")
+        try:
+            historia = HistoriaClinica.objects.get(pk=historia_id)
+        except HistoriaClinica.DoesNotExist:
+            return self.not_found()
+        serializer = RegistroClinicoHistoriaSerializer(data=request.data)
+        if not serializer.is_valid():
+            return self.validation_error(serializer.errors)
+        try:
+            medico = request.user.perfil if hasattr(request.user, 'perfil') else None
+            registro = serializer.save(
+                historia_clinica=historia,
+                medico_registro=medico,
+            )
+        except Exception as exc:
+            return self.validation_error({"detail": str(exc)})
+        return self.created(RegistroClinicoHistoriaSerializer(registro).data)
+
+
 TIPO_CONSULTA_MAP = {
     ConsultaMedica: "Consulta médica",
     ConsultaOdontologica: "Consulta odontológica",
@@ -549,19 +623,37 @@ class HistoriaConsultasListView(BaseHistoriasView):
         for model_cls, tipo_label in TIPO_CONSULTA_MAP.items():
             qs = model_cls.objects.filter(
                 historia_clinica_id=historia_id
-            ).select_related("cita").only(
-                "id", "cita", "observaciones"
-            )
+            ).select_related("cita").prefetch_related("servicios")
+
             for c in qs:
                 cita = c.cita
                 motivo = cita.motivo or tipo_label
+
+                signos_vitales = None
+                if hasattr(c, 'signos_vitales') and c.signos_vitales is not None:
+                    sv = c.signos_vitales
+                    signos_vitales = {
+                        "peso_kg": getattr(sv, "peso_kg", None),
+                        "temperatura": getattr(sv, "temperatura", None),
+                        "presion_arterial": getattr(sv, "presion_arterial", None),
+                        "frecuencia_cardiaca": getattr(sv, "frecuencia_cardiaca", None),
+                    }
+
+                servicios = list(c.servicios.values_list("nombre", flat=True)) if c.pk else []
+
                 consultas.append({
                     "id": c.id,
                     "tipo": tipo_label,
                     "fecha": cita.fecha_hora,
                     "motivo": motivo,
                     "estado": cita.estado,
-                    "observaciones": getattr(c, "observaciones", ""),
+                    "observaciones": c.observaciones or "",
+                    "anamnesis": getattr(c, "anamnesis", None),
+                    "diagnostico": getattr(c, "diagnostico", None),
+                    "tratamiento": getattr(c, "tratamiento", None),
+                    "signos_vitales": signos_vitales,
+                    "servicios": servicios,
+                    "historia_clinica_id": c.historia_clinica_id,
                 })
 
         consultas.sort(key=lambda x: x["fecha"], reverse=True)

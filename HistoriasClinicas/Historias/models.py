@@ -23,6 +23,11 @@ class Prioridad(models.TextChoices):
     BAJA = "BAJA", "Baja"
 
 
+class TipoRegistroClinico(models.TextChoices):
+    ALERGIA = "ALERGIA", "Alergia"
+    FACTOR_RIESGO = "FACTOR_RIESGO", "Factor de riesgo"
+
+
 class TipoAntecedente(models.TextChoices):
     HEREDOFAMILIARES = "HEREDOFAMILIARES", "Heredofamiliares"
     PERSONALES_NO_PATOLOGICOS = ("PERSONALES_NO_PATOLOGICOS","Personales no patologicos",)
@@ -132,3 +137,36 @@ class Documento(TimestampedModel):
         super().clean()
         _validar_texto_requerido(self.encabezado, "encabezado")
         _validar_texto_requerido(self.cuerpo, "cuerpo")
+
+
+class RegistroClinicoHistoria(TimestampedModel):
+    historia_clinica = models.ForeignKey(
+        HistoriaClinica,
+        on_delete=models.CASCADE,
+        related_name="registros_clinicos",
+        verbose_name="historia clínica",
+    )
+    tipo = models.CharField(
+        "tipo",
+        max_length=20,
+        choices=TipoRegistroClinico.choices,
+    )
+    descripcion = models.TextField("descripción")
+    fecha_registro = models.DateTimeField("fecha de registro", auto_now_add=True)
+    medico_registro = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="registros_creados",
+        verbose_name="médico que registró",
+    )
+    activo = models.BooleanField("activo", default=True)
+
+    class Meta:
+        verbose_name = "registro clínico"
+        verbose_name_plural = "registros clínicos"
+        ordering = ("-fecha_registro",)
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.descripcion[:50]}"
