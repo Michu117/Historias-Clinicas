@@ -11,6 +11,7 @@ TIPO_LABEL = {
     'reagendamiento': 'Cita Reagendada',
     'cancelacion': 'Cita Cancelada',
     'derivacion': 'Derivación',
+    'atencion': 'Atención Registrada',
 }
 
 
