@@ -54,13 +54,25 @@ const TABLE_COLUMNS = [
 
 export default function ReportesDashboardPage(): JSX.Element {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { isAdmin } = useAuthContext();
 
   useEffect(() => {
-    if (user?.rol?.nombre !== 'admin') {
-      navigate('/access-denied');
+    if (!isAdmin) {
+      const raw = localStorage.getItem('currentUser');
+      let storedIsAdmin = false;
+      if (raw) {
+        try {
+          const u = JSON.parse(raw);
+          const roles = u.roles as Array<Record<string, unknown>> | null;
+          const roleName = (roles?.[0]?.nombre as string) ?? '';
+          storedIsAdmin = ['admin', 'administrador', 'Administrador'].includes(roleName);
+        } catch {}
+      }
+      if (!storedIsAdmin) {
+        navigate('/');
+      }
     }
-  }, [user, navigate]);
+  }, [isAdmin, navigate]);
 
   const [filters, setFilters] = useState<ReportFilter>(() => {
     const { fecha_inicio, fecha_fin } = defaultDateRange();

@@ -6,11 +6,11 @@ export interface ProfesionalBackendDTO {
   id: number;
   correo: string;
   esActiva: boolean;
-  rol: {
+  roles: Array<{
     id: number;
     nombre: string;
     descripcion: string;
-  } | null;
+  }>;
   usuario: {
     nombre: string;
     apellido: string;
@@ -40,13 +40,14 @@ const SERVICE_TO_ROLES: Record<string, string[]> = {
 };
 
 export function mapProfesionalBackendToFrontend(dto: ProfesionalBackendDTO): Profesional {
+  const primerRol = dto.roles?.[0]?.nombre;
   return {
     id: dto.id,
     nombre: dto.usuario
       ? `${dto.usuario.nombre} ${dto.usuario.apellido}`
       : dto.correo,
     email: dto.correo,
-    especialidad: dto.rol ? ROLE_NAME_MAP[dto.rol.nombre] || dto.rol.nombre : undefined,
+    especialidad: primerRol ? ROLE_NAME_MAP[primerRol] || primerRol : undefined,
     rol: 'PROFESIONAL',
     is_activo: dto.esActiva,
   };
