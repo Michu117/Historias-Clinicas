@@ -7,13 +7,14 @@ import {
   getUserId,
   getUser,
 } from '../services/storage/authStorage';
-import { JWTPayload, Usuario, RolUsuario } from '../types';
+import { JWTPayload, getRolesArray, isProfessional as checkIsProfessional } from '../types';
 
 interface UseAuthResult {
   token: string | null;
   payload: JWTPayload | null;
   userId: number | null;
-  userRole: RolUsuario | null;
+  userRole: string | null;
+  userRoles: string[];
   isAuthenticated: boolean;
   isProfessional: boolean;
   userData: Record<string, unknown> | null;
@@ -42,11 +43,9 @@ export const useAuth = (): UseAuthResult => {
   }, [updateState]);
 
   const isAuthenticated = token !== null && isTokenValid();
-  const isProfessional = payload
-    ? payload.rol === RolUsuario.PROFESIONAL
-    : false;
-
-  const userRole = payload?.rol ?? null;
+  const userRoles = getRolesArray(payload);
+  const isProfessional = checkIsProfessional(payload);
+  const userRole = userRoles[0] ?? null;
 
   const login = useCallback((accessToken: string) => {
     try {
@@ -68,6 +67,7 @@ export const useAuth = (): UseAuthResult => {
     payload,
     userId,
     userRole,
+    userRoles,
     isAuthenticated,
     isProfessional,
     userData,

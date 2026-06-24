@@ -73,14 +73,7 @@ const RegisterPage: React.FC = () => {
         sexo: form.sexo,
       })
       saveSession(res.tokens.access, res.tokens.refresh, res.usuario)
-      const roleName = normalizeRole(res.usuario.rol?.nombre ?? '');
-      if (roleName === 'MEDICO' || roleName === 'TRABAJADOR_SOCIAL') {
-        navigate('/agendas/mi-agenda');
-      } else if (roleName === 'ADMINISTRADOR') {
-        navigate('/seguridad/dashboard');
-      } else {
-        navigate('/home');
-      }
+      navigate(res.usuario.roles?.[0]?.nombre === 'Administrador' ? '/seguridad/dashboard' : '/home')
     } catch (err: any) {
       if (err.body) {
         try {
@@ -123,7 +116,7 @@ const RegisterPage: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula <span className="text-red-500">*</span></label>
-            <Input placeholder="0102030405" value={form.cedula} onChange={handleChange('cedula')} required />
+            <Input placeholder="0102030405" value={form.cedula} onChange={handleChange('cedula')} maxLength={10} required onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '') }} />
           </div>
 
           <div>

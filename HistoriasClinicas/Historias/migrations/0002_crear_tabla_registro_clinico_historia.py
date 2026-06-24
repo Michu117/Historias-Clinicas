@@ -5,7 +5,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('Historias', '0001_initial'),
+        ('historias', '0001_initial'),
         ('Seguridad', '0001_initial'),
     ]
 
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('historia_clinica', models.ForeignKey(
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name='registros_clinicos',
-                    to='Historias.historiaclinica',
+                    to='historias.historiaclinica',
                     verbose_name='historia clínica'
                 )),
                 ('medico_registro', models.ForeignKey(

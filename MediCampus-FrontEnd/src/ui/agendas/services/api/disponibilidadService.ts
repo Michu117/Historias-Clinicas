@@ -14,16 +14,33 @@ export const disponibilidadService = {
     profesionalId: number,
     fecha: string,
   ): Promise<TimeSlot[]> => {
-    const response = await axiosInstance.get<CitaBackendDTO[]>('/v1/agendas/citas/', {
-      params: {
-        profesional_id: profesionalId,
-        estado: ['AGENDADA', 'CONFIRMADA', 'ATENDIDA'].join(','),
-        fecha_desde: fecha,
-        fecha_hasta: fecha,
-      },
-    });
+    const [respProfesional, respPaciente] = await Promise.all([
+      axiosInstance.get<CitaBackendDTO[]>('/v1/agendas/citas/', {
+        params: {
+          profesional_id: profesionalId,
+          estado: ['AGENDADA', 'CONFIRMADA', 'ATENDIDA'].join(','),
+          fecha_desde: fecha,
+          fecha_hasta: fecha,
+        },
+      }),
+      axiosInstance.get<CitaBackendDTO[]>('/v1/agendas/citas/', {
+        params: {
+          usuario_id: profesionalId,
+          estado: ['AGENDADA', 'CONFIRMADA', 'ATENDIDA'].join(','),
+          fecha_desde: fecha,
+          fecha_hasta: fecha,
+        },
+      }),
+    ]);
 
-    const citasDelDia: CitaBackendDTO[] = response.data || [];
+    const citasDelDia: CitaBackendDTO[] = [
+      ...(respProfesional.data || []),
+      ...(respPaciente.data || []),
+    ];
+
+    const ahora = new Date();
+    const hoyStr = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+    const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
 
     const slots: TimeSlot[] = [];
     const inicio = timing.scheduleStart;
@@ -46,6 +63,8 @@ export const disponibilidadService = {
       const horaStr = minutesToTimeString(current);
       const slotEnd = current + duracion;
 
+      const esPasado = fecha === hoyStr && current <= minutosAhora;
+
       const hayConflicto = citasDelDia.some((cita) => {
         const citaHora = new Date(cita.fecha_hora);
         const citaStart = citaHora.getUTCHours() * 60 + citaHora.getUTCMinutes();
@@ -55,7 +74,7 @@ export const disponibilidadService = {
 
       slots.push({
         hora: horaStr,
-        disponible: !hayConflicto,
+        disponible: !hayConflicto && !esPasado,
         fecha,
       });
 

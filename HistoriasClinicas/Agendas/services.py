@@ -86,6 +86,21 @@ def validar_choque_citas(profesional_id, fecha_hora, duracion_minutos=60, exclui
             f'El profesional ya tiene una cita en ese horario.'
         )
 
+    profesional_como_paciente = Cita.objects.filter(
+        usuario_id=profesional_id,
+        estado__in=ESTADOS_ACTIVOS,
+    )
+    if excluir_cita_id:
+        profesional_como_paciente = profesional_como_paciente.exclude(id=excluir_cita_id)
+    profesional_como_paciente = profesional_como_paciente.filter(
+        fecha_hora__lt=tiempo_fin,
+        fecha_hora__gte=tiempo_inicio,
+    )
+    if profesional_como_paciente.exists():
+        raise ConflictoHorarioError(
+            'El profesional tiene una cita como paciente en ese horario.'
+        )
+
     return True
 
 
@@ -343,7 +358,7 @@ def buscar_siguiente_cita_disponible(servicio_id, servicio_nombre, usuario_id):
         )
 
     profesionales = Cuenta.objects.filter(
-        rol__nombre=rol_nombre,
+        roles__nombre=rol_nombre,
         is_active=True,
     ).order_by('id')
 

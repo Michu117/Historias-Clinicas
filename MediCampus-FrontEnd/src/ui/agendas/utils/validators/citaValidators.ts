@@ -26,8 +26,8 @@ export const isDatePast = (fecha: string): boolean => {
     return true;
   }
 
-  const reference = new Date('2026-05-27T00:00:00Z');
-  reference.setUTCHours(0, 0, 0, 0);
+  const now = new Date();
+  const reference = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   date.setUTCHours(0, 0, 0, 0);
 
   return date < reference;
@@ -98,7 +98,12 @@ export const validateUserRole = (jwt: string, expectedRole: string): boolean => 
 
   try {
     const payload = JSON.parse(base64UrlDecode(parts[1]));
-    return typeof payload.role === 'string' && payload.role === expectedRole;
+    const roles: string[] = Array.isArray(payload.roles)
+      ? payload.roles
+      : payload.rol
+        ? [payload.rol]
+        : [];
+    return roles.includes(expectedRole);
   } catch {
     return false;
   }
