@@ -114,16 +114,23 @@ def estadisticas_view(request):
             fecha_fin=fecha_fin,
             servicio_id=servicio_id,
         )
-        result = [
+        data = [
             {"servicio": item["tipo"], "total": item["cantidad"]}
             for item in stats["por_tipo_servicio"]
         ]
-        return Response(result, status=status.HTTP_200_OK)
+        return build_response(
+            success=True,
+            message="Estadísticas generadas correctamente",
+            data=data,
+            status_code=status.HTTP_200_OK
+        )
     except Exception as e:
         logger.error(f"Error en estadisticas_view: {str(e)}")
-        return Response(
-            {"error": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        return build_response(
+            success=False,
+            message="Error al generar estadísticas",
+            errors={"detail": str(e)},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
 
@@ -334,8 +341,13 @@ def export_view(request):
         res = rs.export_report(payload, user)
 
         if not res.get('success'):
-            # error o no hay registros
-            return build_response(False, res.get('message', 'No data to export'), status_code=status.HTTP_400_BAD_REQUEST)
+            msg = res.get('message', '')
+            if 'no existen registros' in msg.lower():
+                return Response(
+                    {"success": True, "message": "No hay datos para generar el reporte.", "data": []},
+                    status=status.HTTP_200_OK
+                )
+            return build_response(False, msg, status_code=status.HTTP_400_BAD_REQUEST)
 
         # Respuesta con archivo
         content = res.get('content')
@@ -343,7 +355,10 @@ def export_view(request):
         content_type = res.get('content_type')
 
         if not content:
-            return build_response(False, 'No data to export', status_code=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": True, "message": "No hay datos para generar el reporte.", "data": []},
+                status=status.HTTP_200_OK
+            )
 
         response = HttpResponse(content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
