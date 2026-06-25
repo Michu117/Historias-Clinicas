@@ -7,8 +7,16 @@ import { EstadoDerivacion } from '../../types';
 
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
-    user: { id: 101, rol: 'PROFESIONAL' },
+    userId: 101,
+    userRoles: ['PROFESIONAL'],
     isAuthenticated: true,
+    isProfessional: true,
+    userRole: 'PROFESIONAL',
+    token: 'mock-token',
+    payload: null,
+    userData: null,
+    login: vi.fn(),
+    logout: vi.fn(),
   })),
 }));
 
@@ -38,8 +46,16 @@ describe('Derivaciones Page', () => {
 
     it('debe redirigir si el usuario no es profesional', () => {
       vi.mocked(useAuth).mockReturnValueOnce({
-        user: { id: 1, rol: 'PACIENTE' },
+        userId: 1,
+        userRoles: ['PACIENTE'],
         isAuthenticated: true,
+        isProfessional: false,
+        userRole: 'PACIENTE',
+        token: 'mock-token',
+        payload: null,
+        userData: null,
+        login: vi.fn(),
+        logout: vi.fn(),
       });
       render(<Derivaciones />);
       expect(screen.queryByText(/derivaciones pendientes/i)).not.toBeInTheDocument();

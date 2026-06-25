@@ -155,7 +155,8 @@ const UserManagementPage: React.FC = () => {
     setCreateError('')
     setCreating(true)
     try {
-      await createUser(createForm as RegisterPayload)
+      const createPayload: RegisterPayload = { ...createForm, roles: [createForm.rol] }
+      await createUser(createPayload)
       setShowCreateModal(false)
       setCreateForm({ correo: '', clave: '', nombre: '', apellido: '', cedula: '', fechaNacimiento: '', sexo: '', rol: '' })
       loadUsers()
@@ -246,7 +247,7 @@ const UserManagementPage: React.FC = () => {
                       </div>
                       <div className="text-sm text-[var(--on-surface-variant)]">{u.correo}</div>
                     </TableCell>
-                    <TableCell>{u.rol?.nombre || 'Sin rol'}</TableCell>
+                    <TableCell>{u.roles?.[0]?.nombre || 'Sin rol'}</TableCell>
                     <TableCell>{getStatusBadge(u.esActiva)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -307,7 +308,7 @@ const UserManagementPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--on-surface-variant)]">Rol</label>
-                  <p className="text-[var(--hc-text)]">{viewUser.rol?.nombre || 'Sin rol'}</p>
+                  <p className="text-[var(--hc-text)]">{viewUser.roles?.[0]?.nombre || 'Sin rol'}</p>
                 </div>
               </div>
               <div>
@@ -363,14 +364,14 @@ const UserManagementPage: React.FC = () => {
               <Input placeholder="Nombre y apellido" value={createForm.nombre} onChange={handleCreateField('nombre')} required />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Apellido</label>
                 <Input placeholder="Apellido" value={createForm.apellido} onChange={handleCreateField('apellido')} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula</label>
-                <Input placeholder="0102030405" value={createForm.cedula} onChange={handleCreateField('cedula')} required />
+                <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Cédula<span className="text-red-500 ml-0.5">*</span></label>
+                <Input placeholder="0102030405" value={createForm.cedula} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 10); setCreateForm((p) => ({ ...p, cedula: v })) }} required />
               </div>
             </div>
 
@@ -385,7 +386,7 @@ const UserManagementPage: React.FC = () => {
               <p className="text-xs text-[var(--on-surface-variant)] mt-1">El usuario deberá cambiarla en su primer ingreso.</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--on-surface-variant)] mb-1">Fecha de nacimiento</label>
                 <Input type="date" value={createForm.fechaNacimiento} onChange={handleCreateField('fechaNacimiento')} required />

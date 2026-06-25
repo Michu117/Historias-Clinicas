@@ -21,6 +21,7 @@ from .permissions import IsAdmin, IsOwnerOrAdmin
 from .serializers import (
     AuthResponseSerializer,
     BitacoraListSerializer,
+    CambiarClaveSerializer,
     CuentaSerializer,
     LoginSerializer,
     RegistroSerializer,
@@ -514,3 +515,16 @@ class BitacoraExportView(APIView):
         if formato == 'pdf':
             return _export_pdf(bitacoras)
         return _export_csv(bitacoras)
+
+
+class CambiarClaveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = CambiarClaveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        cuenta = request.user
+        cuenta.set_password(serializer.validated_data['clave_nueva'])
+        cuenta.must_change_password = False
+        cuenta.save(update_fields=['password', 'must_change_password'])
+        return Response({'detail': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
