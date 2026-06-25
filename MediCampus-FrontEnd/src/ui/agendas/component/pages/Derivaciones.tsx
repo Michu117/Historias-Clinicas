@@ -5,15 +5,15 @@ import { DerivacionInbox } from '../derivacion/DerivacionInbox';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 export const Derivaciones: FC = () => {
-  const { user } = useAuth();
+  const { userId, isProfessional } = useAuth();
   const { pendientes, loading, error, loadPendientes, aceptarDerivacion, rechazarDerivacion } = useDerivacion();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      loadPendientes(user.id);
+    if (userId) {
+      loadPendientes(userId);
     }
-  }, [user, loadPendientes]);
+  }, [userId, loadPendientes]);
 
   const handleAccept = useCallback(async (id: number) => {
     await aceptarDerivacion(id);
@@ -27,7 +27,7 @@ export const Derivaciones: FC = () => {
     setTimeout(() => setSuccessMessage(null), 3000);
   }, [rechazarDerivacion]);
 
-  if (!user || user.rol !== 'PROFESIONAL') {
+  if (!isProfessional) {
     return null;
   }
 

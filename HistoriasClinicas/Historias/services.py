@@ -66,8 +66,12 @@ def normalizar_rol(nombre_rol: str | None) -> str | None:
         'medico': 'medico',
         'psicologo': 'medico',
         'odontologo': 'medico',
-        'trabajador social': 'medico',
+        'trabajador social': 'trabajador_social',
+        'trabajador_social': 'trabajador_social',
+        'trabajadorsocial': 'trabajador_social',
+        'trabajo social': 'trabajador_social',
         'paciente': 'paciente',
+        'usuario': 'paciente',
         'administrador': 'administrador',
         'admin': 'administrador',
     }
@@ -79,20 +83,30 @@ def normalizar_rol(nombre_rol: str | None) -> str | None:
     return mapeo.get(normalizado)
 
 
-def _rol_nombre(user):
-    return getattr(getattr(user, 'rol', None), 'nombre', '')
+def _roles_nombres(user):
+    if not user or not user.is_authenticated:
+        return []
+    return list(user.roles.values_list('nombre', flat=True))
+
+
+def _tiene_rol_normalizado(user, rol_buscado):
+    return any(normalizar_rol(r) == rol_buscado for r in _roles_nombres(user))
 
 
 def es_medico(user):
-    return normalizar_rol(_rol_nombre(user)) == 'medico'
+    return _tiene_rol_normalizado(user, 'medico')
+
+
+def es_trabajador_social(user):
+    return _tiene_rol_normalizado(user, 'trabajador_social')
 
 
 def es_paciente(user):
-    return normalizar_rol(_rol_nombre(user)) == 'paciente'
+    return _tiene_rol_normalizado(user, 'paciente')
 
 
 def es_administrador(user):
-    return normalizar_rol(_rol_nombre(user)) == 'administrador'
+    return _tiene_rol_normalizado(user, 'administrador')
 
 
 def obtener_historias_clinicas():

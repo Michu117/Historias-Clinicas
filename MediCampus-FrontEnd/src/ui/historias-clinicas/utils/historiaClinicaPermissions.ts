@@ -1,4 +1,4 @@
-export type UserRole = 'MEDICO' | 'PACIENTE' | 'ADMINISTRADOR';
+export type UserRole = 'MEDICO' | 'PACIENTE' | 'ADMINISTRADOR' | 'TRABAJADOR_SOCIAL';
 
 export interface HistoriaClinicaPermissions {
   canAccessHistorias: boolean;
@@ -54,14 +54,37 @@ const PERMISSIONS_BY_ROLE: Record<UserRole, HistoriaClinicaPermissions> = {
     isReadOnly: true,
     isAdminBlocked: true,
   },
+  TRABAJADOR_SOCIAL: {
+    canAccessHistorias: true,
+    canViewAllHistorias: true,
+    canViewOwnHistoria: false,
+    canCreateHistoria: false,
+    canEditHistoria: false,
+    canManageAntecedentes: false,
+    canManageCasos: false,
+    canGenerateDocuments: true,
+    canViewDocuments: true,
+    isReadOnly: false,
+    isAdminBlocked: false,
+  },
 };
 
 const ROLE_ALIASES: Record<string, UserRole> = {
   medico: 'MEDICO',
   médiсo: 'MEDICO',
+  psicologo: 'MEDICO',
+  psicólogo: 'MEDICO',
+  odontologo: 'MEDICO',
+  odontólogo: 'MEDICO',
   paciente: 'PACIENTE',
+  usuario: 'PACIENTE',
   administrador: 'ADMINISTRADOR',
   admin: 'ADMINISTRADOR',
+  trabajador_social: 'TRABAJADOR_SOCIAL',
+  'trabajador social': 'TRABAJADOR_SOCIAL',
+  trabajadorsocial: 'TRABAJADOR_SOCIAL',
+  'trabajo social': 'TRABAJADOR_SOCIAL',
+  trabajo_social: 'TRABAJADOR_SOCIAL',
 };
 
 export function normalizeRole(raw: string): UserRole | null {
@@ -87,8 +110,8 @@ export function getStoredUser(): Record<string, unknown> | null {
 export function getStoredUserRole(): UserRole | null {
   const user = getStoredUser();
   if (!user) return null;
-  const rol = user.rol as Record<string, unknown> | null;
-  const rawRole = (rol?.nombre as string) ?? '';
+  const roles = user.roles as Array<Record<string, unknown>> | null;
+  const rawRole = (roles?.[0]?.nombre as string) ?? '';
   return normalizeRole(rawRole);
 }
 

@@ -5,11 +5,15 @@ import type { AntecedenteClinico, TipoAntecedenteClinico } from '../types/antece
 import type { CasoClinico, PrioridadCasoClinico, EstadoCasoClinico } from '../types/casoClinico.types';
 import type { ConsultaClinico } from '../types/consultaClinico.types';
 import type { DocumentoClinico, TipoDocumentoClinico } from '../types/documentoClinico.types';
+import type { RegistroClinicoHistoria, TipoRegistroClinico } from '../types/registroClinico.types';
 
 const mapApiHistoriaToModel = (api: any): HistoriaClinica => {
   // Mapea de la respuesta del API (snake_case) a nuestro modelo frontend (camelCase)
   const usuario = typeof api.usuario === 'object' && api.usuario !== null
-    ? { nombre: api.usuario.nombre || '', identificacion: api.usuario.identificacion || '' }
+    ? {
+        nombre: api.usuario.nombre ?? api.usuario.nombre_completo ?? api.usuario.nombreCompleto ?? '',
+        identificacion: api.usuario.identificacion ?? api.usuario.cedula ?? api.usuario.documento ?? '',
+      }
     : { nombre: '', identificacion: '' };
 
   return {
@@ -69,6 +73,14 @@ export const historiasClinicasService = {
   console.log('DATA HISTORIAS:', data);
 
   return (data || []).map(mapApiHistoriaToModel);
+  },
+
+  obtenerMiHistoriaClinica: async (): Promise<HistoriaClinica> => {
+    const response = await apiClient.get<any>(
+      '/historias/historias_clinicas/mi_historia/'
+    );
+    const data = response.data ?? response;
+    return mapApiHistoriaToModel(data);
   },
 
   obtenerHistoriaClinicaPorId: async (id: string): Promise<HistoriaClinica> => {
@@ -216,11 +228,17 @@ export const historiasClinicasService = {
       : response.data ?? response.results ?? [];
     return (data || []).map((api: any) => ({
       id: String(api.id ?? ''),
+      historiaClinicaId: String(api.historia_clinica_id ?? api.historiaClinicaId ?? ''),
       tipo: api.tipo ?? '',
       fecha: api.fecha ?? '',
       motivo: api.motivo ?? '',
       estado: api.estado ?? '',
       observaciones: api.observaciones ?? '',
+      anamnesis: api.anamnesis ?? null,
+      diagnostico: api.diagnostico ?? null,
+      tratamiento: api.tratamiento ?? null,
+      signosVitales: api.signos_vitales ?? api.signosVitales ?? null,
+      servicios: Array.isArray(api.servicios) ? api.servicios : [],
     }));
   },
 
@@ -286,16 +304,13 @@ export const historiasClinicasService = {
   actualizarHistoriaClinica: async (
   id: string,
   payload: {
-    alergia: string;
-    condicionPreexistente: string;
-    factorRiesgo: string;
+    alergia?: string;
+    factorRiesgo?: string;
   }
 ): Promise<HistoriaClinica> => {
-  const body = {
-    alergia: payload.alergia,
-    condicion_preexistente: payload.condicionPreexistente,
-    factor_riesgo: payload.factorRiesgo,
-  };
+  const body: Record<string, string> = {};
+  if (payload.alergia !== undefined) body.alergia = payload.alergia;
+  if (payload.factorRiesgo !== undefined) body.factor_riesgo = payload.factorRiesgo;
 
   const response = await apiClient.patch<any>(
     `/historias/historias_clinicas/${id}/`,
@@ -305,5 +320,53 @@ export const historiasClinicasService = {
   const data = response.data ?? response;
 
   return mapApiHistoriaToModel(data);
-},
+  },
+
+  listarRegistrosClinicosPorHistoria: async (historiaId: string): Promise<RegistroClinicoHistoria[]> => {
+    const response = await apiClient.get<any>(
+      `/historias/historias_clinicas/${historiaId}/registros/`
+    );
+    const data = Array.isArray(response)
+      ? response
+      : response.data ?? response.results ?? [];
+    return (data || []).map((api: any) => ({
+      id: String(api.id ?? ''),
+      historia_clinica: api.historia_clinica,
+      tipo: api.tipo as TipoRegistroClinico,
+      descripcion: api.descripcion ?? '',
+      fecha_registro: api.fecha_registro ?? '',
+      medico_registro: api.medico_registro ?? null,
+      medico_registro_nombre: api.medico_registro_nombre ?? null,
+      activo: api.activo ?? true,
+      created_at: api.created_at ?? '',
+      updated_at: api.updated_at ?? '',
+    }));
+  },
+
+  crearRegistroClinico: async (
+    historiaId: string,
+    payload: { tipo: TipoRegistroClinico; descripcion: string }
+  ): Promise<RegistroClinicoHistoria> => {
+    const body = {
+      tipo: payload.tipo,
+      descripcion: payload.descripcion,
+    };
+    const response = await apiClient.post<any>(
+      `/historias/historias_clinicas/${historiaId}/registros/`,
+      body
+    );
+    const data = response.data ?? response;
+    return {
+      id: String(data.id ?? ''),
+      historia_clinica: data.historia_clinica,
+      tipo: data.tipo as TipoRegistroClinico,
+      descripcion: data.descripcion ?? '',
+      fecha_registro: data.fecha_registro ?? '',
+      medico_registro: data.medico_registro ?? null,
+      medico_registro_nombre: data.medico_registro_nombre ?? null,
+      activo: data.activo ?? true,
+      created_at: data.created_at ?? '',
+      updated_at: data.updated_at ?? '',
+    };
+  },
 };

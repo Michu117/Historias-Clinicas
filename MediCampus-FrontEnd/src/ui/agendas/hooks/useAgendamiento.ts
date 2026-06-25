@@ -105,7 +105,7 @@ export const useAgendamiento = (): UseAgendamientoState => {
       agendamientoState.isLoading = false;
     },
     checkDisponibilidad: (profesionalId: number, servicioId: number, fecha: string, hora: string) => {
-      const now = new Date('2026-05-27T00:00:00Z');
+      const now = new Date();
       const requestedDate = new Date(fecha);
       if (isNaN(requestedDate.getTime())) {
         return false;
@@ -140,11 +140,17 @@ export const useAgendamiento = (): UseAgendamientoState => {
     },
     loadCitasPorProfesional: async (profesionalId: number) => {
       try {
-        const data = await citaService.listar({
-          profesional_id: profesionalId,
-          estado: ['AGENDADA', 'CONFIRMADA', 'ATENDIDA'].join(','),
-        });
-        agendamientoState.citasExistentes = data;
+        const [comoProfesional, comoPaciente] = await Promise.all([
+          citaService.listar({
+            profesional_id: profesionalId,
+            estado: ['AGENDADA', 'CONFIRMADA', 'ATENDIDA'].join(','),
+          }),
+          citaService.listar({
+            usuario_id: profesionalId,
+            estado: ['AGENDADA', 'CONFIRMADA', 'ATENDIDA'].join(','),
+          }),
+        ]);
+        agendamientoState.citasExistentes = [...comoProfesional, ...comoPaciente];
       } catch {
         agendamientoState.citasExistentes = [];
       }

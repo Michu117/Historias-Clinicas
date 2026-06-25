@@ -124,7 +124,8 @@ export const MisCitas: React.FC = () => {
             {[
               { value: 'AGENDADA,CONFIRMADA,REAGENDADA', label: 'Próximas' },
               { value: 'ATENDIDA', label: 'Atendidas' },
-              { value: 'CANCELADA,NO_ASISTIDA', label: 'Canceladas' },
+              { value: 'NO_ASISTIDA', label: 'No Asistidas' },
+              { value: 'CANCELADA', label: 'Canceladas' },
             ].map((f) => (
               <button
                 key={f.value}

@@ -40,10 +40,11 @@ class CuentaManager(BaseUserManager):
 
 class Cuenta(AbstractBaseUser, PermissionsMixin):
     correo = models.EmailField(unique=True)
-    rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True, related_name='cuentas')
+    roles = models.ManyToManyField(Rol, blank=True, related_name='cuentas')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
+    must_change_password = models.BooleanField(default=False)
 
     objects = CuentaManager()
 
