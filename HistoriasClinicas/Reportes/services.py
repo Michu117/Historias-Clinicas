@@ -585,9 +585,9 @@ class Services:
 
         if tipo in ('generales', 'general', 'atenciones'):
             stats = self.get_atenciones_stats(fecha_inicio, fecha_fin, servicio_id)
-            items = stats.get('por_tipo_servicio') or []
-            if not items:
+            if stats.get('total_atenciones', 0) == 0:
                 return {'success': False, 'message': 'No existen registros para el rango de fechas seleccionado.'}
+            items = stats.get('por_tipo_servicio') or []
             columns = ['tipo', 'cantidad']
             rows = items
             title = 'Atenciones por Tipo'
