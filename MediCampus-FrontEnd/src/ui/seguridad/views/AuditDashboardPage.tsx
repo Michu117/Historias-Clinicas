@@ -56,7 +56,7 @@ const AuditDashboardPage: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(logs.length / ITEMS_PER_PAGE))
   const paginatedLogs = logs.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  const totalAccesses = logs.length
+  const totalAccesses = logs.filter((l) => l.tipoAccion.toLowerCase().includes('inicio de sesi') || l.tipoAccion.toLowerCase().includes('acceso')).length
   const blockedAttempts = logs.filter((l) => l.tipoAccion.toLowerCase().includes('fallido')).length
   const modifications = logs.filter((l) => l.tipoAccion.toLowerCase().includes('cambio') || l.tipoAccion.toLowerCase().includes('registro')).length
   const suspicious = logs.filter((l) => l.detalle?.toLowerCase().includes('sospech') || l.detalle?.toLowerCase().includes('unknown')).length
