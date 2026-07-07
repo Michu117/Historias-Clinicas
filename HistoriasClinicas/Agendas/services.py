@@ -1,3 +1,5 @@
+import logging
+
 from datetime import timedelta, date, datetime, time, timezone as dt_timezone
 from django.db import transaction
 from django.utils import timezone
@@ -7,6 +9,8 @@ from .models import (
     SignosVitales, ConsultaMedica,
     ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial
 )
+
+logger = logging.getLogger(__name__)
 
 
 # Mapeo de Servicio a nombre de Rol en Seguridad
@@ -230,7 +234,18 @@ def registrar_atencion_integral(cita_id, tipo_consulta, datos_consulta):
             cita.estado = EstadoCita.ATENDIDA
             cita.save()
 
-            return consulta
+        from Notificaciones.services import generate_notification_for_event
+        try:
+            generate_notification_for_event(
+                event_type='atencion',
+                destinatario=cita.usuario_id,
+                cita=cita,
+                detalles={'mensaje': 'Su atención médica ha sido registrada.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación de atención para cita %s: %s', cita.id, exc)
+
+        return consulta
 
     except (DatosInvalidosError, EstadoCitaInvalidoError):
         raise
