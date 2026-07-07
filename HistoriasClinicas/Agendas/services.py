@@ -1,3 +1,5 @@
+import logging
+
 from datetime import timedelta, date, datetime, time, timezone as dt_timezone
 from django.db import transaction
 from django.utils import timezone
@@ -7,6 +9,8 @@ from .models import (
     SignosVitales, ConsultaMedica,
     ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial
 )
+
+logger = logging.getLogger(__name__)
 
 
 # Mapeo de Servicio a nombre de Rol en Seguridad
@@ -84,6 +88,21 @@ def validar_choque_citas(profesional_id, fecha_hora, duracion_minutos=60, exclui
     if citas_conflictivas.exists():
         raise ConflictoHorarioError(
             f'El profesional ya tiene una cita en ese horario.'
+        )
+
+    profesional_como_paciente = Cita.objects.filter(
+        usuario_id=profesional_id,
+        estado__in=ESTADOS_ACTIVOS,
+    )
+    if excluir_cita_id:
+        profesional_como_paciente = profesional_como_paciente.exclude(id=excluir_cita_id)
+    profesional_como_paciente = profesional_como_paciente.filter(
+        fecha_hora__lt=tiempo_fin,
+        fecha_hora__gte=tiempo_inicio,
+    )
+    if profesional_como_paciente.exists():
+        raise ConflictoHorarioError(
+            'El profesional tiene una cita como paciente en ese horario.'
         )
 
     return True
@@ -215,7 +234,18 @@ def registrar_atencion_integral(cita_id, tipo_consulta, datos_consulta):
             cita.estado = EstadoCita.ATENDIDA
             cita.save()
 
-            return consulta
+        from Notificaciones.services import generate_notification_for_event
+        try:
+            generate_notification_for_event(
+                event_type='atencion',
+                destinatario=cita.usuario_id,
+                cita=cita,
+                detalles={'mensaje': 'Su atención médica ha sido registrada.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación de atención para cita %s: %s', cita.id, exc)
+
+        return consulta
 
     except (DatosInvalidosError, EstadoCitaInvalidoError):
         raise
@@ -343,7 +373,7 @@ def buscar_siguiente_cita_disponible(servicio_id, servicio_nombre, usuario_id):
         )
 
     profesionales = Cuenta.objects.filter(
-        rol__nombre=rol_nombre,
+        roles__nombre=rol_nombre,
         is_active=True,
     ).order_by('id')
 

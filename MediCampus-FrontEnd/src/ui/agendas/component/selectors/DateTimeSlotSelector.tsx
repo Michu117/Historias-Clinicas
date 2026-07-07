@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Cita } from '../../types';
 import { messages } from '../../utils/constants/messages';
 
@@ -11,9 +11,6 @@ interface DateTimeSlotSelectorProps {
   onSelect: (data: { fecha: string; hora: string }) => void;
   isLoading: boolean;
 }
-
-const TODAY_START = new Date();
-TODAY_START.setHours(0, 0, 0, 0);
 
 const parseTime = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -31,6 +28,12 @@ const addDays = (date: Date, days: number) => {
   const copy = new Date(date);
   copy.setDate(copy.getDate() + days);
   return copy;
+};
+
+const getTodayStart = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
 };
 
 const isInBreakTime = (timeMinutes: number) => timeMinutes >= parseTime('12:00') && timeMinutes < parseTime('13:00');
@@ -90,12 +93,13 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     setInternalTime(selectedTime);
   }, [selectedTime]);
 
-  const minDate = addDays(TODAY_START, 1);
-  const maxDate = addDays(TODAY_START, 90);
-  const availableDates: { fecha: string; disabled: boolean }[] = [];
+  const todayStart = useMemo(() => getTodayStart(), []);
+  const minDate = useMemo(() => addDays(todayStart, 1), [todayStart]);
+  const maxDate = useMemo(() => addDays(todayStart, 90), [todayStart]);
 
+  const availableDates: { fecha: string; disabled: boolean }[] = [];
   for (let dayOffset = -1; dayOffset <= 95; dayOffset += 1) {
-    const current = addDays(TODAY_START, dayOffset);
+    const current = addDays(todayStart, dayOffset);
     const fecha = formatDate(current);
     const isPast = current < minDate;
     const isWeekend = current.getDay() === 0 || current.getDay() === 6;
@@ -103,16 +107,30 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     availableDates.push({ fecha, disabled });
   }
 
+  const nowMinutes = useMemo(() => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  }, []);
+
+  const todayStr = useMemo(() => formatDate(todayStart), [todayStart]);
+
   const timeOptions = allTimeSlots.map((hora) => {
+    const horaMinutes = parseTime(hora);
+    const isPastSlot = internalDate === todayStr && horaMinutes <= nowMinutes;
     const disabled =
-      !isWithinBusinessHours(parseTime(hora)) ||
-      isInBreakTime(parseTime(hora)) ||
+      !isWithinBusinessHours(horaMinutes) ||
+      isInBreakTime(horaMinutes) ||
+      isPastSlot ||
       (internalDate !== null && hasConflict(citasExistentes, profesionalId, internalDate, hora));
 
     return { hora, disabled };
   });
 
   const handleDateChange = (fecha: string) => {
+    const minStr = formatDate(minDate);
+    if (fecha < minStr) {
+      return;
+    }
     setInternalDate(fecha);
     setInternalTime(null);
     onSelect({ fecha, hora: '' });

@@ -4,6 +4,8 @@ from rest_framework import serializers
 from .models import Bitacora, Cuenta, Rol, Usuario
 from .services import crear_rol, crear_usuario, actualizar_perfil_usuario, autenticar_cuenta
 
+PROFESSIONAL_ROLES = frozenset({'medico', 'psicologo', 'odontologo', 'trabajador_social'})
+
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,11 +42,18 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class CuentaSerializer(serializers.ModelSerializer):
     esActiva = serializers.BooleanField(source='is_active')
     usuario = UsuarioSerializer(source='perfil', read_only=True)
-    rol = RolSerializer(read_only=True)
+    roles = RolSerializer(many=True, read_only=True)
+    mustChangePassword = serializers.BooleanField(source='must_change_password')
 
     class Meta:
         model = Cuenta
-        fields = ('id', 'correo', 'esActiva', 'rol', 'usuario')
+        fields = ('id', 'correo', 'esActiva', 'roles', 'usuario', 'mustChangePassword')
+
+
+class CuentaSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cuenta
+        fields = ('id', 'correo')
 
 
 class TokenPairSerializer(serializers.Serializer):
@@ -65,7 +74,11 @@ class RegistroSerializer(serializers.Serializer):
     cedula = serializers.CharField(max_length=20)
     fechaNacimiento = serializers.DateField()
     sexo = serializers.ChoiceField(choices=Usuario.Sexo.choices)
-    rol = serializers.CharField(max_length=80, required=False, allow_blank=True)
+    roles = serializers.ListField(
+        child=serializers.CharField(max_length=80),
+        required=False,
+        default=['usuario'],
+    )
 
     def validate_correo(self, value):
         if Cuenta.objects.filter(correo__iexact=value).exists():
@@ -82,7 +95,7 @@ class RegistroSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        rol_nombre = validated_data.pop('rol', '') or 'usuario'
+        roles_nombre = validated_data.pop('roles', None) or ['usuario']
         return crear_usuario(
             correo=validated_data['correo'],
             clave=validated_data['clave'],
@@ -91,7 +104,8 @@ class RegistroSerializer(serializers.Serializer):
             cedula=validated_data['cedula'],
             fecha_nacimiento=validated_data['fechaNacimiento'],
             sexo=validated_data['sexo'],
-            rol_nombre=rol_nombre,
+            roles_nombre=roles_nombre,
+            must_change_password=bool(PROFESSIONAL_ROLES & set(roles_nombre)),
         )
 
 
@@ -131,12 +145,13 @@ class BitacoraListSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer(source='perfil', read_only=True)
-    rol = RolSerializer(read_only=True)
+    roles = RolSerializer(many=True, read_only=True)
     esActiva = serializers.BooleanField(source='is_active')
+    mustChangePassword = serializers.BooleanField(source='must_change_password')
 
     class Meta:
         model = Cuenta
-        fields = ('id', 'correo', 'esActiva', 'rol', 'usuario')
+        fields = ('id', 'correo', 'esActiva', 'roles', 'usuario', 'mustChangePassword')
 
 
 class UserCreateSerializer(serializers.Serializer):
@@ -147,7 +162,11 @@ class UserCreateSerializer(serializers.Serializer):
     cedula = serializers.CharField(max_length=20)
     fechaNacimiento = serializers.DateField()
     sexo = serializers.ChoiceField(choices=Usuario.Sexo.choices)
-    rol = serializers.CharField(max_length=80, required=False, allow_blank=True)
+    roles = serializers.ListField(
+        child=serializers.CharField(max_length=80),
+        required=False,
+        default=['usuario'],
+    )
 
     def validate_correo(self, value):
         if Cuenta.objects.filter(correo__iexact=value).exists():
@@ -164,7 +183,7 @@ class UserCreateSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        rol_nombre = validated_data.pop('rol', '') or 'usuario'
+        roles_nombre = validated_data.pop('roles', None) or ['usuario']
         return crear_usuario(
             correo=validated_data['correo'],
             clave=validated_data['clave'],
@@ -173,7 +192,8 @@ class UserCreateSerializer(serializers.Serializer):
             cedula=validated_data['cedula'],
             fecha_nacimiento=validated_data['fechaNacimiento'],
             sexo=validated_data['sexo'],
-            rol_nombre=rol_nombre,
+            roles_nombre=roles_nombre,
+            must_change_password=bool(PROFESSIONAL_ROLES & set(roles_nombre)),
         )
 
 
@@ -189,3 +209,11 @@ class UserUpdateSerializer(serializers.Serializer):
             cuenta.is_active = validated_data['is_active']
             cuenta.save()
         return cuenta
+
+
+class CambiarClaveSerializer(serializers.Serializer):
+    clave_nueva = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
+
+    def validate_clave_nueva(self, value):
+        validate_password(value)
+        return value

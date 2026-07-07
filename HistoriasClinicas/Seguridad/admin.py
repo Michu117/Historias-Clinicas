@@ -11,9 +11,13 @@ class RolAdmin(admin.ModelAdmin):
 
 @admin.register(Cuenta)
 class CuentaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'correo', 'rol', 'is_active', 'is_staff', 'is_superuser')
+    list_display = ('id', 'correo', 'roles_display', 'is_active', 'is_staff', 'is_superuser')
     search_fields = ('correo',)
-    list_filter = ('is_active', 'is_staff', 'is_superuser', 'rol')
+    list_filter = ('is_active', 'is_staff', 'is_superuser', 'roles')
+
+    def roles_display(self, obj):
+        return ', '.join(obj.roles.values_list('nombre', flat=True))
+    roles_display.short_description = 'Roles'
 
 
 @admin.register(Usuario)

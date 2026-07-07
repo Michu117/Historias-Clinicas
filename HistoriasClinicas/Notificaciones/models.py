@@ -14,12 +14,14 @@ class Notificacion(models.Model):
     TIPO_REAGENDA = 'reagendamiento'
     TIPO_CANCELACION = 'cancelacion'
     TIPO_DERIVACION = 'derivacion'
+    TIPO_ATENCION = 'atencion'
     TIPO_CHOICES = [
         (TIPO_CREACION, 'Creación'),
         (TIPO_CONFIRMACION, 'Confirmación'),
         (TIPO_REAGENDA, 'Reagendamiento'),
         (TIPO_CANCELACION, 'Cancelación'),
         (TIPO_DERIVACION, 'Derivación'),
+        (TIPO_ATENCION, 'Atención registrada'),
     ]
 
     usuario_destinatario = models.ForeignKey(

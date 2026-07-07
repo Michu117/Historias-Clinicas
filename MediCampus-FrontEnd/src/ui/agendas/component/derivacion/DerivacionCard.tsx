@@ -19,9 +19,9 @@ export const DerivacionCard: FC<DerivacionCardProps> = ({ derivacion, onAceptar,
   return (
     <div data-testid="derivacion-card" className="border rounded-lg p-4 bg-white shadow-sm">
       <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="text-sm text-gray-500">Motivo</p>
-          <p className="text-base font-medium">{derivacion.motivo}</p>
+          <p className="text-base font-medium line-clamp-3" title={derivacion.motivo}>{derivacion.motivo}</p>
         </div>
         <EstadoBadge estado={derivacion.estado} />
       </div>

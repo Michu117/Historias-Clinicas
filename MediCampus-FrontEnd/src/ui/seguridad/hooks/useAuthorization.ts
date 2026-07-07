@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import useAuth from './useAuth'
 
 type Claims = { roles?: string[]; permissions?: string[] }
-type StoredUser = { rol?: { nombre: string } | null; esActiva?: boolean }
+type StoredUser = { roles?: Array<{ nombre: string }>; esActiva?: boolean }
 
 const ADMIN_ROLES = ['Administrador', 'administrador', 'admin']
 
@@ -11,7 +11,7 @@ export function useAuthorization() {
 
   const userRole = useMemo(() => {
     const u = storedUser as StoredUser | null
-    return u?.rol?.nombre || ''
+    return u?.roles?.[0]?.nombre || ''
   }, [storedUser])
 
   const claims: Claims = useMemo(() => {
