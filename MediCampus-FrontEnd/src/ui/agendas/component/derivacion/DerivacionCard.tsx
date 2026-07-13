@@ -17,23 +17,23 @@ export const DerivacionCard: FC<DerivacionCardProps> = ({ derivacion, onAceptar,
   });
 
   return (
-    <div data-testid="derivacion-card" className="border rounded-lg p-4 bg-white shadow-sm">
+    <div data-testid="derivacion-card" className="rounded-lg p-4 shadow-sm" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-500">Motivo</p>
-          <p className="text-base font-medium line-clamp-3" title={derivacion.motivo}>{derivacion.motivo}</p>
+          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>Motivo</p>
+          <p className="text-base font-medium line-clamp-3" style={{ color: 'var(--on-surface)' }} title={derivacion.motivo}>{derivacion.motivo}</p>
         </div>
         <EstadoBadge estado={derivacion.estado} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
         <div>
-          <p className="text-gray-500">Servicio Origen</p>
-          <p className="font-medium">ID: {derivacion.profesional_origen_id}</p>
+          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>Servicio Origen</p>
+          <p className="font-medium" style={{ color: 'var(--on-surface)' }}>ID: {derivacion.profesional_origen_id}</p>
         </div>
         <div>
-          <p className="text-gray-500">Fecha</p>
-          <p className="font-medium">{fechaFormateada}</p>
+          <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>Fecha</p>
+          <p className="font-medium" style={{ color: 'var(--on-surface)' }}>{fechaFormateada}</p>
         </div>
       </div>
 
@@ -41,13 +41,19 @@ export const DerivacionCard: FC<DerivacionCardProps> = ({ derivacion, onAceptar,
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => onAceptar(derivacion.id)}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium"
+            className="px-4 py-2 rounded text-sm font-medium"
+            style={{ backgroundColor: 'var(--primary)', color: 'var(--on-primary)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary-container)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary)' }}
           >
             {messages.actions.aceptar}
           </button>
           <button
             onClick={() => onRechazar(derivacion.id)}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium"
+            className="px-4 py-2 rounded text-sm font-medium"
+            style={{ backgroundColor: 'var(--error)', color: 'var(--on-error)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--error-container)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--error)' }}
           >
             {messages.actions.rechazar}
           </button>

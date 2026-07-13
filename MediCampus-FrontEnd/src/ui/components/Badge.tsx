@@ -9,7 +9,7 @@ const map: Record<string, React.CSSProperties> = {
   neutral: { backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface)' },
   success: { backgroundColor: 'var(--secondary-container)', color: 'var(--on-secondary-container)' },
   warning: { backgroundColor: '#fef3c7', color: '#92400e' },
-  danger: { backgroundColor: '#fef2f2', color: '#991b1b' },
+  danger: { backgroundColor: 'var(--error-container)', color: 'var(--on-error-container)' },
 }
 
 export const Badge: React.FC<Props> = ({ variant = 'neutral', children }) => {

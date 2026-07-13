@@ -7,7 +7,7 @@ const AccessDenied: React.FC = () => {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#faf9ff] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f6faf9] p-4">
       <Card className="w-full max-w-md text-center">
         <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
           <svg className="w-8 h-8 text-[#dc2626]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -15,8 +15,8 @@ const AccessDenied: React.FC = () => {
           </svg>
         </div>
         <h1 className="text-6xl font-bold text-slate-800 mb-2">403</h1>
-        <h2 className="text-xl font-semibold text-[#424752] mb-2">Acceso no permitido</h2>
-        <p className="text-[#424752] mb-6">
+        <h2 className="text-xl font-semibold text-[#3e4948] mb-2">Acceso no permitido</h2>
+        <p className="text-[#3e4948] mb-6">
           No tienes los permisos necesarios para acceder a esta sección.
         </p>
         <Button variant="primary" onClick={() => navigate('/')}>

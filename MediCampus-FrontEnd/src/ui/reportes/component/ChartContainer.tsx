@@ -34,7 +34,7 @@ export default function ChartContainer({ title, type, data, showLegend = false, 
 
   return (
     <div className="flex flex-col h-full">
-      <h3 className="text-[16px] font-bold text-[#141b2b] mb-4">{title}</h3>
+      <h3 className="text-[16px] font-bold text-[#181c1c] mb-4">{title}</h3>
       {/* Contenedor con altura fija forzada */}
       <div style={{ height: `${height}px`, width: '100%', position: 'relative' }}>
         {/* LA CLAVE: el atributo 'key' fuerza a Chart.js a redibujar si los datos cambian */}

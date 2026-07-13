@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../seguridad/context/AuthContext';
-import { SideNavBar } from '../agendas/component/shared/SideNavBar';
-import type { NavItem } from '../agendas/component/shared/SideNavBar';
+import { HamburgerMenuDropdown } from '../components/HamburgerMenuDropdown';
+import type { NavItem } from '../components/HamburgerMenuDropdown';
 import ReportFilterBar from './component/ReportFilterBar';
 import LoadingState from './component/LoadingState';
 import ErrorState from './component/ErrorState';
@@ -40,10 +40,10 @@ function defaultDateRange(): { fecha_inicio: string; fecha_fin: string } {
 type ReportType = 'general' | 'servicio';
 
 const PRINT_SERVICIOS_CONFIG: ServiciosConfig = {
-  medica: { label: 'Médica', color: '#0056B3' },
-  psicologica: { label: 'Psicológica', color: '#0D9488' },
-  odontologica: { label: 'Odontológica', color: '#4F46E5' },
-  social: { label: 'T. Social', color: '#94A3B8' },
+  medica: { label: 'Médica', color: '#006766' },
+  psicologica: { label: 'Psicológica', color: '#565e74' },
+  odontologica: { label: 'Odontológica', color: '#595c5e' },
+  social: { label: 'T. Social', color: '#3e4948' },
 };
 
 const TABLE_COLUMNS = [
@@ -211,18 +211,15 @@ export default function ReportesDashboardPage(): JSX.Element {
         </div>
       )}
 
-      <div className={isPrinting ? 'no-print' : ''}>
-        <SideNavBar navItems={NAV_ITEMS} />
-      </div>
-
-      <div className={`flex-1 ml-60 flex flex-col h-screen overflow-hidden ${isPrinting ? 'no-print' : ''}`} style={{ backgroundColor: 'var(--hc-bg)' }}>
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isPrinting ? 'no-print' : ''}`} style={{ backgroundColor: 'var(--hc-bg)' }}>
         <header
-          className="h-16 flex items-center px-6 shrink-0"
+          className="h-16 flex items-center gap-3 px-6 shrink-0"
           style={{
             backgroundColor: 'var(--surface-container-lowest)',
             borderBottom: '1px solid var(--outline)',
           }}
         >
+          <HamburgerMenuDropdown navItems={NAV_ITEMS} />
           <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Reportes</h2>
         </header>
         <main className="flex-1 overflow-y-auto p-6 md:p-8">

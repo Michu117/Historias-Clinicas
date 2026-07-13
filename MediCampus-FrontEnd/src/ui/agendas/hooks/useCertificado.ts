@@ -8,8 +8,9 @@ interface UseCertificadoResult {
   certificadoData: CertificadoData | null;
   loading: boolean;
   error: string | null;
-  generarCertificado: (citaId: number, estado?: string | null) => Promise<void>;
+  generarCertificado: (citaId: number, estado?: string | null) => Promise<CertificadoData | null>;
   descargarPDF: (data: CertificadoData) => Promise<void>;
+  enviarCertificadoEmail: (citaId: number) => Promise<{ success: boolean; message?: string }>;
 }
 
 export const useCertificado = (): UseCertificadoResult => {
@@ -81,5 +82,25 @@ export const useCertificado = (): UseCertificadoResult => {
     }
   }, []);
 
-  return { certificadoData, loading, error, generarCertificado, descargarPDF };
+  const enviarCertificadoEmail = useCallback(async (citaId: number): Promise<{ success: boolean; message?: string }> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await certificadoService.enviarPorEmail(citaId);
+
+      if (response.success) {
+        return { success: true, message: 'Certificado enviado por correo exitosamente' };
+      } else {
+        return { success: false, message: response.message || 'Error al enviar certificado' };
+      }
+    } catch (err: any) {
+      const msg = err.message || 'Error al enviar certificado';
+      return { success: false, message: msg };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { certificadoData, loading, error, generarCertificado, descargarPDF, enviarCertificadoEmail };
 };

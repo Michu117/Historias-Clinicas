@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAgenda } from '../../hooks/useAgenda';
-import { SideNavBar } from '../shared/SideNavBar';
+import { HamburgerMenuDropdown } from '../../../components/HamburgerMenuDropdown';
 import { NotificationBell } from '../../../notificaciones';
 import { useNotifications, useMarkAsRead } from '../../../notificaciones';
 import { Cita, EstadoCita } from '../../types';
@@ -43,16 +43,16 @@ function getStatusInfo(cita: Cita, startedIds: number[]): { label: string; bgCla
     return { label: 'Completado', bgClass: 'var(--secondary-container)', textClass: 'var(--on-secondary-container)', icon: 'check_circle' };
   }
   if (cita.estado === EstadoCita.CANCELADA) {
-    return { label: 'Cancelado', bgClass: '#fef2f2', textClass: '#991b1b', icon: 'cancel' };
+    return { label: 'Cancelado', bgClass: 'var(--error-container)', textClass: 'var(--on-error-container)', icon: 'cancel' };
   }
   if (cita.estado === 'NO_ASISTIDA' as EstadoCita) {
-    return { label: 'No Asistió', bgClass: '#fef2f2', textClass: '#991b1b', icon: 'cancel' };
+    return { label: 'No Asistió', bgClass: 'var(--error-container)', textClass: 'var(--on-error-container)', icon: 'cancel' };
   }
   if (cita.estado === EstadoCita.REAGENDADA) {
-    return { label: 'Reagendada', bgClass: '#f3e8ff', textClass: '#6b21a8', icon: 'schedule' };
+    return { label: 'Reagendada', bgClass: 'var(--tertiary-fixed)', textClass: 'var(--on-tertiary-fixed)', icon: 'schedule' };
   }
   if (startedIds.includes(cita.id)) {
-    return { label: 'En curso', bgClass: '#fff7ed', textClass: '#9a3412', icon: 'play_circle' };
+    return { label: 'En curso', bgClass: 'var(--warning-container)', textClass: 'var(--on-warning-container)', icon: 'play_circle' };
   }
   switch (cita.estado) {
     case EstadoCita.AGENDADA:
@@ -91,8 +91,8 @@ function addDays(date: Date, days: number): Date {
 export const MiAgenda: React.FC = () => {
   const navigate = useNavigate();
   const { citas, loading, error, loadAgenda } = useAgenda();
-  const { notifications, isLoading: notifLoading, error: notifError } = useNotifications();
-  const markAsRead = useMarkAsRead();
+  const { notifications, isLoading: notificationsLoading, error: notificationsError } = useNotifications();
+  const { markAsRead } = useMarkAsRead();
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => toISODate(new Date()));
@@ -185,36 +185,23 @@ export const MiAgenda: React.FC = () => {
   const filterTabs: FilterTab[] = ['Todos', 'Programados', 'En Curso', 'Completados'];
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--hc-bg)' }}>
-      <SideNavBar />
-      <main className="flex-1 ml-60 h-screen overflow-y-auto">
-        <header
-          className="flex justify-end items-center h-16 px-8 border-b sticky top-0 z-40"
-          style={{ backgroundColor: 'rgba(255,255,255,0.8)', borderColor: 'var(--outline)', backdropFilter: 'blur(8px)' }}
-        >
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/home')}
-              className="px-4 h-9 rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-80 transition-all"
-              style={{ color: '#fff', backgroundColor: 'var(--primary)' }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Inicio
-            </button>
-            <NotificationBell
-              notifications={notifications}
-              isLoading={notifLoading}
-              onMarkAsRead={markAsRead}
-              error={notifError || undefined}
-            />
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2"
-              style={{ backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)', borderColor: 'var(--outline)' }}
-            >
-              DR
-            </div>
-          </div>
-        </header>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--hc-bg)' }}>
+      <header
+        className="flex items-center h-16 px-6 border-b shrink-0"
+        style={{ backgroundColor: 'var(--surface-container-lowest)', borderColor: 'var(--outline)' }}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          <HamburgerMenuDropdown />
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Mi Agenda</h2>
+        </div>
+        <NotificationBell
+          notifications={notifications}
+          isLoading={notificationsLoading}
+          onMarkAsRead={markAsRead}
+          error={notificationsError}
+        />
+      </header>
+      <main className="flex-1 overflow-y-auto">
 
         <div className="p-10 max-w-6xl mx-auto">
           <div className="mb-6">
@@ -225,13 +212,15 @@ export const MiAgenda: React.FC = () => {
 
           {/* Date Selector */}
           <div
-            className="bg-white border rounded-2xl shadow-sm mb-6 p-4 flex items-center justify-between"
-            style={{ borderColor: 'var(--outline)' }}
+            className="rounded-2xl shadow-sm mb-6 p-4 flex items-center justify-between"
+            style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
           >
             <button
               onClick={handlePrevDay}
-              className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--btn-tertiary-hover)] transition-all active:scale-95"
-              style={{ color: 'var(--primary)', backgroundColor: 'transparent' }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95"
+              style={{ color: 'var(--on-surface-variant)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface-container-high)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -240,15 +229,17 @@ export const MiAgenda: React.FC = () => {
 
             <div className="flex items-center gap-4">
               <div className="text-center">
-                <p className="text-lg font-bold capitalize" style={{ color: 'var(--hc-text)' }}>
+                <p className="text-lg font-bold capitalize" style={{ color: 'var(--on-surface)' }}>
                   {formatDate(selectedDate)}
                 </p>
               </div>
               {!isToday && (
                 <button
                   onClick={handleToday}
-                  className="px-4 h-9 rounded-lg text-sm font-bold flex items-center justify-center hover:bg-[var(--btn-tertiary-hover)] transition-all active:scale-95"
-                  style={{ color: 'var(--primary)', border: '1px solid var(--outline)', backgroundColor: 'transparent' }}
+                  className="px-4 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition-all active:scale-95"
+                  style={{ color: 'var(--primary)', border: '1px solid var(--card-border)', backgroundColor: 'transparent' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface-container-high)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                 >
                   Hoy
                 </button>
@@ -258,16 +249,18 @@ export const MiAgenda: React.FC = () => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="h-9 px-3 rounded-lg border text-sm outline-none transition-all"
-                style={{ backgroundColor: 'var(--surface-container-low)', borderColor: 'var(--outline)', color: 'var(--on-surface-variant)' }}
+                style={{ backgroundColor: 'var(--surface-container-low)', borderColor: 'var(--card-border)', color: 'var(--on-surface)' }}
                 onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; }}
-                onBlur={(e) => { e.target.style.borderColor = 'var(--outline)'; }}
+                onBlur={(e) => { e.target.style.borderColor = 'var(--card-border)'; }}
               />
             </div>
 
             <button
               onClick={handleNextDay}
-              className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--btn-tertiary-hover)] transition-all active:scale-95"
-              style={{ color: 'var(--primary)', backgroundColor: 'transparent' }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95"
+              style={{ color: 'var(--on-surface-variant)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface-container-high)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -276,8 +269,8 @@ export const MiAgenda: React.FC = () => {
           </div>
 
           <div
-            className="bg-white border rounded-2xl p-6 shadow-sm mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-            style={{ borderColor: 'var(--outline)' }}
+            className="rounded-2xl p-6 shadow-sm mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
           >
             <div className="relative w-full sm:w-96">
               <svg
@@ -292,10 +285,10 @@ export const MiAgenda: React.FC = () => {
                 placeholder="Buscar paciente..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-12 pl-12 pr-4 rounded-xl border outline-none transition-all text-sm"
-                style={{ backgroundColor: 'var(--surface-container-low)', borderColor: 'var(--outline)' }}
+                className="w-full h-12 pl-12 pr-4 rounded-xl border outline-none transition-all text-sm placeholder-[var(--on-surface-variant)]"
+                style={{ backgroundColor: 'var(--surface-container-low)', borderColor: 'var(--card-border)', color: 'var(--on-surface)' }}
                 onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; }}
-                onBlur={(e) => { e.target.style.borderColor = 'var(--outline)'; }}
+                onBlur={(e) => { e.target.style.borderColor = 'var(--card-border)'; }}
               />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -306,16 +299,18 @@ export const MiAgenda: React.FC = () => {
                 <button
                   key={tab}
                   onClick={() => setActiveFilter(tab)}
-                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                    activeFilter === tab
-                      ? 'text-white'
-                      : 'hover:bg-[var(--btn-tertiary-hover)]'
-                  }`}
+                  className="px-4 py-2 rounded-full text-sm font-bold transition-all"
                   style={
                     activeFilter === tab
-                      ? { backgroundColor: 'var(--primary)', color: 'var(--surface-container-lowest)' }
+                      ? { backgroundColor: 'var(--primary)', color: 'var(--on-primary)' }
                       : { color: 'var(--on-surface-variant)', backgroundColor: 'transparent' }
                   }
+                  onMouseEnter={(e) => {
+                    if (activeFilter !== tab) e.currentTarget.style.backgroundColor = 'var(--surface-container-high)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeFilter !== tab) e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
                 >
                   {tab}
                 </button>
@@ -325,13 +320,13 @@ export const MiAgenda: React.FC = () => {
 
           {loading && (
             <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
             </div>
           )}
 
           {error && (
             <div className="text-center py-8">
-              <p className="text-red-600 font-medium">{error}</p>
+              <p className="font-medium" style={{ color: 'var(--error)' }}>{error}</p>
             </div>
           )}
 
@@ -360,10 +355,11 @@ export const MiAgenda: React.FC = () => {
                 return (
                   <div
                     key={cita.id}
-                    className="bg-white border-2 rounded-2xl p-6 flex flex-col shadow-sm transition-all hover:shadow-md gap-4"
+                    className="border-2 rounded-2xl p-6 flex flex-col shadow-sm transition-all hover:shadow-md gap-4"
                     style={{
-                      borderColor: isInProgress ? 'var(--primary)' : 'var(--outline)',
-                      ...(isInProgress ? { ring: '1px solid var(--primary)' } : {}),
+                      backgroundColor: 'var(--card-bg)',
+                      borderColor: isInProgress ? 'var(--primary)' : 'var(--card-border)',
+                      ...(isInProgress ? { boxShadow: '0 0 0 1px var(--primary)' } : {}),
                     }}
                   >
                     <div className="flex items-center gap-6 sm:gap-10 w-full">
@@ -413,7 +409,10 @@ export const MiAgenda: React.FC = () => {
                         <button
                           onClick={() => handleNoAsistio(cita)}
                           disabled={noAsistioLoadingId === cita.id}
-                          className="px-4 h-11 rounded-xl font-bold text-sm flex items-center gap-2 transition-all active:scale-95 shrink-0 text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 h-11 rounded-xl font-bold text-sm flex items-center gap-2 transition-all active:scale-95 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{ backgroundColor: 'var(--error)', color: 'var(--on-error)' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--error-container)' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--error)' }}
                         >
                           {noAsistioLoadingId === cita.id ? 'Guardando...' : 'No Asistió'}
                         </button>

@@ -68,6 +68,20 @@ async function fetchCedula(userId: number): Promise<string> {
 }
 
 export const certificadoService = {
+  enviarPorEmail: async (citaId: number): Promise<ApiResponse<{ success: boolean }>> => {
+    try {
+      const response = await axiosInstance.post(`${API_PATH}enviar-correo/`, {
+        cita_id: citaId,
+      });
+      return { success: true, data: response.data };
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } }, message?: string };
+      return {
+        success: false,
+        message: err.response?.data?.error || err.message || 'Error al enviar certificado por correo',
+      };
+    }
+  },
   getCertificadoData: async (citaId: number): Promise<ApiResponse<CertificadoData>> => {
     try {
       const response = await axiosInstance.get<CitaBackendDTO>(`${CITAS_PATH}${citaId}/`);
@@ -109,23 +123,14 @@ export const certificadoService = {
     }
   },
 
-  downloadCertificadoPDF: async (citaId: number): Promise<ApiResponse<Blob>> => {
-    try {
-      await axiosInstance.post(API_PATH, { cita: citaId, tipo: 'Asistencia' });
+  buildCertificadoHtml: (info: CertificadoData): string => {
+    const now = new Date(info.fechaEmision);
+    const fechaEmision = now.toLocaleDateString('es-EC', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
 
-      const data = await certificadoService.getCertificadoData(citaId);
-      if (!data.success || !data.data) {
-        throw new Error('No se pudieron obtener los datos del certificado');
-      }
-
-      const info = data.data;
-      const now = new Date(info.fechaEmision);
-      const fechaEmision = now.toLocaleDateString('es-EC', {
-        year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      });
-
-      const html = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -273,7 +278,18 @@ ${info.observaciones ? `
 </div>
 </body>
 </html>`;
+  },
 
+  downloadCertificadoPDF: async (citaId: number): Promise<ApiResponse<Blob>> => {
+    try {
+      await axiosInstance.post(API_PATH, { cita: citaId, tipo: 'Asistencia' });
+
+      const data = await certificadoService.getCertificadoData(citaId);
+      if (!data.success || !data.data) {
+        throw new Error('No se pudieron obtener los datos del certificado');
+      }
+
+      const html = certificadoService.buildCertificadoHtml(data.data);
       const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
       return { success: true, data: blob };
     } catch (error: unknown) {

@@ -68,11 +68,11 @@ export default function ExportButton({
               <h1>Exportación de Datos</h1>
               <p>Generado el {new Date().toLocaleDateString('es-EC')}</p>
             </div>
-            <table className="w-full text-sm border-collapse" style={{ border: '1px solid #c2c6d4' }}>
+            <table className="w-full text-sm border-collapse" style={{ border: '1px solid #bdc9c8' }}>
               <thead>
-                <tr className="bg-[#f1f3ff]">
+                <tr className="bg-[#f0f4f3]">
                   {columns.map((col) => (
-                    <th key={col} className="px-4 py-2 text-left font-semibold text-[#141b2b] border border-[#c2c6d4]">
+                    <th key={col} className="px-4 py-2 text-left font-semibold text-[#181c1c] border border-[#bdc9c8]">
                       {col}
                     </th>
                   ))}
@@ -82,7 +82,7 @@ export default function ExportButton({
                 {data.map((row, idx) => (
                   <tr key={idx}>
                     {columns.map((col) => (
-                      <td key={col} className="px-4 py-2 border border-[#c2c6d4] text-[#424752]">
+                      <td key={col} className="px-4 py-2 border border-[#bdc9c8] text-[#3e4948]">
                         {row[col] ?? '-'}
                       </td>
                     ))}
