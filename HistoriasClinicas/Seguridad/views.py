@@ -409,7 +409,7 @@ class BitacoraListView(APIView):
             fecha_desde=params.get('fecha_desde'),
             fecha_hasta=params.get('fecha_hasta'),
             tipo_accion=params.get('tipo_accion'),
-            usuario_correo=params.get('usuario'),
+            usuario_correo=params.get('correo'),
             limite=int(params.get('limite', '100')),
         )
         serializer = BitacoraListSerializer(bitacoras, many=True)
