@@ -309,41 +309,13 @@ python3 -m pip install --upgrade pip
 
 ## 5. Instalar las dependencias del backend
 
-Ejecuta:
+Ejecuta (desde la carpeta del repositorio):
 
 ```bash
 pip install -r requirements.txt
 ```
 
-El archivo `requirements.txt` debe contener:
-
-```txt
-# Django Core
-Django==6.0.4
-djangorestframework==3.14.0
-djangorestframework-simplejwt==5.5.1
-django-filter==23.5
-drf-spectacular==0.27.2
-
-# Database
-psycopg2-binary==2.9.12
-
-# Testing
-pytest==7.4.3
-pytest-django==4.7.0
-pytest-cov==4.1.0
-
-# PDF Generation
-reportlab==4.2.5
-
-# CORS
-django-cors-headers==4.9.0
-
-# Development
-python-dotenv==1.0.0
-```
-
-> `reportlab==4.2.5` debe aparecer una sola vez en el archivo.
+> El archivo `requirements.txt` se encuentra en la raíz del repositorio. Si ya ingresaste a `HistoriasClinicas/`, usa `pip install -r ../requirements.txt`.
 
 Verifica la instalación de Django:
 
@@ -357,41 +329,26 @@ python -m django --version
 
 ## 6. Crear el archivo de variables de entorno
 
-En la misma carpeta que contiene `manage.py`, crea un archivo llamado:
+Las variables sensibles se cargan desde un archivo `.env` ubicado en la **raíz del repositorio** (junto a `requirements.txt`). Crea el archivo:
 
 ```text
 .env
 ```
 
-Agrega el siguiente contenido:
+Agrega el siguiente contenido para la configuración de correo electrónico (las notificaciones del sistema usan Gmail SMTP):
 
 ```env
-DEBUG=True
+# Configuración SMTP de Gmail para el módulo de Notificaciones
+# 1. Activa la verificación en dos pasos en tu cuenta de Google
+# 2. Genera una contraseña de aplicación en: https://myaccount.google.com/apppasswords
+# 3. Copia la contraseña de 16 caracteres
 
-SECRET_KEY=colocar_aqui_una_clave_secreta
-
-ALLOWED_HOSTS=127.0.0.1,localhost
-
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+EMAIL_HOST_USER=tu.correo@gmail.com
+EMAIL_HOST_PASSWORD=abcd1234efgh5678
+DEFAULT_FROM_EMAIL=MediCampus <tu.correo@gmail.com>
 ```
 
-Genera una clave secreta con el siguiente comando:
-
-```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-Copia el resultado y reemplaza:
-
-```env
-SECRET_KEY=colocar_aqui_una_clave_secreta
-```
-
-Ejemplo:
-
-```env
-SECRET_KEY=resultado_generado_por_el_comando
-```
+> El backend usa SQLite por defecto, `SECRET_KEY` y `DEBUG` están configurados para desarrollo local, por lo que no es necesario definirlos en `.env`.
 
 El archivo `.env` no debe subirse al repositorio.
 
@@ -399,15 +356,12 @@ El archivo `.env` no debe subirse al repositorio.
 
 ## 7. Archivo `.env.example`
 
-Se recomienda crear un archivo llamado `.env.example` para mostrar las variables necesarias sin revelar información privada:
+El repositorio ya incluye un archivo `.env.example` con las variables necesarias:
 
 ```env
-DEBUG=True
-SECRET_KEY=
-
-ALLOWED_HOSTS=127.0.0.1,localhost
-
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+EMAIL_HOST_USER=tu.correo@gmail.com
+EMAIL_HOST_PASSWORD=abcd1234efgh5678
+DEFAULT_FROM_EMAIL=MediCampus <tu.correo@gmail.com>
 ```
 
 ---
@@ -459,34 +413,17 @@ Thumbs.db
 
 # Configuración de la base de datos
 
-El proyecto puede utilizar SQLite durante el desarrollo local o PostgreSQL para un entorno compartido.
+El proyecto ya viene configurado con SQLite por defecto (no requiere instalar un servidor de base de datos). Django creará automáticamente el archivo `db.sqlite3` al ejecutar las migraciones.
 
-## Opción 1: SQLite
-
-SQLite es la opción más sencilla para ejecutar el sistema localmente. No requiere instalar un servidor de base de datos.
-
-La configuración de `settings.py` debe ser:
-
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-```
-
-Django creará automáticamente el archivo `db.sqlite3` cuando se ejecuten las migraciones.
-
-Con esta opción puedes continuar directamente en la sección **Aplicar las migraciones**.
+Para desarrollo local, puedes continuar directamente en la sección **Aplicar las migraciones**.
 
 ---
 
-## Opción 2: PostgreSQL
+## Opción alternativa: PostgreSQL
 
-Para utilizar PostgreSQL, primero debes tenerlo instalado y en ejecución.
+Si deseas usar PostgreSQL en lugar de SQLite, primero debes tenerlo instalado y en ejecución, y luego modificar `settings.py` manualmente.
 
-### 9. Crear la base de datos
+### Crear la base de datos
 
 Ingresa a PostgreSQL:
 
@@ -530,65 +467,30 @@ Sal de PostgreSQL:
 \q
 ```
 
----
+### Configurar la base de datos en `HistoriasClinicas/HistoriasClinicas/settings.py`
 
-## 10. Agregar PostgreSQL al archivo `.env`
-
-```env
-DB_NAME=historias_clinicas
-DB_USER=historias_user
-DB_PASSWORD=cambiar_contrasena
-DB_HOST=localhost
-DB_PORT=5432
-```
-
-El archivo completo quedaría así:
-
-```env
-DEBUG=True
-SECRET_KEY=colocar_aqui_una_clave_secreta
-
-ALLOWED_HOSTS=127.0.0.1,localhost
-
-DB_NAME=historias_clinicas
-DB_USER=historias_user
-DB_PASSWORD=cambiar_contrasena
-DB_HOST=localhost
-DB_PORT=5432
-
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-```
-
----
-
-## 11. Configurar PostgreSQL en `settings.py`
+Reemplaza el bloque `DATABASES` por:
 
 ```python
-import os
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "NAME": "historias_clinicas",
+        "USER": "historias_user",
+        "PASSWORD": "cambiar_contrasena",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 ```
 
-Solo se debe utilizar una configuración de base de datos: SQLite o PostgreSQL.
+> Solo se debe utilizar una configuración de base de datos: SQLite o PostgreSQL. No ambas al mismo tiempo.
 
 ---
 
 # Preparación del backend
 
-## 12. Aplicar las migraciones
+## 9. Aplicar las migraciones
 
 Las migraciones crean las tablas necesarias en la base de datos.
 
@@ -624,7 +526,7 @@ Las migraciones aplicadas aparecerán marcadas con:
 
 ---
 
-## 13. Crear un superusuario
+## 10. Crear un superusuario
 
 El superusuario permite acceder al panel administrativo de Django.
 
@@ -650,7 +552,7 @@ Mientras se escribe la contraseña, la terminal no mostrará caracteres. Este co
 
 ---
 
-## 14. Cargar datos iniciales
+## 11. Cargar datos iniciales
 
 Si el proyecto incluye datos iniciales o fixtures, se pueden cargar mediante:
 
@@ -670,7 +572,7 @@ Los roles, servicios y usuarios también pueden crearse desde el panel administr
 
 ---
 
-## 15. Comprobar la configuración
+## 12. Comprobar la configuración
 
 Antes de ejecutar el servidor, utiliza:
 
@@ -686,7 +588,7 @@ System check identified no issues
 
 ---
 
-## 16. Ejecutar el backend
+## 13. Ejecutar el backend
 
 ```bash
 python manage.py runserver
@@ -884,21 +786,18 @@ PATCH  /api/v1/agendas/citas/{id}/
 DELETE /api/v1/agendas/citas/{id}/
 ```
 
-## Servicios
+## Servicios (solo lectura)
 
 ```text
 GET    /api/v1/agendas/servicios/
-POST   /api/v1/agendas/servicios/
 GET    /api/v1/agendas/servicios/{id}/
-PUT    /api/v1/agendas/servicios/{id}/
-PATCH  /api/v1/agendas/servicios/{id}/
-DELETE /api/v1/agendas/servicios/{id}/
 ```
 
-## Atenciones
+## Consultas
 
 ```text
-POST   /api/v1/agendas/atenciones/
+POST   /api/v1/agendas/consultas/
+GET    /api/v1/agendas/consultas/{id}/
 ```
 
 ## Historias clínicas
@@ -944,16 +843,16 @@ Desde la raíz del repositorio, ingresa a la carpeta que contiene el archivo:
 package.json
 ```
 
-El nombre de la carpeta puede ser:
+El nombre de la carpeta es:
 
 ```text
-frontend
+MediCampus-FrontEnd
 ```
 
-En ese caso:
+Ingresa a ella:
 
 ```bash
-cd frontend
+cd MediCampus-FrontEnd
 ```
 
 Comprueba que contiene `package.json`.
@@ -982,31 +881,21 @@ Este comando instalará todas las dependencias indicadas en `package.json`.
 
 ---
 
-## 19. Crear las variables de entorno del frontend
+## 19. (Opcional) Crear las variables de entorno del frontend
 
-En la carpeta que contiene `package.json`, crea un archivo llamado:
+El frontend ya funciona con el proxy de Vite (configurado en `vite.config.ts`), por lo que no es necesario crear un archivo `.env`. Si deseas sobrescribir la URL base del backend, crea en la carpeta del frontend:
 
 ```text
 .env
 ```
 
-Agrega:
-
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-También se recomienda crear un archivo `.env.example`:
+> **Nota:** Algunos módulos del frontend usan rutas relativas del proxy (`/api/...`) y otros la URL base. Si estableces `VITE_API_BASE_URL`, ciertos módulos pueden no funcionar correctamente. Para desarrollo local se recomienda **no crearlo** y dejar que el proxy maneje las rutas.
 
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
-Las variables de Vite deben comenzar con:
-
-```text
-VITE_
-```
+Las variables de Vite deben comenzar con `VITE_`.
 
 ---
 
@@ -1017,7 +906,7 @@ El frontend puede comunicarse con Django utilizando el proxy de Vite.
 Ejemplo de configuración en `vite.config.ts`:
 
 ```typescript
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
@@ -1110,7 +999,7 @@ http://127.0.0.1:8000/
 Ubícate en la carpeta que contiene `package.json`:
 
 ```bash
-cd frontend
+cd MediCampus-FrontEnd
 ```
 
 Ejecuta:
@@ -1347,10 +1236,10 @@ python3 manage.py runserver
 
 El entorno virtual no está activo o las dependencias no se instalaron.
 
-Activa el entorno virtual y ejecuta:
+Activa el entorno virtual y ejecuta (desde la raíz del repositorio o con la ruta adecuada):
 
 ```bash
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 ```
 
 ---
@@ -1436,10 +1325,13 @@ Ingresa con una cuenta que tenga el rol requerido.
 
 ## Error de CORS
 
-Comprueba que el frontend esté incluido en `CORS_ALLOWED_ORIGINS`:
+El proyecto tiene `CORS_ALLOW_ALL_ORIGINS = True` en desarrollo, por lo que no deberían haber errores de CORS. Si ocurren, comprueba que el frontend esté en los orígenes permitidos en `settings.py`:
 
-```env
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```python
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
 ```
 
 Después reinicia el servidor de Django.
@@ -1462,7 +1354,7 @@ http://127.0.0.1:8000/
 http://localhost:5173/
 ```
 
-3. `VITE_API_BASE_URL` tenga la dirección correcta.
+3. No haber creado el archivo `.env` del frontend (el proxy de Vite funciona sin él).
 
 4. El proxy de `vite.config.ts` apunte a Django.
 
@@ -1478,11 +1370,18 @@ Ejecuta Django en otro puerto:
 python manage.py runserver 8001
 ```
 
-Después actualiza la URL del backend en el frontend:
+Después actualiza la URL del backend en `vite.config.ts`:
 
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8001
+```typescript
+server: {
+  proxy: {
+    '/backend': { target: 'http://127.0.0.1:8001', ... },
+    '/api': { target: 'http://127.0.0.1:8001', ... },
+  },
+}
 ```
+
+Si usas `VITE_API_BASE_URL`, cámbiala también:
 
 ---
 
@@ -1524,8 +1423,10 @@ source venv/bin/activate
 
 ### Instalar y ejecutar
 
+El archivo `requirements.txt` se encuentra en la raíz del repositorio:
+
 ```bash
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
@@ -1534,7 +1435,7 @@ python manage.py runserver
 ## Frontend
 
 ```bash
-cd frontend
+cd MediCampus-FrontEnd
 npm install
 npm run dev
 ```
