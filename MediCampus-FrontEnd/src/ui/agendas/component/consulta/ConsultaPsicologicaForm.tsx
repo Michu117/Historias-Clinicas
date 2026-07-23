@@ -58,11 +58,11 @@ export const ConsultaPsicologicaForm: React.FC<ConsultaPsicologicaFormProps> = (
     });
   };
 
-  const inputClass = `w-full h-12 px-4 bg-[var(--surface-container-low)] border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] focus:bg-white outline-none transition-all placeholder:text-[var(--on-surface-variant)] disabled:opacity-60 disabled:cursor-not-allowed`;
+  const inputClass = `w-full h-12 px-4 bg-[var(--surface-container-low)] border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] focus:bg-[var(--surface-container-high)] outline-none transition-all placeholder:text-[var(--on-surface-variant)] disabled:opacity-60 disabled:cursor-not-allowed`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <section className="bg-white border border-[var(--outline)] rounded-2xl p-8 shadow-sm">
+      <section className="rounded-2xl p-8 shadow-sm" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
         <div className="flex items-center gap-2 mb-6">
           <h3 className="text-sm font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Notas de Evolución *</h3>
         </div>
@@ -73,13 +73,14 @@ export const ConsultaPsicologicaForm: React.FC<ConsultaPsicologicaFormProps> = (
           value={notasEvolucion}
           onChange={(e) => setNotasEvolucion(e.target.value)}
           disabled={!isEditable}
-          className="w-full h-48 p-4 bg-[var(--surface-container-low)] border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] focus:bg-white outline-none transition-all placeholder:text-[var(--on-surface-variant)] disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full h-48 p-4 border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all placeholder:text-[var(--on-surface-variant)] disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{ backgroundColor: 'var(--surface-container-low)' }}
           placeholder="Describa la evolución del paciente, observaciones de la sesión..."
         />
         <p className="text-[12px] text-[var(--on-surface-variant)] mt-2 font-medium">Este campo es obligatorio.</p>
       </section>
 
-      <section className="bg-white border border-[var(--outline)] rounded-2xl p-8 shadow-sm">
+      <section className="rounded-2xl p-8 shadow-sm" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
         <div className="flex items-center gap-2 mb-6">
           <h3 className="text-sm font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Evaluación Psicológica</h3>
         </div>
@@ -153,7 +154,7 @@ export const ConsultaPsicologicaForm: React.FC<ConsultaPsicologicaFormProps> = (
         </div>
       </section>
 
-      <section className="bg-white border border-[var(--outline)] rounded-2xl p-8 shadow-sm">
+      <section className="rounded-2xl p-8 shadow-sm" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
         <div className="flex items-center gap-2 mb-6">
           <h3 className="text-sm font-black text-[var(--on-surface-variant)] uppercase tracking-[0.1em]">Observaciones</h3>
         </div>
@@ -164,13 +165,14 @@ export const ConsultaPsicologicaForm: React.FC<ConsultaPsicologicaFormProps> = (
           value={observaciones}
           onChange={(e) => setObservaciones(e.target.value)}
           disabled={!isEditable}
-          className="w-full h-24 p-4 bg-white border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full h-24 p-4 border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{ backgroundColor: 'var(--surface-container-low)' }}
           placeholder="Notas adicionales..."
         />
       </section>
 
       {validationError && (
-        <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-700 text-sm font-medium" role="alert">
+        <div className="rounded-xl border p-4 text-sm font-medium" role="alert" style={{ backgroundColor: 'var(--error-container)', borderColor: 'var(--error)', color: 'var(--on-error-container)' }}>
           {validationError}
         </div>
       )}

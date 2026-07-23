@@ -19,9 +19,9 @@ export const AgendaFilters: FC<AgendaFiltersProps> = ({
   };
 
   return (
-    <div className="flex gap-4 p-4 bg-white rounded-lg border">
+    <div className="flex gap-4 p-4 rounded-lg border" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
       <div className="flex-1">
-        <label className="block text-sm font-medium mb-2" htmlFor="desde">
+        <label className="block text-sm font-medium mb-2" htmlFor="desde" style={{ color: 'var(--on-surface)' }}>
           Desde
         </label>
         <Input

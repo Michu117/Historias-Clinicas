@@ -1,7 +1,7 @@
 import React from 'react';
 import ChartContainer from './ChartContainer';
 
-const PALETA = ['#0056B3', '#0D9488', '#4F46E5', '#94A3B8'];
+const PALETA = ['#006766', '#565e74', '#595c5e', '#3e4948'];
 
 interface ServicioTotal {
   servicio: string;

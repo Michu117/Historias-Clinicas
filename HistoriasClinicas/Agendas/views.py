@@ -14,10 +14,13 @@ from .models import Cita, Servicio, Derivacion, Certificado
 from .serializers import (
     CitaSerializer, ServicioSerializer, ConsultaMedicaSerializer,
     ConsultaOdontologicaSerializer, ConsultaPsicologicaSerializer,
-    ConsultaSocialSerializer, DerivacionSerializer, CertificadoSerializer
+    ConsultaSocialSerializer, DerivacionSerializer, CertificadoSerializer,
 )
 from . import services
+from .pdf_utils import generar_pdf_certificado
 from Notificaciones.services import generate_notification_for_event
+from Notificaciones.email_service import enviar_certificado_por_email
+from Seguridad.models import Cuenta, Usuario
 
 logger = logging.getLogger(__name__)
 
@@ -374,4 +377,86 @@ class CertificadoViewSet(BaseAgendasViewSet):
     filterset_fields = ['tipo']
     ordering_fields = ['fecha_emision']
     ordering = ['-fecha_emision']
+
+    @action(detail=False, methods=['post'], url_path='enviar-correo')
+    def enviar_correo(self, request):
+        cita_id = request.data.get('cita_id')
+
+        if not cita_id:
+            return Response({'error': 'cita_id es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            cita = Cita.objects.get(id=cita_id)
+        except Cita.DoesNotExist:
+            return Response({'error': 'Cita no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            paciente_cuenta = Cuenta.objects.get(id=cita.usuario_id)
+        except Cuenta.DoesNotExist:
+            return Response({'error': 'Paciente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        destinatario_email = getattr(paciente_cuenta, 'correo', None) or paciente_cuenta.email
+        if not destinatario_email:
+            return Response({'error': 'El paciente no tiene correo registrado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            paciente_perfil = Usuario.objects.get(cuenta=paciente_cuenta)
+            paciente_nombre = f'{paciente_perfil.nombres} {paciente_perfil.apellidos}'
+            paciente_cedula = paciente_perfil.cedula
+        except Usuario.DoesNotExist:
+            paciente_nombre = 'Paciente'
+            paciente_cedula = ''
+
+        profesional_nombre = ''
+        profesional_cedula = ''
+        if cita.profesional_id:
+            try:
+                prof_cuenta = Cuenta.objects.get(id=cita.profesional_id)
+                prof_perfil = Usuario.objects.get(cuenta=prof_cuenta)
+                profesional_nombre = f'{prof_perfil.nombres} {prof_perfil.apellidos}'
+                profesional_cedula = prof_perfil.cedula
+            except (Cuenta.DoesNotExist, Usuario.DoesNotExist):
+                pass
+
+        especialidad = ''
+        servicios = cita.servicios.all()
+        if servicios:
+            especialidad = servicios[0].nombre
+
+        observaciones = ''
+        CONSULTA_MODELS = [
+            cita.consultamedica_consultas,
+            cita.consultaodontologica_consultas,
+            cita.consultapsicologica_consultas,
+            cita.consultasocial_consultas,
+        ]
+        for qs in CONSULTA_MODELS:
+            consulta = qs.first()
+            if consulta and consulta.observaciones:
+                observaciones = consulta.observaciones
+                break
+
+        pdf_buffer = generar_pdf_certificado(
+            cita=cita,
+            paciente_nombre=paciente_nombre,
+            paciente_cedula=paciente_cedula,
+            profesional_nombre=profesional_nombre,
+            profesional_cedula=profesional_cedula,
+            especialidad=especialidad,
+            observaciones=observaciones,
+        )
+
+        cert, _ = Certificado.objects.get_or_create(
+            cita=cita,
+            tipo='Asistencia',
+        )
+
+        enviado = enviar_certificado_por_email(
+            cert, pdf_buffer, destinatario_email, paciente_nombre=paciente_nombre,
+        )
+
+        if enviado:
+            return Response({'success': True, 'message': 'Certificado enviado por correo exitosamente'})
+        else:
+            return Response({'error': 'No se pudo enviar el certificado. Verifique la configuración de correo.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

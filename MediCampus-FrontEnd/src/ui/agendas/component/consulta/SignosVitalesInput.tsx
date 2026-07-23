@@ -37,7 +37,7 @@ export const SignosVitalesInput: React.FC<SignosVitalesInputProps> = ({
     });
   }, [pesoKg, temperatura, presionArterial, frecuenciaCardiaca, onUpdate]);
 
-  const inputClass = `w-full h-11 px-4 bg-[var(--surface-container-low)] border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] focus:bg-white outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`;
+  const inputClass = `w-full h-11 px-4 bg-[var(--surface-container-low)] border border-[var(--outline)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)] focus:bg-[var(--surface-container-high)] outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed`;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

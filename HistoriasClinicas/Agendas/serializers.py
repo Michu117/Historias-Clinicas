@@ -146,3 +146,8 @@ class CertificadoSerializer(serializers.ModelSerializer):
         model = Certificado
         fields = ['id', 'cita', 'tipo', 'archivo', 'fecha_emision']
         read_only_fields = ['fecha_emision']
+
+
+class EnviarCertificadoSerializer(serializers.Serializer):
+    cita_id = serializers.IntegerField()
+    html_content = serializers.CharField()

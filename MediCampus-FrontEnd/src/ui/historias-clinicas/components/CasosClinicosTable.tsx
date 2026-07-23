@@ -53,7 +53,7 @@ const CasosClinicosList: React.FC<Props> = ({ items, onCreate, onUpdate, onDelet
             </thead>
             <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
               {items.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50">
+                <tr key={c.id} className="hc-row-hover">
                   <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{c.fechaApertura}</td>
                   <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{c.fechaCierre || '—'}</td>
                   <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{ESTADO_LABELS[c.estado] ?? c.estado}</td>

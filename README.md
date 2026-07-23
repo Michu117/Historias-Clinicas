@@ -1,57 +1,73 @@
-# Historias-Clinicas
+# MediCampus – Sistema de Historias Clínicas
 
-## Objetivo del Sistema
+MediCampus es una aplicación web para la gestión de los servicios de Bienestar Universitario. Permite administrar usuarios, roles, citas, servicios médicos, historias clínicas, atenciones, reportes y notificaciones.
 
-El proyecto *Historias Clinicas* tiene como finalidad desarrollar una plataforma digital orientada a centralizar, optimizar y modernizar los procesos del área de Bienestar Universitario de la Universidad Nacional de Loja. La aplicación permitirá gestionar de manera eficiente diversos servicios médicos y administrativos dirigidos a la comunidad universitaria, facilitando tanto el acceso a la información como la automatización de procesos internos.
+## Requisitos
 
-Entre las funcionalidades principales del sistema se encuentran:
+- Git
+- Python 3.12+
+- pip
+- Node.js 18+
+- npm
 
-- Programación y gestión de citas médicas.
-- Recepción de notificaciones relacionadas con citas y procesos clínicos.
-- Consulta de resultados de exámenes médicos.
-- Solicitud y administración de permisos médicos.
-- Gestión de historias clínicas digitales.
-- Generación de reportes y seguimiento de atenciones.
+## Backend
 
-El sistema busca mejorar la organización institucional, reducir tiempos de atención y proporcionar una plataforma segura y escalable para el manejo de información clínica.
+1. Clona el repositorio e ingresa a la carpeta:
 
-## Arquitectura del Sistema
+```bash
+git clone https://github.com/Michu117/Historias-Clinicas.git
+cd Historias-Clinicas
+cd HistoriasClinicas
+```
 
-La aplicación fue diseñada bajo una arquitectura cliente-servidor complementada con el patrón Modelo-Vista-Controlador (MVC), permitiendo una adecuada separación de responsabilidades, mantenibilidad del código y escalabilidad del sistema.
+2. Crea y activa el entorno virtual:
 
-Bajo este enfoque, las aplicaciones cliente se encargan exclusivamente de la capa de presentación o Vista, administrando la interacción directa con el usuario y el renderizado gráfico de manera independiente del backend. Por otro lado, el servidor opera como una API REST centralizada desarrollada con Django REST Framework, encargándose de procesar la lógica de negocio, administrar las reglas del sistema y gestionar el acceso a la base de datos.
+```bash
+python -m venv venv
+```
 
-La arquitectura backend se encuentra organizada en capas funcionales, entre las cuales destacan:
+**Windows (CMD):** `venv\Scripts\activate`
+**Windows (PowerShell):** `venv\Scripts\Activate.ps1`
+**Linux/macOS:** `source venv/bin/activate`
 
-- **Views:** recepción y procesamiento de peticiones HTTP.
-- **Serializers:** validación y transformación de datos.
-- **Services:** encapsulamiento de lógica de negocio.
-- **Models:** representación de entidades y relaciones de base de datos.
-- **Permissions:** control de acceso y seguridad.
+3. Instala las dependencias (el archivo `requirements.txt` está en la raíz del repositorio):
 
-La comunicación entre cliente y servidor se realiza mediante intercambio de datos estructurados en formato JSON utilizando protocolos HTTP estándar, permitiendo compatibilidad con aplicaciones web y futuras aplicaciones móviles.
+```bash
+pip install -r ../requirements.txt
+```
 
-## Entorno de Desarrollo Backend
+4. Ejecuta las migraciones:
 
-El entorno de desarrollo backend fue configurado utilizando el IDE PyCharm, integrando el framework Django junto con un entorno virtual de Python para la administración de dependencias y paquetes del proyecto.
+```bash
+python manage.py migrate
+```
 
-La aplicación backend fue desarrollada utilizando:
+5. Inicia el servidor:
 
-- Python
-- Django
-- Django REST Framework
-- SimpleJWT para autenticación JWT
-- SQLite durante la fase inicial de desarrollo
-- DRF Spectacular para documentación OpenAPI/Swagger
+```bash
+python manage.py runserver
+```
 
-Dentro de la carpeta principal del proyecto se encuentran las configuraciones generales del sistema, incluyendo:
+El backend queda disponible en `http://127.0.0.1:8000/`.
 
-- configuración de rutas,
-- registro de aplicaciones,
-- configuración de base de datos,
-- middlewares,
-- autenticación,
-- permisos,
-- documentación de la API.
+## Frontend
 
-Durante la primera fase del desarrollo se implementó la estructura base del proyecto junto con los módulos principales relacionados con autenticación, agendas, historias clínicas, reportes y notificaciones, permitiendo establecer una arquitectura modular y escalable para futuras funcionalidades.
+Abre otra terminal y ejecuta:
+
+```bash
+cd Historias-Clinicas
+cd MediCampus-FrontEnd
+npm install
+npm run dev
+```
+
+Abre `http://localhost:5173/` en el navegador.
+
+## Notas
+
+- **Base de datos:** usa SQLite por defecto, no requiere configuración adicional.
+- **Variables de entorno:** no es necesario crear archivos `.env` para desarrollo local.
+- **Roles:** se precargan automáticamente al ejecutar `migrate`.
+- **Superusuario:** `python manage.py createsuperuser` para acceder a `/admin/`.
+- **Registro:** `POST /api/v1/auth/register` desde la API.
+- **Documentación API:** `http://127.0.0.1:8000/api/docs/`.

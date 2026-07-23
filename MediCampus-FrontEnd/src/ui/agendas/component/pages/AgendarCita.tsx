@@ -156,14 +156,14 @@ export const AgendarCita: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--hc-bg)' }}>
-      <header className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between" style={{ backgroundColor: 'var(--btn-primary-bg)' }}>
+      <header className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3" style={{ backgroundColor: 'var(--btn-primary-bg)' }}>
+        <HamburgerMenu />
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0">
             <span className="font-bold text-sm sm:text-base text-white">M</span>
           </div>
           <h1 className="text-base sm:text-lg font-semibold truncate text-white">MediCampus</h1>
         </div>
-        <HamburgerMenu />
       </header>
 
       <main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
@@ -251,7 +251,7 @@ export const AgendarCita: React.FC = () => {
           {(error || message) && (
             <div className="space-y-2 sm:space-y-3">
               {error ? (
-                <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#fecaca', backgroundColor: '#fef2f2', color: '#991b1b' }}>
+                <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: 'var(--error)', backgroundColor: 'var(--error-container)', color: 'var(--on-error-container)' }}>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -259,7 +259,7 @@ export const AgendarCita: React.FC = () => {
                 </div>
               ) : null}
               {message ? (
-                <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#bbf7d0', backgroundColor: '#f0fdf4', color: '#166534' }}>
+                <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' }}>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
