@@ -2,11 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useConsulta } from '../../hooks/useConsulta';
 import { useDerivacion } from '../../hooks/useDerivacion';
+import { useCertificado } from '../../hooks/useCertificado';
 
 import { ConsultaForm } from '../consulta/ConsultaForm';
 import { DerivacionModal } from '../derivacion/DerivacionModal';
 import { CertificateButton } from '../shared/CertificateButton';
-import { SideNavBar } from '../shared/SideNavBar';
+import { HamburgerMenuDropdown } from '../../../components/HamburgerMenuDropdown';
 import { TopNavBar } from '../shared/TopNavBar';
 import { Cita, Servicio, EstadoCita } from '../../types';
 import { citaService } from '../../services/api/citaService';
@@ -32,6 +33,8 @@ export const Consulta: React.FC = () => {
   const [showDerivacionModal, setShowDerivacionModal] = useState(false);
   const [consultaCreada, setConsultaCreada] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [certError, setCertError] = useState<string | null>(null);
+  const { enviarCertificadoEmail, loading: certLoading } = useCertificado();
   useEffect(() => {
     if (citaId) {
       startedConsultaStorage.markStarted(citaId);
@@ -56,7 +59,7 @@ export const Consulta: React.FC = () => {
 
   const serviceName = currentCita ? SERVICE_NAME_MAP[currentCita.servicio_id] || 'Medicina General' : 'Medicina General';
 
-  const puedeDescargarCertificado = currentCita?.estado === EstadoCita.ATENDIDA;
+  const puedeDescargarCertificado = currentCita?.estado === EstadoCita.ATENDIDA || consultaCreada;
 
   const handleSaveConsulta = useCallback(async (data: any) => {
     if (!citaId) return;
@@ -100,10 +103,15 @@ export const Consulta: React.FC = () => {
 
   if (!citaId) {
     return (
-      <div className="min-h-screen bg-[var(--hc-bg)] flex">
-        <SideNavBar />
-        <main className="flex-1 ml-60 h-screen overflow-y-auto">
-          <TopNavBar />
+      <div className="min-h-screen bg-[var(--hc-bg)] flex flex-col">
+        <header
+          className="h-16 flex items-center gap-3 px-6 shrink-0"
+          style={{ backgroundColor: 'var(--surface-container-lowest)', borderBottom: '1px solid var(--outline)' }}
+        >
+          <HamburgerMenuDropdown />
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Atención de Consulta</h2>
+        </header>
+        <main className="flex-1 overflow-y-auto">
           <div className="p-10 max-w-6xl mx-auto">
             <h1 className="text-3xl font-black text-[var(--hc-text)] tracking-tight mb-2">Atención de Consulta</h1>
             <p className="text-[var(--on-surface-variant)] font-medium">Selecciona una cita desde Mi Agenda para registrar la consulta.</p>
@@ -114,10 +122,16 @@ export const Consulta: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--hc-bg)] flex">
-      <SideNavBar />
+    <div className="min-h-screen bg-[var(--hc-bg)] flex flex-col">
+      <header
+        className="h-16 flex items-center gap-3 px-6 shrink-0"
+        style={{ backgroundColor: 'var(--surface-container-lowest)', borderBottom: '1px solid var(--outline)' }}
+      >
+        <HamburgerMenuDropdown />
+        <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Registro de Consulta</h2>
+      </header>
 
-      <main className="flex-1 ml-60 h-screen overflow-y-auto">
+      <main className="flex-1 overflow-y-auto">
         <TopNavBar />
 
         <div className="p-10 max-w-6xl mx-auto">
@@ -129,14 +143,14 @@ export const Consulta: React.FC = () => {
 
           {/* Success / Error Messages */}
           {successMsg && (
-            <div className="mb-6 rounded-xl border border-green-300 bg-green-50 p-4 text-green-700 text-sm font-medium flex items-center gap-2">
+            <div className="mb-6 rounded-xl border p-4 text-sm font-medium flex items-center gap-2 hc-banner-success">
               <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="flex-1">{successMsg}</span>
               <button
                 onClick={() => setSuccessMsg(null)}
-                className="shrink-0 p-1 rounded hover:bg-green-200 transition-colors"
+                className="shrink-0 p-1 rounded transition-colors hc-banner-close"
                 aria-label="Cerrar"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,13 +160,13 @@ export const Consulta: React.FC = () => {
             </div>
           )}
 
-          {(error || derivError) && (
-            <div className="mb-6 rounded-xl border border-red-300 bg-red-50 p-4 text-red-700 text-sm font-medium">{error || derivError}</div>
+          {(error || derivError || certError) && (
+            <div className="mb-6 rounded-xl border p-4 text-sm font-medium hc-banner-error">{error || derivError || certError}</div>
           )}
 
           {/* Patient Info Card */}
           {currentCita && (
-            <div className="bg-white border border-[var(--outline)] rounded-2xl p-6 shadow-sm mb-8">
+            <div className="rounded-2xl p-6 shadow-sm mb-8" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-[var(--primary-container)] flex items-center justify-center text-[var(--on-primary-container)] font-black text-xl">
@@ -172,8 +186,8 @@ export const Consulta: React.FC = () => {
                 <span
                   className={`shrink-0 px-3 py-1 rounded-full text-xs font-bold ${
                     currentCita.estado === EstadoCita.ATENDIDA || consultaCreada
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-amber-100 text-amber-700'
+                      ? 'hc-badge-success'
+                      : 'hc-badge-warning'
                   }`}
                 >
                   {currentCita.estado === EstadoCita.ATENDIDA || consultaCreada ? 'COMPLETADO' : 'EN CURSO'}
@@ -203,7 +217,7 @@ export const Consulta: React.FC = () => {
 
           {/* Derivación Section - always visible, optional */}
           {currentCita && (
-            <div className="mt-8 bg-white border border-[var(--outline)] rounded-2xl p-8 shadow-sm">
+            <div className="mt-8 rounded-2xl p-8 shadow-sm" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
               <div className="flex items-center gap-3 mb-6">
                 <svg className="w-6 h-6 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -233,27 +247,49 @@ export const Consulta: React.FC = () => {
 
           {/* Certificado Section - only when cita is ATENDIDA */}
           {currentCita && puedeDescargarCertificado && (
-            <div className="mt-8 bg-white border border-[var(--outline)] rounded-2xl p-8 shadow-sm">
+            <div className="mt-8 rounded-2xl p-8 shadow-sm" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
               <div className="flex items-center gap-3 mb-6">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <h3 className="text-lg font-bold text-[var(--hc-text)]">Certificado de Atención</h3>
               </div>
               <p className="text-sm text-[var(--on-surface-variant)] mb-6">
-                Descarga el certificado de atención para esta consulta.
+                Descarga o envía el certificado de atención para esta consulta.
               </p>
-              <CertificateButton
-                citaId={citaId}
-                estado={currentCita.estado}
-                onSuccess={() => {
-                  setSuccessMsg('Certificado descargado correctamente.');
-                  setTimeout(() => setSuccessMsg(null), 5000);
-                }}
-                onError={(msg) => {
-                  setSuccessMsg(null);
-                }}
-              />
+              <div className="flex gap-3">
+                <CertificateButton
+                  citaId={citaId}
+                  estado={currentCita.estado}
+                  onSuccess={() => {
+                    setSuccessMsg('Certificado descargado correctamente.');
+                    setTimeout(() => setSuccessMsg(null), 5000);
+                  }}
+                  onError={(msg) => {
+                    setSuccessMsg(null);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const result = await enviarCertificadoEmail(citaId);
+                    setCertError(null);
+                    if (result.success) {
+                      setSuccessMsg(result.message || 'Certificado enviado por correo.');
+                      setTimeout(() => setSuccessMsg(null), 5000);
+                    } else {
+                      setCertError(result.message || 'Error al enviar certificado');
+                    }
+                  }}
+                  disabled={certLoading}
+                  className="px-4 py-2 rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: 'var(--primary)', color: 'var(--on-primary)' }}
+                  onMouseEnter={(e) => { if (!certLoading) e.currentTarget.style.backgroundColor = 'var(--primary-container)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary)' }}
+                >
+                  {certLoading ? 'Enviando...' : 'Enviar Certificado'}
+                </button>
+              </div>
             </div>
           )}
         </div>

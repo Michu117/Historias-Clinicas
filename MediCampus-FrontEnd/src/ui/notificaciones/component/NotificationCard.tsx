@@ -52,11 +52,11 @@ const TIPO_LABEL: Record<string, string> = {
 };
 
 const TIPO_ICON_CLASS: Record<string, { bg: string; iconColor: string }> = {
-  creacion: { bg: '#d7e2ff', iconColor: '#003f87' },
-  confirmacion: { bg: '#d7e2ff', iconColor: '#003f87' },
-  reagendamiento: { bg: '#86f2e4', iconColor: '#006a61' },
+  creacion: { bg: '#94f2f0', iconColor: '#006766' },
+  confirmacion: { bg: '#94f2f0', iconColor: '#006766' },
+  reagendamiento: { bg: '#dae2fd', iconColor: '#565e74' },
   cancelacion: { bg: '#ffdad6', iconColor: '#ba1a1a' },
-  derivacion: { bg: '#d7e2ff', iconColor: '#003f87' },
+  derivacion: { bg: '#e0e3e5', iconColor: '#595c5e' },
 };
 
 function getCardTitle(mensaje: string, tipoBackend: string): string {
@@ -93,8 +93,8 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
 
   return (
     <div
-      className={`bg-white border rounded-2xl p-6 shadow-sm transition-colors ${isUnread ? 'bg-gray-50' : ''}`}
-      style={{ borderColor: 'var(--outline)' }}
+      className="border rounded-2xl p-6 shadow-sm transition-colors"
+      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--outline)' }}
       data-testid="notification-card"
     >
       <div className="flex items-start gap-4">

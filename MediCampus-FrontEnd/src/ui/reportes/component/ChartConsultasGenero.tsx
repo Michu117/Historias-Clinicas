@@ -2,12 +2,12 @@ import React from 'react';
 import ChartContainer from './ChartContainer';
 
 const GENDER_CONFIG: Record<string, { label: string; color: string }> = {
-  hombre: { label: 'Hombres', color: '#0056b3' },
-  mujer: { label: 'Mujeres', color: '#D81B60' },
-  sin_registro: { label: 'Sin Registro', color: '#FF7043' },
-  male: { label: 'Hombres', color: '#0056b3' },
-  female: { label: 'Mujeres', color: '#D81B60' },
-  other: { label: 'Sin Registro', color: '#FF7043' },
+  hombre: { label: 'Hombres', color: '#006766' },
+  mujer: { label: 'Mujeres', color: '#565e74' },
+  sin_registro: { label: 'Sin Registro', color: '#595c5e' },
+  male: { label: 'Hombres', color: '#006766' },
+  female: { label: 'Mujeres', color: '#565e74' },
+  other: { label: 'Sin Registro', color: '#595c5e' },
 };
 
 export default function ChartConsultasGenero({ data, loading = false, error = null }: any): JSX.Element {
@@ -54,7 +54,7 @@ export default function ChartConsultasGenero({ data, loading = false, error = nu
 
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-[#c2c6d4] shadow-sm">
+    <div className="bg-white p-6 rounded-xl border border-[#bdc9c8] shadow-sm">
       <ChartContainer
         title="Consultas por Género"
         type="pie"
@@ -69,7 +69,7 @@ export default function ChartConsultasGenero({ data, loading = false, error = nu
         height={240}
       />
 
-      <p className="mt-4 text-center text-[13px] font-semibold text-[#424752]">
+      <p className="mt-4 text-center text-[13px] font-semibold text-[#3e4948]">
         Total: {totalDisplay.toLocaleString()} consultas
       </p>
     </div>

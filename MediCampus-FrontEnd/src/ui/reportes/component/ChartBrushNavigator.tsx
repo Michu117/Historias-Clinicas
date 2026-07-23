@@ -81,14 +81,14 @@ export default function ChartBrushNavigator({
         <button
           onClick={() => onScrollChange(Math.max(0, scrollPosition - 7))}
           disabled={scrollPosition <= 0}
-          className="px-2 py-1 text-sm text-[#0056B3] disabled:text-gray-300 hover:text-[#003f87] transition-colors"
+          className="px-2 py-1 text-sm text-[#006766] disabled:text-gray-300 hover:text-[#00504e] transition-colors"
         >
           ◀
         </button>
 
         <div
           ref={containerRef}
-          className="relative flex-1 h-[50px] bg-[#f1f3ff] rounded-md cursor-pointer overflow-hidden"
+          className="relative flex-1 h-[50px] bg-[#f0f4f3] rounded-md cursor-pointer overflow-hidden"
           onClick={handleBarClick}
         >
           <div className="absolute inset-0 flex items-end">
@@ -101,7 +101,7 @@ export default function ChartBrushNavigator({
                   className="flex-1 mx-[1px] rounded-t"
                   style={{
                     height: '100%',
-                    backgroundColor: isVisible ? '#0056B3' : '#c2c6d4',
+                    backgroundColor: isVisible ? '#006766' : '#bdc9c8',
                     opacity: isVisible ? 0.3 : 0.15,
                   }}
                 />
@@ -110,7 +110,7 @@ export default function ChartBrushNavigator({
           </div>
 
           <div
-            className="absolute top-0 h-full bg-[#0056B3] opacity-20 rounded-md cursor-grab active:cursor-grabbing"
+            className="absolute top-0 h-full bg-[#006766] opacity-20 rounded-md cursor-grab active:cursor-grabbing"
             style={{
               left: `${windowLeft}px`,
               width: `${windowWidth}px`,
@@ -119,11 +119,11 @@ export default function ChartBrushNavigator({
             onMouseDown={handleMouseDown}
           >
             <div
-              className="absolute top-0 bottom-0 w-[2px] bg-[#0056B3] opacity-60"
+              className="absolute top-0 bottom-0 w-[2px] bg-[#006766] opacity-60"
               style={{ left: 0 }}
             />
             <div
-              className="absolute top-0 bottom-0 w-[2px] bg-[#0056B3] opacity-60"
+              className="absolute top-0 bottom-0 w-[2px] bg-[#006766] opacity-60"
               style={{ right: 0 }}
             />
           </div>
@@ -132,12 +132,12 @@ export default function ChartBrushNavigator({
         <button
           onClick={() => onScrollChange(Math.min(totalDays - visibleDays, scrollPosition + 7))}
           disabled={scrollPosition >= totalDays - visibleDays}
-          className="px-2 py-1 text-sm text-[#0056B3] disabled:text-gray-300 hover:text-[#003f87] transition-colors"
+          className="px-2 py-1 text-sm text-[#006766] disabled:text-gray-300 hover:text-[#00504e] transition-colors"
         >
           ▶
         </button>
       </div>
-      <div className="flex justify-between text-xs text-[#424752] mt-1 px-8">
+      <div className="flex justify-between text-xs text-[#3e4948] mt-1 px-8">
         <span>Inicio</span>
         <span>Fin</span>
       </div>

@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('tipo_documento', models.CharField(choices=[('RESULTADO', 'Resultado'), ('FORMULARIOS', 'Formularios'), ('CONSENTIMIENTO', 'Consentimiento'), ('CERTIFICADO', 'Certificado')], max_length=20, verbose_name='tipo de documento')),
                 ('encabezado', models.TextField(verbose_name='encabezado')),
                 ('cuerpo', models.TextField(verbose_name='cuerpo')),
-                ('historia_clinica', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documentos', to='Historias.historiaclinica', verbose_name='historia clinica')),
+                ('historia_clinica', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documentos', to='historias.historiaclinica', verbose_name='historia clinica')),
             ],
             options={
                 'verbose_name': 'documento',
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('fecha_cierre', models.DateField(blank=True, null=True, verbose_name='fecha de cierre')),
                 ('estado_caso', models.CharField(choices=[('ABIERTO', 'Abierto'), ('EN_SEGUIMIENTO', 'En seguimiento'), ('CERRADO', 'Cerrado')], default='ABIERTO', max_length=20, verbose_name='estado del caso')),
                 ('prioridad', models.CharField(choices=[('ALTA', 'Alta'), ('MEDIA', 'Media'), ('BAJA', 'Baja')], default='MEDIA', max_length=10, verbose_name='prioridad')),
-                ('historia_clinica', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='casos', to='Historias.historiaclinica', verbose_name='historia clinica')),
+                ('historia_clinica', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='casos', to='historias.historiaclinica', verbose_name='historia clinica')),
             ],
             options={
                 'verbose_name': 'caso',
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
                 ('descripcion', models.TextField(verbose_name='descripcion')),
                 ('fecha', models.DateField(verbose_name='fecha')),
                 ('tipo_antecedente', models.CharField(choices=[('HEREDOFAMILIARES', 'Heredofamiliares'), ('PERSONALES_NO_PATOLOGICOS', 'Personales no patologicos'), ('PERSONALES_PATOLOGICOS', 'Personales patologicos'), ('GINECO_OBSTETRICOS', 'Gineco obstetricos')], max_length=30, verbose_name='tipo de antecedente')),
-                ('historia_clinica', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='antecedentes', to='Historias.historiaclinica', verbose_name='historia clinica')),
+                ('historia_clinica', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='antecedentes', to='historias.historiaclinica', verbose_name='historia clinica')),
             ],
             options={
                 'verbose_name': 'antecedente',

@@ -2,7 +2,7 @@
 import { NotificationList } from './NotificationList';
 import { INotification } from '../types';
 import { useNotifications, useMarkAsRead } from '../api';
-import { SideNavBar } from '../../agendas/component/shared/SideNavBar';
+import { HamburgerMenuDropdown } from '../../components/HamburgerMenuDropdown';
 
 export const NotificationCenter: React.FC = () => {
   const { notifications, isLoading, error } = useNotifications();
@@ -34,23 +34,15 @@ export const NotificationCenter: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--hc-bg)' }}>
-      <SideNavBar />
-      <main className="flex-1 ml-60 h-screen overflow-y-auto">
-        <header
-          className="flex justify-end items-center h-16 px-8 border-b sticky top-0 z-40"
-          style={{ backgroundColor: 'rgba(255,255,255,0.8)', borderColor: 'var(--outline)', backdropFilter: 'blur(8px)' }}
-        >
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border" style={{ backgroundColor: 'var(--primary-container)', borderColor: 'var(--outline-variant)' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--on-primary-container)' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--on-primary-container)' }}>
-              {unreadCount} no leídas
-            </span>
-          </div>
-        </header>
-
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--hc-bg)' }}>
+      <header
+        className="flex items-center gap-3 h-16 px-6 border-b shrink-0"
+        style={{ backgroundColor: 'var(--surface-container-lowest)', borderColor: 'var(--outline)' }}
+      >
+        <HamburgerMenuDropdown />
+        <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Notificaciones</h2>
+      </header>
+      <main className="flex-1 overflow-y-auto">
         <div className="p-10 max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
             <div>
@@ -95,8 +87,8 @@ export const NotificationCenter: React.FC = () => {
 
             <div className="lg:col-span-4 space-y-6">
               <div
-                className="bg-white border rounded-2xl p-6 shadow-sm"
-                style={{ borderColor: 'var(--outline)' }}
+                className="border rounded-2xl p-6 shadow-sm"
+                style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--outline)' }}
               >
                 <h3 className="text-xl font-bold mb-5" style={{ color: 'var(--hc-text)' }}>Resumen</h3>
                 <div className="space-y-4">

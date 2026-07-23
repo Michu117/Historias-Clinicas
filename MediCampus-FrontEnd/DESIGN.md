@@ -1,97 +1,103 @@
 ---
-name: Clinical Precision
+name: Clinical Intelligence Framework
 colors:
-  surface: '#f9f9ff'
-  surface-dim: '#d5dae7'
-  surface-bright: '#f9f9ff'
+  surface: '#f6faf9'
+  surface-dim: '#d7dbda'
+  surface-bright: '#f6faf9'
   surface-container-lowest: '#ffffff'
-  surface-container-low: '#f0f3ff'
-  surface-container: '#e9eefc'
-  surface-container-high: '#e4e8f6'
-  surface-container-highest: '#dee2f0'
-  on-surface: '#171c25'
-  on-surface-variant: '#424752'
-  inverse-surface: '#2b303b'
-  inverse-on-surface: '#ecf0fe'
-  outline: '#727784'
-  outline-variant: '#c2c6d4'
-  surface-tint: '#115cb9'
-  primary: '#003f87'
+  surface-container-low: '#f0f4f3'
+  surface-container: '#ebefee'
+  surface-container-high: '#e5e9e8'
+  surface-container-highest: '#dfe3e2'
+  on-surface: '#181c1c'
+  on-surface-variant: '#3e4948'
+  inverse-surface: '#2c3131'
+  inverse-on-surface: '#edf2f0'
+  outline: '#6e7978'
+  outline-variant: '#bdc9c8'
+  surface-tint: '#006a68'
+  primary: '#006766'
   on-primary: '#ffffff'
-  primary-container: '#0056b3'
-  on-primary-container: '#bbd0ff'
-  inverse-primary: '#acc7ff'
-  secondary: '#006a61'
+  primary-container: '#0a8280'
+  on-primary-container: '#f3fffe'
+  inverse-primary: '#77d6d3'
+  secondary: '#565e74'
   on-secondary: '#ffffff'
-  secondary-container: '#86f2e4'
-  on-secondary-container: '#006f66'
-  tertiary: '#2d18c7'
+  secondary-container: '#dae2fd'
+  on-secondary-container: '#5c647a'
+  tertiary: '#595c5e'
   on-tertiary: '#ffffff'
-  tertiary-container: '#473ddd'
-  on-tertiary-container: '#cdcbff'
+  tertiary-container: '#727577'
+  on-tertiary-container: '#fbfdff'
   error: '#ba1a1a'
   on-error: '#ffffff'
   error-container: '#ffdad6'
   on-error-container: '#93000a'
-  primary-fixed: '#d7e2ff'
-  primary-fixed-dim: '#acc7ff'
-  on-primary-fixed: '#001a40'
-  on-primary-fixed-variant: '#004491'
-  secondary-fixed: '#89f5e7'
-  secondary-fixed-dim: '#6bd8cb'
-  on-secondary-fixed: '#00201d'
-  on-secondary-fixed-variant: '#005049'
-  tertiary-fixed: '#e2dfff'
-  tertiary-fixed-dim: '#c3c0ff'
-  on-tertiary-fixed: '#0f0069'
-  on-tertiary-fixed-variant: '#3323cc'
-  background: '#f9f9ff'
-  on-background: '#171c25'
-  surface-variant: '#dee2f0'
+  primary-fixed: '#94f2f0'
+  primary-fixed-dim: '#77d6d3'
+  on-primary-fixed: '#00201f'
+  on-primary-fixed-variant: '#00504e'
+  secondary-fixed: '#dae2fd'
+  secondary-fixed-dim: '#bec6e0'
+  on-secondary-fixed: '#131b2e'
+  on-secondary-fixed-variant: '#3f465c'
+  tertiary-fixed: '#e0e3e5'
+  tertiary-fixed-dim: '#c4c7c9'
+  on-tertiary-fixed: '#191c1e'
+  on-tertiary-fixed-variant: '#444749'
+  background: '#f6faf9'
+  on-background: '#181c1c'
+  surface-variant: '#dfe3e2'
 typography:
-  headline-xl:
-    fontFamily: Inter
-    fontSize: 36px
-    fontWeight: '700'
-    lineHeight: 44px
-    letterSpacing: -0.02em
   headline-lg:
     fontFamily: Inter
-    fontSize: 28px
-    fontWeight: '600'
-    lineHeight: 36px
+    fontSize: 32px
+    fontWeight: '700'
+    lineHeight: 40px
+    letterSpacing: -0.02em
+  headline-lg-mobile:
+    fontFamily: Inter
+    fontSize: 24px
+    fontWeight: '700'
+    lineHeight: 32px
     letterSpacing: -0.01em
   headline-md:
-    fontFamily: Inter
-    fontSize: 22px
-    fontWeight: '600'
-    lineHeight: 28px
-  body-lg:
-    fontFamily: Inter
-    fontSize: 18px
-    fontWeight: '400'
-    lineHeight: 28px
-  body-md:
-    fontFamily: Inter
-    fontSize: 16px
-    fontWeight: '400'
-    lineHeight: 26px
-  label-md:
-    fontFamily: Inter
-    fontSize: 14px
-    fontWeight: '500'
-    lineHeight: 20px
-  label-sm:
-    fontFamily: Inter
-    fontSize: 12px
-    fontWeight: '500'
-    lineHeight: 16px
-    letterSpacing: 0.05em
-  headline-lg-mobile:
     fontFamily: Inter
     fontSize: 24px
     fontWeight: '600'
     lineHeight: 32px
+    letterSpacing: -0.01em
+  headline-sm:
+    fontFamily: Inter
+    fontSize: 20px
+    fontWeight: '600'
+    lineHeight: 28px
+  body-lg:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: '400'
+    lineHeight: 24px
+  body-md:
+    fontFamily: Inter
+    fontSize: 14px
+    fontWeight: '400'
+    lineHeight: 20px
+  body-sm:
+    fontFamily: Inter
+    fontSize: 13px
+    fontWeight: '400'
+    lineHeight: 18px
+  label-md:
+    fontFamily: Inter
+    fontSize: 12px
+    fontWeight: '600'
+    lineHeight: 16px
+    letterSpacing: 0.05em
+  label-sm:
+    fontFamily: Inter
+    fontSize: 11px
+    fontWeight: '500'
+    lineHeight: 14px
 rounded:
   sm: 0.25rem
   DEFAULT: 0.5rem
@@ -100,69 +106,75 @@ rounded:
   xl: 1.5rem
   full: 9999px
 spacing:
-  base: 8px
+  base: 4px
   xs: 4px
   sm: 8px
   md: 16px
   lg: 24px
   xl: 32px
-  section-margin: 48px
-  gutter: 16px
+  gutter: 20px
+  margin-mobile: 16px
+  margin-desktop: 40px
 ---
 
 ## Brand & Style
 
-The design system is engineered for university health environments, prioritizing clinical precision, high trust, and academic reliability. The aesthetic is rooted in **Modern Minimalism** and **Corporate** structures, ensuring that dense medical data remains legible and accessible. 
+The design system is engineered for high-stakes medical environments where cognitive clarity and precision are paramount. The brand personality is professional, authoritative, and clinical, removing all unnecessary visual noise to focus on data density and actionable insights.
 
-By utilizing a restrained color palette and generous whitespace, the UI evokes a sense of calm authority. Every element is designed to minimize cognitive load for practitioners and administrators, emphasizing functional clarity over decorative flair. The emotional response is one of security, efficiency, and professional rigor.
+The aesthetic follows a **Corporate / Modern** approach with a strong emphasis on functional minimalism. It utilizes a systematic architecture to organize complex medical data—ranging from patient histories to diagnostic analytics—ensuring that the interface feels reliable and calm under pressure. The emotional response is one of controlled efficiency and absolute trust.
 
 ## Colors
 
-This design system utilizes a structured palette to differentiate between clinical actions and administrative metadata.
+The palette is optimized for WCAG AA compliance, ensuring high legibility for practitioners across various lighting conditions. 
 
-- **Primary (Deep Clinical Blue):** Reserved for primary calls-to-action, active navigation states, and essential system functions.
-- **Secondary (Medical Teal):** Used for supporting components, successful status indicators, and secondary clinical actions.
-- **Tertiary (Insight Indigo):** Employed for medical metadata, specialized highlights, and research-oriented data points.
-- **Neutral/Text:** High-contrast slate and charcoal tones ensure maximum legibility against the light slate background.
-- **Semantic:** Red is strictly reserved for critical errors or urgent medical alerts.
+- **Primary Teal (#319795):** Reserved for primary calls to action, active states, and successful clinical outcomes.
+- **Carbono (#0f172a):** Used for primary headings and body text to ensure maximum contrast against the neutral background.
+- **Surface (#f8fafc):** A soft, cool neutral used for page backgrounds to reduce eye strain during long shifts.
+- **Specialty Accents:** These colors are used purposefully to categorize data. Use these for sidebar indicators, status chips, or specialty-specific headers to provide instant context switching between Odontology, Psychology, and Social Work modules.
 
 ## Typography
 
-The typography relies exclusively on **Inter** to maintain a systematic, utilitarian appearance across all interfaces. 
+This design system utilizes **Inter** exclusively to leverage its systematic, utilitarian nature. The typeface was selected for its exceptional legibility in small sizes, particularly critical for medical dosage instructions and laboratory results.
 
-Headlines use **Bold** or **Semi-bold** weights with tighter letter spacing to create a strong visual anchor for page sections. Body text is set with a **leading-relaxed** line height to ensure comfortable long-form reading of clinical notes and patient histories. Labels use a **Medium** weight to distinguish them from standard body copy, providing clear identification for data fields and metadata.
+- **Scale:** A tight modular scale is used to maintain high information density without sacrificing readability.
+- **Weight:** Use Semibold (600) and Bold (700) for clinical headings to establish a clear hierarchy. Regular (400) is used for all patient data entry and notes.
+- **Labels:** Micro-copy and data labels should use `label-md` with uppercase styling to differentiate headers from user-generated content.
 
 ## Layout & Spacing
 
-The layout is built upon a **12-column fluid grid** designed to adapt to complex data-heavy dashboards.
+The layout philosophy follows a **Fixed Grid** model on desktop to ensure data visualizations and patient charts remain consistent and predictable.
 
-- **Scale:** An 8px base scale dictates all spatial relationships.
-- **Grid:** Columns are separated by 16px gutters, providing sufficient breathing room between data modules.
-- **Margins:** Main sections and top-level containers must maintain a 48px margin to preserve the minimalist, clinical feel.
-- **Responsiveness:** On mobile devices, the grid collapses to a single column, with section margins reduced to 24px and standard gutters to 12px.
+- **Desktop (1440px+):** A 12-column grid with a max-width of 1360px, 20px gutters, and 40px side margins.
+- **Tablet (768px - 1439px):** An 8-column fluid grid with 16px gutters. Sidebars should be collapsible to maximize the workspace.
+- **Mobile (<767px):** A 4-column fluid grid. Data-heavy tables should transition to card-based layouts or use horizontal scrolling with pinned key columns.
+
+Spacing follows a 4px base unit. Use 16px (`md`) for standard component spacing and 24px (`lg`) for section separation to provide visual breathing room in complex forms.
 
 ## Elevation & Depth
 
-Visual hierarchy in the design system is established through a combination of tonal layering and subtle shadows:
+To maintain a clean, clinical appearance, this design system avoids heavy shadows. Instead, it utilizes **Tonal Layers** and **Low-contrast outlines**.
 
-- **Surface Layering:** The #f9f9ff background acts as the canvas, while #ffffff cards create the primary interaction surface.
-- **Card Depth (shadow-sm):** Standard patient records and data cards use a soft, low-blur shadow to lift slightly from the background without creating visual clutter.
-- **Overlay Depth (shadow-lg):** Modals, fly-outs, and diagnostic tooltips use a more pronounced, diffused shadow to focus attention and indicate a change in the functional layer.
-- **Borders:** A 1px border (#c2c6d4) is used for inputs and container outlines to maintain definition in high-brightness environments.
+- **Level 0 (Background):** Surface (#f8fafc).
+- **Level 1 (Cards/Containers):** White (#ffffff) with a 1px border in a subtle neutral grey (#e2e8f0).
+- **Level 2 (Active/Interactive):** A very soft, diffused ambient shadow (0px 4px 12px rgba(15, 23, 42, 0.05)) is applied only to floating elements like dropdowns, modals, and tooltips.
+
+This hierarchy ensures that the "Clinical Workspace" feels flat and stable, while interactive overlays clearly sit above the primary data layer.
 
 ## Shapes
 
-The shape language differentiates between functional triggers and informational containers:
+The shape language is disciplined and consistent. A base roundedness of **0.5rem (8px)** is applied to all primary containers, buttons, and input fields.
 
-- **Buttons & Inputs:** Use a 8px (rounded-md) corner radius, balancing professional sharpness with modern approachability.
-- **Cards & Large Containers:** Use a 16px (rounded-xl) radius to soften the appearance of large data blocks.
-- **Chips & Status Badges:** Utilize a pill-shaped (rounded-full) geometry to immediately distinguish categorized data (e.g., blood types, department tags) from actionable buttons.
+- **Standard Elements:** 8px radius (Buttons, Inputs, Cards).
+- **Large Elements:** 16px radius (Modals, Large Section Wrappers).
+- **Small Elements:** 4px radius (Checkboxes, Tags, Status Indicators).
+
+This moderate rounding strikes a balance between the "hardness" of a traditional database and the "softness" of modern user-centric applications, resulting in a professional yet approachable tool.
 
 ## Components
 
-- **Buttons:** Primary buttons use the Deep Clinical Blue background with white text. Secondary buttons utilize a Medical Teal outline or ghost style.
-- **Input Fields:** 1px borders in #c2c6d4 that transition to Primary Blue on focus. Labels are positioned above the field in Label-md weight.
-- **Cards:** Always white (#ffffff) with a 16px radius and shadow-sm. Headlines within cards should use Headline-md.
-- **Chips:** Pill-shaped with a light tint of the Tertiary Indigo or Secondary Teal backgrounds and darkened text for high contrast.
-- **Data Lists:** Use subtle 1px dividers between rows. Zebra-striping is avoided in favor of clean whitespace and clear Label-sm headers.
-- **Checkboxes & Radios:** Use the Primary Blue for selected states, with an 8px radius for checkboxes to match the button language.
+- **Buttons:** Primary buttons use the Teal background with White text. Secondary buttons use a White background with a 1px border of Teal. Minimum height for touch targets is 44px.
+- **Input Fields:** Use a solid 1px border (#cbd5e1). Upon focus, the border shifts to Primary Teal with a 2px outer glow. Labels are always visible above the field (never floating).
+- **Chips & Tags:** Used for medical specialties. These utilize a light tint of the specialty color (e.g., 10% opacity Sky Blue) with high-contrast text of the same hue to denote the department.
+- **Cards:** All patient data is housed in White cards with an 8px radius and a 1px neutral border. Use consistent header padding (16px) for card titles.
+- **Lists & Tables:** Use "Zebra striping" for large data tables using the Surface color for even rows. Hover states on rows must use a subtle highlight to prevent "line-skipping" when reading diagnostic data.
+- **Status Indicators:** Use standardized semantic colors—Success (Teal), Warning (Amber), and Alert (Red)—specifically for critical lab values or overdue appointments.
