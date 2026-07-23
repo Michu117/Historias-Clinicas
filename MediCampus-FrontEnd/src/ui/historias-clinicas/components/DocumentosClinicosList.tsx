@@ -210,7 +210,7 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
             </thead>
             <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
               {filtrados.map((d) => (
-                <tr key={d.id} className="hover:bg-slate-50">
+                <tr key={d.id} className="hc-row-hover">
                   <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{d.fecha}</td>
                   <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{d.encabezado}</td>
                   <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{TIPO_DOC_LABELS[d.tipo] ?? d.tipo}</td>

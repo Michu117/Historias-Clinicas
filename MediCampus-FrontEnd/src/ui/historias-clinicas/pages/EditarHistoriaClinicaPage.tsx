@@ -257,7 +257,7 @@ export default function EditarHistoriaClinicaPage() {
         value={values.usuarioNombre}
         placeholder="Nombre completo del usuario"
         readOnly
-        className="bg-slate-100 text-slate-700 cursor-not-allowed"
+        className="hc-input-readonly"
       />
     </div>
 
@@ -272,7 +272,7 @@ export default function EditarHistoriaClinicaPage() {
         value={values.usuarioIdentificacion}
         placeholder="Documento de identificación"
         readOnly
-        className="bg-slate-100 text-slate-700 cursor-not-allowed"
+        className="hc-input-readonly"
       />
     </div>
 
@@ -402,7 +402,7 @@ export default function EditarHistoriaClinicaPage() {
           />
         </Card>
 
-        <div className="mt-4 rounded-2xl border border-slate-300 bg-white p-4 shadow-sm">
+        <div className="mt-4 rounded-2xl p-4 shadow-sm" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
           <div className="flex justify-end gap-3">
             <Button type="button" variant="danger" onClick={handleCancel}>
               Cancelar
