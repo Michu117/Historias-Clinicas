@@ -49,21 +49,21 @@ const HomePage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
-            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Mis Citas Médicas</h3>
+            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Agendar Citas Médicas</h3>
             <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Programa y consulta tus citas médicas.</p>
             <Button variant="primary" className="mt-3" onClick={() => navigate('/AgendarCita')}>
               Ir a Citas
             </Button>
           </Card>
           <Card>
-            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Mis Citas</h3>
+            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Consular Citas Médicas</h3>
             <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Revisa, reprograma o cancela tus citas agendadas.</p>
             <Button variant="primary" className="mt-3" onClick={() => navigate('/mis-citas')}>
               Ver Mis Citas
             </Button>
           </Card>
           <Card>
-            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Mi Historia</h3>
+            <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Mi Historia Clinica</h3>
             <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Revisa los detalles de tu historia clinica.</p>
             <Button variant="primary" className="mt-3" onClick={() => navigate('/historias/mi-historia')}>
               Ver Mi Historia
@@ -71,7 +71,7 @@ const HomePage: React.FC = () => {
           </Card>
           {isProfessional && (
             <Card>
-              <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Administración de Citas</h3>
+              <h3 className="font-semibold" style={{ color: 'var(--hc-text)' }}>Mi Agenda</h3>
               <p className="text-sm mt-1" style={{ color: 'var(--card-text-muted)' }}>Gestiona la agenda diaria de atención a pacientes.</p>
               <Button variant="primary" className="mt-3" onClick={() => navigate('/agendas/mi-agenda')}>
                 Ir a Mi Agenda

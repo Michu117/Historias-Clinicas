@@ -76,16 +76,17 @@ class CitaViewSet(BaseAgendasViewSet):
                 duracion_minutos=30,
             )
 
-            if 'servicios' in serializer.validated_data:
-                servicios = services.validar_servicios_cita(
-                    serializer.validated_data['servicios']
+            if not services.validar_anticipacion_minima(serializer.validated_data['fecha_hora']):
+                raise services.DatosInvalidosError(
+                    'El horario seleccionado ya no está disponible o no cumple con el tiempo mínimo de anticipación de 24 horas.'
                 )
-                serializer.validated_data['servicios'] = servicios
-                services.validar_misma_especialidad_mismo_dia(
-                    usuario_id=serializer.validated_data.get('usuario_id'),
-                    fecha_hora=serializer.validated_data['fecha_hora'],
-                    servicios_ids=serializer.validated_data['servicios'],
-                )
+
+            servicios = serializer.validated_data.get('servicios', [])
+            services.validar_misma_especialidad_mismo_dia(
+                usuario_id=serializer.validated_data.get('usuario_id'),
+                fecha_hora=serializer.validated_data['fecha_hora'],
+                servicios_ids=[s.id for s in servicios],
+            )
 
             self.perform_create(serializer)
             cita = serializer.instance
@@ -115,12 +116,30 @@ class CitaViewSet(BaseAgendasViewSet):
         except services.DatosInvalidosError as exc:
             return Response({
                 'success': False,
-                'error': {'code': 'BAD_REQUEST', 'message': str(exc)},
+                'error': {'code': exc.code, 'message': str(exc)},
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except services.DatosInvalidosError as exc:
+            return Response({
+                'success': False,
+                'error': {'code': exc.code, 'message': str(exc)},
             }, status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
         old_estado = old_instance.estado
+
+        if (serializer.validated_data.get('estado') == 'CANCELADA'
+                and old_estado != 'CANCELADA'):
+            if not services.validar_anticipacion_minima(old_instance.fecha_hora):
+                raise services.DatosInvalidosError(
+                    'Solo se permiten cancelaciones con al menos 24 horas de anticipación.',
+                    code='CANCELLATION_TIME_RESTRICTION'
+                )
+
         instance = serializer.save()
         new_estado = instance.estado
 

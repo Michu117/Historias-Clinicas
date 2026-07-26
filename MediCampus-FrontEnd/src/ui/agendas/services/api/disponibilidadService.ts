@@ -39,6 +39,7 @@ export const disponibilidadService = {
     ];
 
     const ahora = new Date();
+    const minDateTime = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
     const hoyStr = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
     const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
 
@@ -63,6 +64,8 @@ export const disponibilidadService = {
       const horaStr = minutesToTimeString(current);
       const slotEnd = current + duracion;
 
+      const slotDateTime = new Date(`${fecha}T${horaStr}:00`);
+      const dentroDe24h = slotDateTime < minDateTime;
       const esPasado = fecha === hoyStr && current <= minutosAhora;
 
       const hayConflicto = citasDelDia.some((cita) => {
@@ -74,7 +77,7 @@ export const disponibilidadService = {
 
       slots.push({
         hora: horaStr,
-        disponible: !hayConflicto && !esPasado,
+        disponible: !hayConflicto && !esPasado && !dentroDe24h,
         fecha,
       });
 

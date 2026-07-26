@@ -4,6 +4,7 @@ import {
   hasCitaSameDayService,
   isServiceActive,
   validateUserRole,
+  canCancelCita,
 } from '../../utils/validators/citaValidators';
 import { EstadoCita } from '../../types';
 
@@ -229,5 +230,29 @@ describe('citaValidators - RN-005 validateUserRole', () => {
   it('debe retornar true para un role exactamente igual incluso con payload extendido', () => {
     const token = buildJwt({ role: 'PROFESIONAL', permiso: 'AGENDAR' });
     expect(validateUserRole(token, 'PROFESIONAL')).toBe(true);
+  });
+});
+
+describe('citaValidators - canCancelCita', () => {
+  it('debe retornar true para una cita con mas de 24h de anticipacion', () => {
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 2);
+    const fecha = manana.toISOString().split('T')[0];
+    const hora = '10:00';
+    expect(canCancelCita(fecha, hora)).toBe(true);
+  });
+
+  it('debe retornar false para una cita con menos de 24h de anticipacion', () => {
+    const ahora = new Date();
+    const fecha = ahora.toISOString().split('T')[0];
+    const hora = `${String(ahora.getHours() + 1).padStart(2, '0')}:00`;
+    expect(canCancelCita(fecha, hora)).toBe(false);
+  });
+
+  it('debe retornar false para una cita en el pasado', () => {
+    const ayer = new Date();
+    ayer.setDate(ayer.getDate() - 1);
+    const fecha = ayer.toISOString().split('T')[0];
+    expect(canCancelCita(fecha, '10:00')).toBe(false);
   });
 });
