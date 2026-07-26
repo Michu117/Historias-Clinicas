@@ -36,9 +36,7 @@ print('  Rol admin asignado.')
 if [ "${DJANGO_SEED_DATA}" = "true" ]; then
     echo "[4/5] Sembrando datos sintéticos..."
 
-    python manage.py seed_profesionales 2>&1
-    python manage.py seed_agenda_demo 2>&1
-    python manage.py seed_demo_data 2>&1
+    python manage.py seed_all 2>&1
 
     echo "  Seed de datos completado."
 else
