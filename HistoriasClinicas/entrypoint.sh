@@ -13,16 +13,24 @@ echo "[3/5] Configurando datos iniciales..."
 
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
+from Seguridad.models import Rol
 Cuenta = get_user_model()
-if not Cuenta.objects.filter(correo='admin@medicampus.local').exists():
-    admin = Cuenta.objects.create_superuser(
-        correo='admin@medicampus.local',
-        password='Admin12345.',
-        is_active=True,
-    )
+admin, created = Cuenta.objects.get_or_create(
+    correo='admin@medicampus.local',
+    defaults={'is_active': True, 'is_staff': True, 'is_superuser': True},
+)
+if created:
+    admin.set_password('Admin12345.')
+    admin.save()
     print('  Superusuario admin creado: admin@medicampus.local / Admin12345.')
 else:
     print('  Superusuario admin ya existe.')
+    admin.is_staff = True
+    admin.is_superuser = True
+    admin.save()
+admin_rol, _ = Rol.objects.get_or_create(nombre='admin', defaults={'descripcion': 'Administrador del sistema'})
+admin.roles.add(admin_rol)
+print('  Rol admin asignado.')
 "
 
 if [ "${DJANGO_SEED_DATA}" = "true" ]; then
