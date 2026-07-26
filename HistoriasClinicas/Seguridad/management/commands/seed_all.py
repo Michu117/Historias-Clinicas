@@ -288,17 +288,20 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('\n¡Siembra de datos demo completada exitosamente!'))
 
-    def _crear_usuario(self, Cuenta, Usuario, Rol, roles, data):
+    def _crear_usuario(self, Cuenta, Usuario, Rol, roles, data, rol_por_defecto=None):
         cuenta, created = Cuenta.objects.get_or_create(
             correo=data['correo'],
             defaults={'is_active': True},
         )
+        rol_nombre = data.get('rol', rol_por_defecto)
         if created:
             cuenta.set_password(data['clave'])
-            cuenta.roles.add(roles[data['rol']])
+            if rol_nombre:
+                cuenta.roles.add(roles[rol_nombre])
             cuenta.save()
         else:
-            cuenta.roles.add(roles[data['rol']])
+            if rol_nombre:
+                cuenta.roles.add(roles[rol_nombre])
             cuenta.is_active = True
             cuenta.save()
             created = False
@@ -365,7 +368,7 @@ class Command(BaseCommand):
     def _seed_pacientes(self, Cuenta, Usuario, Rol, roles):
         cuentas = []
         for pac in PACIENTES:
-            cuenta, usuario = self._crear_usuario(Cuenta, Usuario, Rol, roles, pac)
+            cuenta, usuario = self._crear_usuario(Cuenta, Usuario, Rol, roles, pac, rol_por_defecto='paciente')
             cuentas.append(cuenta)
             self.stdout.write(f'  Paciente creado: {pac["nombres"]} {pac["apellidos"]} ({pac["correo"]})')
         return cuentas
