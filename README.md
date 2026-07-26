@@ -302,76 +302,158 @@ Abre `http://localhost:5173/` en el navegador.
 ## Requisitos
 
 - Docker 24+ y Docker Compose 2.20+
+- Verifica con: `docker --version && docker compose version`
 
-## Inicio rápido
+---
+
+## 1. Construir las imágenes
+
+Solo necesario la primera vez o tras cambios en el código:
 
 ```bash
-# Construir las imágenes
 docker compose build
+```
 
-# Iniciar con datos sintéticos precargados (recomendado para pruebas)
-DJANGO_SEED_DATA=true docker compose up -d
+Construye dos imágenes:
+- **`historias-clinicas-backend`** — Django + Gunicorn
+- **`historias-clinicas-frontend`** — Nginx con el frontend compilado
 
-# Iniciar desde cero (solo admin)
+---
+
+## 2. Iniciar los servicios
+
+### Opción A: Base de datos vacía (solo admin)
+
+```bash
 docker compose up -d
 ```
 
-- **Frontend:** `http://localhost`
-- **Backend API:** `http://localhost:8000`
-- **Admin Django:** `http://localhost:8000/admin/`
-- **Swagger:** `http://localhost:8000/api/docs/`
+El backend arranca automáticamente con:
+1. Migraciones aplicadas
+2. Superusuario `admin@medicampus.local` creado
+3. Servidor Gunicorn en puerto `8000`
 
-## Usuarios disponibles
-
-### Sin seed:
-| Email | Password | Rol |
-|-------|----------|-----|
-| `admin@medicampus.local` | `Admin12345.` | Superadmin |
-
-### Con seed (`DJANGO_SEED_DATA=true`):
-| Email | Password | Rol |
-|-------|----------|-----|
-| `admin@medicampus.local` | `Admin12345.` | Superadmin |
-| `dr.juan@medicampus.com` | `MediCampus2024!` | Médico |
-| `dra.maria@medicampus.com` | `MediCampus2024!` | Psicólogo |
-| `dr.carlos@medicampus.com` | `MediCampus2024!` | Odontólogo |
-| `ts.ana@medicampus.com` | `MediCampus2024!` | Trabajador Social |
-| `paciente.demo@medicampus.local` | `Paciente12345.` | Paciente |
-| `profesional.demo@medicampus.local` | `Profesional12345.` | Psicólogo |
-| `medico.demo@medicampus.local` | `Medico12345.` | Médico |
-
-## Comandos útiles
+### Opción B: Con datos de prueba precargados (recomendado)
 
 ```bash
-# Ver estado de los contenedores
+DJANGO_SEED_DATA=true docker compose up -d
+```
+
+Además de lo anterior, se ejecutan los scripts de seed que crean roles, profesionales, pacientes, citas y consultas de demostración.
+
+---
+
+## 3. Acceder a la aplicación
+
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| Frontend | `http://localhost` | Aplicación web React |
+| Backend API | `http://localhost:8000` | API REST Django |
+| Admin Django | `http://localhost:8000/admin/` | Panel de administración |
+| Swagger | `http://localhost:8000/api/docs/` | Documentación interactiva |
+| ReDoc | `http://localhost:8000/api/redoc/` | Documentación alternativa |
+
+---
+
+## 4. Usuarios disponibles
+
+### Sin seed (`DJANGO_SEED_DATA` por defecto):
+
+| Email | Contraseña | Rol | Redirige a |
+|-------|------------|-----|------------|
+| `admin@medicampus.local` | `Admin12345.` | Superadmin + Admin | `/seguridad/dashboard` |
+
+### Con seed (`DJANGO_SEED_DATA=true`):
+
+| Email | Contraseña | Rol | Redirige a |
+|-------|------------|-----|------------|
+| `admin@medicampus.local` | `Admin12345.` | Superadmin + Admin | `/seguridad/dashboard` |
+| `dr.juan@medicampus.com` | `MediCampus2024!` | Médico | `/agendas/mi-agenda` |
+| `dra.maria@medicampus.com` | `MediCampus2024!` | Psicólogo | `/agendas/mi-agenda` |
+| `dr.carlos@medicampus.com` | `MediCampus2024!` | Odontólogo | `/agendas/mi-agenda` |
+| `ts.ana@medicampus.com` | `MediCampus2024!` | Trabajador Social | `/agendas/mi-agenda` |
+| `paciente.demo@medicampus.local` | `Paciente12345.` | Paciente | `/home` |
+| `profesional.demo@medicampus.local` | `Profesional12345.` | Psicólogo | `/agendas/mi-agenda` |
+| `medico.demo@medicampus.local` | `Medico12345.` | Médico | `/agendas/mi-agenda` |
+
+---
+
+## 5. Gestión de servicios
+
+```bash
+# Ver estado
 docker compose ps
 
-# Ver logs en vivo
+# Ver logs de ambos servicios
 docker compose logs -f
 
-# Detener sin eliminar datos
+# Ver logs de un servicio específico
+docker compose logs backend
+docker compose logs frontend
+
+# Detener (los datos persisten)
 docker compose stop
 
-# Detener y eliminar contenedores (datos persisteen)
+# Reanudar
+docker compose start
+
+# Detener y eliminar contenedores (datos persisten)
 docker compose down
 
-# Detener, eliminar contenedores Y borrar la base de datos
+# Detener, eliminar contenedores y borrar la base de datos
 docker compose down --volumes
 ```
 
-## Variables de entorno
+> Usa `--volumes` para empezar completamente desde cero.
 
-| Variable | Default | Descripción |
-|----------|---------|-------------|
-| `DJANGO_SEED_DATA` | `false` | `true` para cargar datos sintéticos al iniciar |
-| `SECRET_KEY` | (generada) | Clave secreta de Django |
-| `DEBUG` | `False` | Modo debug de Django |
-| `EMAIL_BACKEND` | `console` | Backend de correo |
+---
 
-Ejemplo con variables personalizadas:
+## 6. Variables de entorno
+
+Puedes anteponer variables al comando `docker compose up`:
 
 ```bash
 DJANGO_SEED_DATA=true DEBUG=True docker compose up -d
+```
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `DJANGO_SEED_DATA` | `false` | `true` para cargar roles, usuarios, citas y consultas de demostración |
+| `SECRET_KEY` | (fija en docker-compose) | Clave secreta de Django |
+| `DEBUG` | `False` | Activa el modo debug de Django |
+| `EMAIL_BACKEND` | `console` | Backend de correo (`console` imprime en la terminal) |
+
+---
+
+## 7. Solución de problemas
+
+### El puerto 80 ya está en uso
+
+```bash
+# Edita docker-compose.yml y cambia "80:80" por "8080:80"
+# Luego accede en http://localhost:8080
+```
+
+### El puerto 8000 ya está en uso
+
+```bash
+# Edita docker-compose.yml y cambia "8000:8000" por "8001:8000"
+```
+
+### El admin de Django se ve sin estilos
+
+```bash
+# Reconstruye la imagen del backend y reinicia
+docker compose build backend
+docker compose up -d
+```
+
+### El contenedor backend se reinicia continuamente
+
+```bash
+# Limpia los datos y vuelve a iniciar
+docker compose down --volumes
+DJANGO_SEED_DATA=true docker compose up -d
 ```
 
 ---
