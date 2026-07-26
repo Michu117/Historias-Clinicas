@@ -9,6 +9,10 @@ from django.db import transaction
 from .models import Antecedente, Caso, Documento, HistoriaClinica
 
 
+class HistoriaClinicaNoEncontrada(Exception):
+    pass
+
+
 def _validar_datos(datos: Mapping[str, Any]) -> None:
     if not isinstance(datos, Mapping):
         raise ValidationError({"detail": "Los datos deben enviarse como objeto clave/valor."})
@@ -237,3 +241,25 @@ def actualizar_documento(historia_id: int, documento_id: int, payload: Mapping[s
 def eliminar_documento(historia_id: int, documento_id: int) -> None:
     documento = obtener_documento_por_historia(historia_id, documento_id)
     eliminar_instancia(documento)
+
+
+def obtener_historia_clinica_por_cita(cita_id):
+    from Agendas.models import Cita
+    from Seguridad.models import Cuenta
+
+    try:
+        cita = Cita.objects.get(id=cita_id)
+        cuenta = Cuenta.objects.get(id=cita.usuario_id)
+    except (Cita.DoesNotExist, Cuenta.DoesNotExist) as e:
+        raise HistoriaClinicaNoEncontrada(str(e))
+
+    usuario = getattr(cuenta, 'perfil', None)
+    if usuario is None:
+        raise HistoriaClinicaNoEncontrada(
+            'El paciente no tiene un perfil de usuario asociado.'
+        )
+
+    try:
+        return HistoriaClinica.objects.get(usuario=usuario)
+    except HistoriaClinica.DoesNotExist as e:
+        raise HistoriaClinicaNoEncontrada(str(e))

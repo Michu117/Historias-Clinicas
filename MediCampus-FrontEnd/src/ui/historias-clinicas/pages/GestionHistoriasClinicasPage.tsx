@@ -391,8 +391,8 @@ export const GestionHistoriasClinicasPage = () => {
       navigate('/historias/mi-historia', { replace: true });
       return;
     }
-    if (role === 'ADMINISTRADOR' || permissions?.isAdminBlocked) {
-      navigate('/home', { replace: true });
+    if (role === 'ADMINISTRADOR') {
+      navigate('/historias/mi-historia', { replace: true });
       return;
     }
     if (role !== 'MEDICO' && role !== 'TRABAJADOR_SOCIAL') {

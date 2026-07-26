@@ -9,6 +9,7 @@ from .models import (
     SignosVitales, ConsultaMedica,
     ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial
 )
+from Historias.services import obtener_historia_clinica_por_cita, HistoriaClinicaNoEncontrada
 
 logger = logging.getLogger(__name__)
 
@@ -152,9 +153,12 @@ def registrar_atencion_integral(cita_id, tipo_consulta, datos_consulta):
             f'No se puede registrar una atención para una cita en estado {cita.estado}.'
         )
 
-    historia_clinica_id = datos_consulta.get('historia_clinica_id')
-    if not historia_clinica_id:
-        raise DatosInvalidosError('Debe proporcionar historia_clinica_id para la consulta.')
+    try:
+        historia_clinica = obtener_historia_clinica_por_cita(cita_id)
+    except HistoriaClinicaNoEncontrada as e:
+        raise DatosInvalidosError(str(e))
+
+    historia_clinica_id = historia_clinica.id
 
     tipo_consulta = tipo_consulta.lower()
 

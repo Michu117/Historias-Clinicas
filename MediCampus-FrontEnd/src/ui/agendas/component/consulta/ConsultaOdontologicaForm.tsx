@@ -42,7 +42,6 @@ export const ConsultaOdontologicaForm: React.FC<ConsultaOdontologicaFormProps> =
     setValidationError(null);
     onSave({
       cita: cita.id,
-      historia_clinica_id: cita.paciente_id,
       odontograma,
       procedimientos,
       observaciones,

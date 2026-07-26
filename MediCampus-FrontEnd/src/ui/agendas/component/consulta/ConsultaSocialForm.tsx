@@ -51,7 +51,6 @@ export const ConsultaSocialForm: React.FC<ConsultaSocialFormProps> = ({
     setValidationError(null);
     onSave({
       cita: cita.id,
-      historia_clinica_id: cita.paciente_id,
       nivel_socioeconomico: nivelSocioeconomico,
       descripcion_vivienda: descripcionVivienda,
       observaciones,

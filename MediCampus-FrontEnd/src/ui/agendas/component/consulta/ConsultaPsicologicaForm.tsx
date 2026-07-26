@@ -48,7 +48,6 @@ export const ConsultaPsicologicaForm: React.FC<ConsultaPsicologicaFormProps> = (
     setValidationError(null);
     onSave({
       cita: cita.id,
-      historia_clinica_id: cita.paciente_id,
       notas_evolucion: notasEvolucion,
       estado_humor: estadoHumor,
       nivel_ansiedad: nivelAnsiedad,

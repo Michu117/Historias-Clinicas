@@ -231,8 +231,6 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
 
 class CasoListCreateView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
         if self._es_medico(request) or self._es_trabajador_social(request):
             casos = Caso.objects.select_related("historia_clinica").all()
         else:
@@ -357,8 +355,6 @@ class CasoDetailView(BaseHistoriasView):
 
 class AntecedenteListCreateView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
         if self._es_medico(request) or self._es_trabajador_social(request):
             antecedentes = Antecedente.objects.select_related("historia_clinica").all()
         else:
@@ -488,8 +484,6 @@ class AntecedenteDetailView(BaseHistoriasView):
 
 class DocumentoListCreateView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
         if self._es_medico(request) or self._es_trabajador_social(request):
             documentos = Documento.objects.select_related("historia_clinica").all()
         else:
@@ -625,9 +619,6 @@ class DocumentoDetailView(BaseHistoriasView):
 
 class MiHistoriaClinicaView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
-
         perfil = getattr(request.user, 'perfil', None)
         if not perfil:
             return self.not_found()
@@ -642,10 +633,7 @@ class MiHistoriaClinicaView(BaseHistoriasView):
 
 class RegistroClinicoHistoriaListCreateView(BaseHistoriasView):
     def get(self, request, historia_id):
-        if self._es_admin(request):
-            return self._denied()
-
-        if self._es_paciente(request):
+        if self._es_paciente(request) or self._es_admin(request):
             try:
                 historia = HistoriaClinica.objects.get(
                     pk=historia_id, usuario__cuenta=request.user
@@ -710,10 +698,7 @@ TIPO_CONSULTA_MAP = {
 
 class HistoriaConsultasListView(BaseHistoriasView):
     def get(self, request, historia_id):
-        if self._es_admin(request):
-            return self._denied()
-
-        if self._es_paciente(request):
+        if self._es_paciente(request) or self._es_admin(request):
             try:
                 historia = HistoriaClinica.objects.get(
                     pk=historia_id, usuario__cuenta=request.user
