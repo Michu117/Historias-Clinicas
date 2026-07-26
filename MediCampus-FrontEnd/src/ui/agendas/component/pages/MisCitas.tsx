@@ -4,9 +4,11 @@ import { Button, Card, CardTitle } from '../../../components';
 import { citaService } from '../../services/api/citaService';
 import { servicioService } from '../../services/api/servicioService';
 import { getUserId } from '../../services/storage/authStorage';
-import { Cita, EstadoCita, Servicio } from '../../types';
+import { Cita, EstadoCita, Servicio, ApiError } from '../../types';
 import { ConfirmModal } from '../shared/ConfirmModal';
+import { InfoModal } from '../shared/InfoModal';
 import { HamburgerMenu } from '../shared/HamburgerMenu';
+import { canCancelCita } from '../../utils/validators/citaValidators';
 
 
 const ESTADO_LABEL: Record<string, { label: string; style: React.CSSProperties }> = {
@@ -29,6 +31,7 @@ export const MisCitas: React.FC = () => {
   const [cancelandoId, setCancelandoId] = useState<number | null>(null);
   const [filtroEstado, setFiltroEstado] = useState<string>('AGENDADA,CONFIRMADA,REAGENDADA');
   const [confirmCancelId, setConfirmCancelId] = useState<number | null>(null);
+  const [restrictionModal, setRestrictionModal] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   const servicioMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -76,8 +79,12 @@ export const MisCitas: React.FC = () => {
       await citaService.cancelar(confirmCancelId);
       setMessage('Cita cancelada exitosamente.');
       cargarCitas();
-    } catch {
-      setError('Error al cancelar la cita.');
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'CANCELLATION_TIME_RESTRICTION') {
+        setRestrictionModal({ open: true, message: err.message });
+      } else {
+        setError('Error al cancelar la cita.');
+      }
     } finally {
       setCancelandoId(null);
     }
@@ -181,7 +188,7 @@ export const MisCitas: React.FC = () => {
             </Card>
           ) : (
             citas.map((cita) => {
-              const puedeCancelar = cita.estado === EstadoCita.AGENDADA || cita.estado === EstadoCita.REAGENDADA;
+              const puedeCancelar = (cita.estado === EstadoCita.AGENDADA || cita.estado === EstadoCita.REAGENDADA) && canCancelCita(cita.fecha, cita.hora);
               const servicioNombre = servicioMap.get(cita.servicio_id) || 'Sin especificar';
               return (
                 <Card key={cita.id}>
@@ -254,6 +261,14 @@ export const MisCitas: React.FC = () => {
         onConfirm={handleCancelConfirm}
         onCancel={() => setConfirmCancelId(null)}
         isLoading={cancelandoId !== null}
+      />
+
+      <InfoModal
+        open={restrictionModal.open}
+        title="Cancelación no disponible"
+        message={restrictionModal.message}
+        buttonText="Entendido"
+        onClose={() => setRestrictionModal({ open: false, message: '' })}
       />
 
       <footer className="text-center text-[10px] sm:text-xs py-3 sm:py-4" style={{ color: 'var(--on-surface-variant)', borderTop: '1px solid var(--card-border)' }}>
