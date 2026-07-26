@@ -339,7 +339,7 @@ El backend arranca automáticamente con:
 DJANGO_SEED_DATA=true docker compose up -d
 ```
 
-Además de lo anterior, se ejecutan los scripts de seed que crean roles, profesionales, pacientes, citas y consultas de demostración.
+Además de lo anterior, se ejecuta el script `seed_all` que crea roles, profesionales, pacientes, historias clínicas, antecedentes, casos, documentos, citas, consultas, derivaciones y notificaciones de demostración.
 
 ---
 
@@ -365,16 +365,19 @@ Además de lo anterior, se ejecutan los scripts de seed que crean roles, profesi
 
 ### Con seed (`DJANGO_SEED_DATA=true`):
 
-| Email | Contraseña | Rol | Redirige a |
-|-------|------------|-----|------------|
-| `admin@medicampus.local` | `Admin12345.` | Superadmin + Admin | `/seguridad/dashboard` |
-| `dr.juan@medicampus.com` | `MediCampus2024!` | Médico | `/agendas/mi-agenda` |
-| `dra.maria@medicampus.com` | `MediCampus2024!` | Psicólogo | `/agendas/mi-agenda` |
-| `dr.carlos@medicampus.com` | `MediCampus2024!` | Odontólogo | `/agendas/mi-agenda` |
-| `ts.ana@medicampus.com` | `MediCampus2024!` | Trabajador Social | `/agendas/mi-agenda` |
-| `paciente.demo@medicampus.local` | `Paciente12345.` | Paciente | `/home` |
-| `profesional.demo@medicampus.local` | `Profesional12345.` | Psicólogo | `/agendas/mi-agenda` |
-| `medico.demo@medicampus.local` | `Medico12345.` | Médico | `/agendas/mi-agenda` |
+| Email | Contraseña | Rol |
+|-------|------------|-----|
+| `admin@medicampus.local` | `Admin12345.` | Superadmin |
+| `dr.juan@medicampus.com` | `MediCampus2024!` | Médico |
+| `dra.maria@medicampus.com` | `MediCampus2024!` | Psicólogo |
+| `dr.carlos@medicampus.com` | `MediCampus2024!` | Odontólogo |
+| `ts.ana@medicampus.com` | `MediCampus2024!` | Trabajador Social |
+| `est.pedro@medicampus.com` | `MediCampus2024!` | Estudiante |
+| `laura.garcia@email.com` | `Paciente12345.` | Paciente |
+| `roberto.castro@email.com` | `Paciente12345.` | Paciente |
+| `carmen.ruiz@email.com` | `Paciente12345.` | Paciente |
+| `diego.morales@email.com` | `Paciente12345.` | Paciente |
+| `sofia.vega@email.com` | `Paciente12345.` | Paciente |
 
 ---
 
@@ -418,7 +421,7 @@ DJANGO_SEED_DATA=true DEBUG=True docker compose up -d
 
 | Variable | Default | Descripción |
 |----------|---------|-------------|
-| `DJANGO_SEED_DATA` | `false` | `true` para cargar roles, usuarios, citas y consultas de demostración |
+| `DJANGO_SEED_DATA` | `false` | `true` para cargar datos demo completos (roles, usuarios, historias clínicas, citas, consultas, derivaciones, notificaciones) |
 | `SECRET_KEY` | (fija en docker-compose) | Clave secreta de Django |
 | `DEBUG` | `False` | Activa el modo debug de Django |
 | `EMAIL_BACKEND` | `console` | Backend de correo (`console` imprime en la terminal) |
