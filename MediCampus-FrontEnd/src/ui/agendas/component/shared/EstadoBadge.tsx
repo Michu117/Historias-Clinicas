@@ -7,10 +7,10 @@ interface EstadoBadgeProps {
 const estadoColors: Record<string, { bg: string; text: string }> = {
   AGENDADA: { bg: 'var(--primary-fixed)', text: 'var(--on-primary-fixed)' },
   ATENDIDA: { bg: 'var(--secondary-container)', text: 'var(--on-secondary-container)' },
-  CANCELADA: { bg: '#fef2f2', text: '#991b1b' },
-  CONFIRMADA: { bg: '#fef3c7', text: '#92400e' },
+  CANCELADA: { bg: 'var(--error-container)', text: 'var(--on-error-container)' },
+  CONFIRMADA: { bg: 'var(--warning-container)', text: 'var(--on-warning-container)' },
   NO_ASISTIDA: { bg: 'var(--surface-container-low)', text: 'var(--on-surface-variant)' },
-  REAGENDADA: { bg: '#f3e8ff', text: '#6b21a8' },
+  REAGENDADA: { bg: 'var(--tertiary-fixed)', text: 'var(--on-tertiary-fixed)' },
 };
 
 export const EstadoBadge: FC<EstadoBadgeProps> = ({ estado }) => {

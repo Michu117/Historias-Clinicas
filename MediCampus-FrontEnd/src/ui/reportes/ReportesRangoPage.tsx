@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { SideNavBar } from '../agendas/component/shared/SideNavBar';
-import type { NavItem } from '../agendas/component/shared/SideNavBar';
+import { HamburgerMenuDropdown } from '../components/HamburgerMenuDropdown';
+import type { NavItem } from '../components/HamburgerMenuDropdown';
 import ChartConsultasRango from './component/ChartConsultasRango';
 import ChartBrushNavigator from './component/ChartBrushNavigator';
 import LoadingState from './component/LoadingState';
@@ -73,20 +73,17 @@ export default function ReportesRangoPage(): JSX.Element {
   }, [handleScroll]);
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--hc-bg)' }}>
-      <SideNavBar navItems={NAV_ITEMS} />
-
-      <div className="flex-1 ml-60 flex flex-col h-screen overflow-hidden" style={{ backgroundColor: 'var(--hc-bg)' }}>
-        <header
-          className="h-16 flex items-center px-6 shrink-0"
-          style={{
-            backgroundColor: 'var(--surface-container-lowest)',
-            borderBottom: '1px solid var(--outline)',
-          }}
-        >
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Reportes</h2>
-        </header>
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--hc-bg)' }}>
+      <header
+        className="h-16 flex items-center gap-3 px-6 shrink-0"
+        style={{
+          backgroundColor: 'var(--surface-container-lowest)',
+          borderBottom: '1px solid var(--outline)',
+        }}>
+          <HamburgerMenuDropdown navItems={NAV_ITEMS} />
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--hc-text)' }}>Reportes por Rango</h2>
+      </header>
+      <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="max-w-[1400px] mx-auto">
 
             <div className="rounded-xl shadow-sm p-6 mb-8" style={{ backgroundColor: 'var(--surface-container-lowest)', border: '1px solid var(--outline-variant)' }}>
@@ -150,7 +147,6 @@ export default function ReportesRangoPage(): JSX.Element {
             )}
           </div>
         </main>
-      </div>
     </div>
   );
 }

@@ -113,6 +113,18 @@ class RegistroClinicoHistoriaSerializer(serializers.ModelSerializer):
         return value.strip()
 
 
+class CasoClinicoSerializer(serializers.Serializer):
+    cita_id = serializers.IntegerField(read_only=True)
+    fecha_hora = serializers.DateTimeField(read_only=True)
+    servicios = serializers.ListField(child=serializers.CharField(), read_only=True, allow_empty=True)
+    profesional = serializers.CharField(read_only=True, allow_null=True)
+    motivo = serializers.CharField(read_only=True, allow_blank=True)
+    estado_cita = serializers.CharField(read_only=True)
+    estado_caso = serializers.CharField(read_only=True)
+    tiene_consulta = serializers.BooleanField(read_only=True)
+    consulta = serializers.JSONField(read_only=True, allow_null=True)
+
+
 class ConsultaHistoriaSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     tipo = serializers.CharField(read_only=True)

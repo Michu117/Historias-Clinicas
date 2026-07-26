@@ -6,10 +6,10 @@ import LoadingState from './LoadingState';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const SERVICIOS_CONFIG: Record<string, { label: string; color: string }> = {
-  medica: { label: 'Médica', color: '#0056B3' },
-  psicologica: { label: 'Psicológica', color: '#0D9488' },
-  odontologica: { label: 'Odontológica', color: '#4F46E5' },
-  social: { label: 'T. Social', color: '#94A3B8' },
+  medica: { label: 'Médica', color: '#006766' },
+  psicologica: { label: 'Psicológica', color: '#565e74' },
+  odontologica: { label: 'Odontológica', color: '#595c5e' },
+  social: { label: 'T. Social', color: '#3e4948' },
 };
 
 const EXCLUDED_KEYS = new Set(['fecha', 'total']);
@@ -64,7 +64,7 @@ export default function ChartConsultasRango({
     return {
       label: config?.label ?? key,
       data: data.items.map((item) => (item[key] as number) || 0),
-      backgroundColor: config?.color ?? '#94a3b8',
+      backgroundColor: config?.color ?? '#bdc9c8',
       borderRadius: 2,
     };
   });
@@ -82,11 +82,11 @@ export default function ChartConsultasRango({
         labels: {
           boxWidth: 12,
           font: { size: 11, family: 'Inter' },
-          color: '#424752',
+          color: '#3e4948',
         },
       },
       tooltip: {
-        backgroundColor: '#141b2b',
+        backgroundColor: '#181c1c',
         padding: 10,
         cornerRadius: 6,
         callbacks: {
@@ -108,7 +108,7 @@ export default function ChartConsultasRango({
         stacked: true,
         grid: { display: false },
         ticks: {
-          color: '#424752',
+          color: '#3e4948',
           font: { family: 'Inter', size: 10 },
           maxTicksLimit: 20,
           maxRotation: 45,
@@ -117,9 +117,9 @@ export default function ChartConsultasRango({
       y: {
         stacked: true,
         beginAtZero: true,
-        grid: { color: '#f1f3ff' },
+        grid: { color: '#f0f4f3' },
         ticks: {
-          color: '#424752',
+          color: '#3e4948',
           font: { family: 'Inter', size: 11 },
           precision: 0,
         },
@@ -128,11 +128,11 @@ export default function ChartConsultasRango({
   };
 
   return (
-    <div className="rounded-xl border border-[#c2c6d4] bg-white shadow-sm p-6">
-      <h3 className="text-[16px] font-bold text-[#141b2b] mb-4">
+    <div className="rounded-xl border border-[#bdc9c8] bg-white shadow-sm p-6">
+      <h3 className="text-[16px] font-bold text-[#181c1c] mb-4">
         Consultas por Día
       </h3>
-      <p className="text-sm text-[#424752] mb-4">
+      <p className="text-sm text-[#3e4948] mb-4">
         {data.total_dias} días · {data.total_consultas} consultas totales
       </p>
       <div style={{ width: `${chartWidth}px`, height: '360px' }}>

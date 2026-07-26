@@ -42,17 +42,17 @@ const PERMISSIONS_BY_ROLE: Record<UserRole, HistoriaClinicaPermissions> = {
     isAdminBlocked: false,
   },
   ADMINISTRADOR: {
-    canAccessHistorias: false,
+    canAccessHistorias: true,
     canViewAllHistorias: false,
-    canViewOwnHistoria: false,
+    canViewOwnHistoria: true,
     canCreateHistoria: false,
     canEditHistoria: false,
     canManageAntecedentes: false,
     canManageCasos: false,
     canGenerateDocuments: false,
-    canViewDocuments: false,
+    canViewDocuments: true,
     isReadOnly: true,
-    isAdminBlocked: true,
+    isAdminBlocked: false,
   },
   TRABAJADOR_SOCIAL: {
     canAccessHistorias: true,
@@ -77,6 +77,7 @@ const ROLE_ALIASES: Record<string, UserRole> = {
   odontologo: 'MEDICO',
   odontólogo: 'MEDICO',
   paciente: 'PACIENTE',
+  usuario: 'PACIENTE',
   administrador: 'ADMINISTRADOR',
   admin: 'ADMINISTRADOR',
   trabajador_social: 'TRABAJADOR_SOCIAL',
@@ -109,8 +110,8 @@ export function getStoredUser(): Record<string, unknown> | null {
 export function getStoredUserRole(): UserRole | null {
   const user = getStoredUser();
   if (!user) return null;
-  const rol = user.rol as Record<string, unknown> | null;
-  const rawRole = (rol?.nombre as string) ?? '';
+  const roles = user.roles as Array<Record<string, unknown>> | null;
+  const rawRole = (roles?.[0]?.nombre as string) ?? '';
   return normalizeRole(rawRole);
 }
 

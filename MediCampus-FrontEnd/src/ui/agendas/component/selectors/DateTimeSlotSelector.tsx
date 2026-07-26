@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Cita } from '../../types';
 import { messages } from '../../utils/constants/messages';
 
@@ -11,9 +11,6 @@ interface DateTimeSlotSelectorProps {
   onSelect: (data: { fecha: string; hora: string }) => void;
   isLoading: boolean;
 }
-
-const TODAY_START = new Date();
-TODAY_START.setHours(0, 0, 0, 0);
 
 const parseTime = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -31,6 +28,12 @@ const addDays = (date: Date, days: number) => {
   const copy = new Date(date);
   copy.setDate(copy.getDate() + days);
   return copy;
+};
+
+const getTodayStart = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
 };
 
 const isInBreakTime = (timeMinutes: number) => timeMinutes >= parseTime('12:00') && timeMinutes < parseTime('13:00');
@@ -90,12 +93,13 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     setInternalTime(selectedTime);
   }, [selectedTime]);
 
-  const minDate = addDays(TODAY_START, 1);
-  const maxDate = addDays(TODAY_START, 90);
-  const availableDates: { fecha: string; disabled: boolean }[] = [];
+  const todayStart = useMemo(() => getTodayStart(), []);
+  const minDate = useMemo(() => addDays(todayStart, 1), [todayStart]);
+  const maxDate = useMemo(() => addDays(todayStart, 90), [todayStart]);
 
+  const availableDates: { fecha: string; disabled: boolean }[] = [];
   for (let dayOffset = -1; dayOffset <= 95; dayOffset += 1) {
-    const current = addDays(TODAY_START, dayOffset);
+    const current = addDays(todayStart, dayOffset);
     const fecha = formatDate(current);
     const isPast = current < minDate;
     const isWeekend = current.getDay() === 0 || current.getDay() === 6;
@@ -103,16 +107,30 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     availableDates.push({ fecha, disabled });
   }
 
+  const nowMinutes = useMemo(() => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  }, []);
+
+  const todayStr = useMemo(() => formatDate(todayStart), [todayStart]);
+
   const timeOptions = allTimeSlots.map((hora) => {
+    const horaMinutes = parseTime(hora);
+    const isPastSlot = internalDate === todayStr && horaMinutes <= nowMinutes;
     const disabled =
-      !isWithinBusinessHours(parseTime(hora)) ||
-      isInBreakTime(parseTime(hora)) ||
+      !isWithinBusinessHours(horaMinutes) ||
+      isInBreakTime(horaMinutes) ||
+      isPastSlot ||
       (internalDate !== null && hasConflict(citasExistentes, profesionalId, internalDate, hora));
 
     return { hora, disabled };
   });
 
   const handleDateChange = (fecha: string) => {
+    const minStr = formatDate(minDate);
+    if (fecha < minStr) {
+      return;
+    }
     setInternalDate(fecha);
     setInternalTime(null);
     onSelect({ fecha, hora: '' });
@@ -125,7 +143,7 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8 text-sm text-slate-500">
+      <div className="flex items-center justify-center py-8 text-sm" style={{ color: 'var(--on-surface-variant)' }}>
         {'Cargando horarios...'}
       </div>
     );
@@ -135,7 +153,7 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     <div className="space-y-6">
       {/* Date picker */}
       <div>
-        <label htmlFor="date-picker" className="text-sm font-bold text-slate-700 block mb-2">
+        <label htmlFor="date-picker" className="text-sm font-bold block mb-2" style={{ color: 'var(--on-surface)' }}>
           {messages.placeholders.selectDate}
         </label>
         <input
@@ -147,7 +165,8 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
           min={formatDate(minDate)}
           max={formatDate(maxDate)}
           onChange={(event) => handleDateChange(event.target.value)}
-          className="w-full h-12 px-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
+          className="w-full h-12 px-4 rounded-lg border text-sm outline-none transition-all"
+          style={{ backgroundColor: 'var(--surface-container-low)', borderColor: 'var(--outline)', color: 'var(--on-surface)' }}
         />
       </div>
 
@@ -170,13 +189,13 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
       {internalDate && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-500 font-medium">
+            <p className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
               Horarios disponibles para{' '}
-              <span className="font-semibold text-slate-700">{internalDate}</span>:
+              <span className="font-semibold" style={{ color: 'var(--on-surface)' }}>{internalDate}</span>:
             </p>
             <div
               className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium"
-              style={{ backgroundColor: 'var(--surface-container-high, #f1f5f9)', borderColor: 'var(--outline-variant, #cbd5e1)', color: 'var(--on-surface-variant, #64748b)' }}
+              style={{ backgroundColor: 'var(--surface-container-high)', borderColor: 'var(--outline)', color: 'var(--on-surface-variant)' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -197,14 +216,32 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
                   onClick={() => handleTimeChange(option.hora)}
                   className={`h-12 rounded-lg border text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                     isSelected
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                      ? 'shadow-md'
                       : option.disabled
-                        ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed line-through'
-                        : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400'
+                        ? 'cursor-not-allowed line-through'
+                        : ''
                   }`}
+                  style={{
+                    ...(isSelected
+                      ? { backgroundColor: 'var(--primary)', color: 'var(--on-primary)', borderColor: 'var(--primary)' }
+                      : option.disabled
+                        ? { backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface-variant)', borderColor: 'var(--outline)', opacity: 0.5 }
+                        : { backgroundColor: 'var(--card-bg)', color: 'var(--on-surface)', borderColor: 'var(--outline)' }
+                    ),
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected && !option.disabled) {
+                      e.currentTarget.style.backgroundColor = 'var(--surface-container-high)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected && !option.disabled) {
+                      e.currentTarget.style.backgroundColor = 'var(--card-bg)';
+                    }
+                  }}
                 >
                   {option.hora}
-                  {isSelected && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                  {isSelected && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--on-primary)' }} />}
                 </button>
               );
             })}
@@ -231,7 +268,7 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
 
       {/* Show hint to select date first when no date chosen */}
       {!internalDate && (
-        <p className="text-sm text-slate-400 italic py-4 text-center border border-dashed border-slate-200 rounded-lg">
+        <p className="text-sm italic py-4 text-center border border-dashed rounded-lg" style={{ color: 'var(--on-surface-variant)', borderColor: 'var(--outline)' }}>
           Seleccione primero una fecha arriba para ver los horarios disponibles.
         </p>
       )}

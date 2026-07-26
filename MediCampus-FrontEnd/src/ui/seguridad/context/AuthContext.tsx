@@ -6,7 +6,7 @@ type User = {
   id?: number
   correo?: string
   nombre?: string
-  rol?: { nombre: string } | null
+  roles?: Array<{ nombre: string }>
   esActiva?: boolean
 }
 
@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(false)
 
   const isAuthenticated = !!token && !jwtUtils.isExpired(token)
-  const isAdmin = isAuthenticated && ['Administrador', 'administrador', 'admin'].includes(user?.rol?.nombre ?? '')
+  const isAdmin = isAuthenticated && (user?.roles?.some(r => ['Administrador', 'administrador', 'admin'].includes(r.nombre)) ?? false)
 
   const login = useCallback(async (correo: string, clave: string): Promise<User> => {
     setLoading(true)

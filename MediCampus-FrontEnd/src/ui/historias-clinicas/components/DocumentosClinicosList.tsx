@@ -64,6 +64,11 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
   const [casoSeleccionado, setCasoSeleccionado] = useState('')
   const [loadingCasos, setLoadingCasos] = useState(false)
 
+  // ── Estado para confirmación de descarga con caso ya asociado ──
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [casoPendiente, setCasoPendiente] = useState<ConsultaClinico | null>(null)
+  const [descargando, setDescargando] = useState(false)
+
   const cargarDocumentos = async () => {
     setLoading(true)
     setError('')
@@ -97,12 +102,9 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
     if (doc.tipo === 'RESULTADO') {
       const casoAsociado = obtenerCasoAsociadoDocumento(historiaClinicaId, doc.id)
       if (casoAsociado && esCasoAtendido(casoAsociado.estado)) {
-        generarDocumentoClinicoPDF({
-          documento: doc,
-          historia,
-          medicoNombre: medicoNombre ?? 'Médico responsable',
-          caso: casoAsociado,
-        })
+        setDocParaDescargar(doc)
+        setCasoPendiente(casoAsociado)
+        setShowConfirmModal(true)
         return
       }
       if (casoAsociado && !esCasoAtendido(casoAsociado.estado)) {
@@ -141,6 +143,21 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
     setShowCasoPicker(false)
     setDocParaDescargar(null)
     setCasoSeleccionado('')
+  }
+
+  const handleConfirmarDescargaDirecta = () => {
+    if (!historia || !docParaDescargar || !casoPendiente) return
+    setDescargando(true)
+    generarDocumentoClinicoPDF({
+      documento: docParaDescargar,
+      historia,
+      medicoNombre: medicoNombre ?? 'Médico responsable',
+      caso: casoPendiente,
+    })
+    setShowConfirmModal(false)
+    setDocParaDescargar(null)
+    setCasoPendiente(null)
+    setDescargando(false)
   }
 
   return (
@@ -210,7 +227,7 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
             </thead>
             <tbody className="divide-y" style={{ borderColor: 'var(--surface-container-high)' }}>
               {filtrados.map((d) => (
-                <tr key={d.id} className="hover:bg-slate-50">
+                <tr key={d.id} className="hc-row-hover">
                   <td className="px-4 py-3 font-medium" style={{ color: 'var(--on-surface)' }}>{d.fecha}</td>
                   <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{d.encabezado}</td>
                   <td className="px-4 py-3" style={{ color: 'var(--on-surface-variant)' }}>{TIPO_DOC_LABELS[d.tipo] ?? d.tipo}</td>
@@ -267,6 +284,37 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
             </Button>
             <Button type="button" variant="primary" onClick={handleConfirmarDescarga} disabled={loadingCasos}>
               Descargar PDF
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={showConfirmModal}
+        onClose={() => { setShowConfirmModal(false); setDocParaDescargar(null); setCasoPendiente(null) }}
+        title="Descargar resultado"
+        closeable={!descargando}
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--on-surface-variant)' }}>
+            Este resultado está asociado al caso clínico seleccionado. ¿Desea generar el PDF?
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => { setShowConfirmModal(false); setDocParaDescargar(null); setCasoPendiente(null) }}
+              disabled={descargando}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleConfirmarDescargaDirecta}
+              disabled={descargando}
+            >
+              {descargando ? 'Generando PDF...' : 'Sí, descargar PDF'}
             </Button>
           </div>
         </div>

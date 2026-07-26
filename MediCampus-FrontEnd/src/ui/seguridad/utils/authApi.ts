@@ -15,14 +15,14 @@ export interface RegisterPayload {
   cedula: string;
   fechaNacimiento: string;
   sexo: string;
-  rol?: string;
+  roles?: string[];
 }
 
 export interface User {
   id: number;
   correo: string;
   esActiva: boolean;
-  rol: { id: number; nombre: string; descripcion: string } | null;
+  roles: Array<{ id: number; nombre: string; descripcion: string }>;
   usuario: {
     nombre: string;
     apellido: string;
@@ -30,6 +30,7 @@ export interface User {
     fechaNacimiento: string;
     sexo: string;
   } | null;
+  mustChangePassword?: boolean;
 }
 
 export interface Tokens {
@@ -65,6 +66,10 @@ export interface Role {
   id: number;
   nombre: string;
   descripcion: string;
+}
+
+export interface ChangePasswordPayload {
+  clave_nueva: string;
 }
 
 function getToken(): string | null {
@@ -155,6 +160,14 @@ export async function listAuditLogs(filters?: AuditLogFilters): Promise<AuditLog
   if (filters?.limite) params.set('limite', String(filters.limite));
   const qs = params.toString();
   return fetchJSON(`${AUTH_BASE}/logs${qs ? `?${qs}` : ''}`, token || undefined);
+}
+
+export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+  const token = getToken();
+  await fetchJSON(`${AUTH_BASE}/cambiar-clave`, token || undefined, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function exportAuditLogs(filters?: AuditLogFilters): Promise<void> {

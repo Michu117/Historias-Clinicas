@@ -49,20 +49,21 @@ export const DerivacionModal: FC<DerivacionModalProps> = ({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4">{messages.derivacion.modalTitle}</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="rounded-lg shadow-lg p-6 max-w-md w-full" style={{ backgroundColor: 'var(--card-bg)' }}>
+        <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--hc-text)' }}>{messages.derivacion.modalTitle}</h2>
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="servicio-destino" className="block text-sm font-semibold text-gray-600 mb-1">
+            <label htmlFor="servicio-destino" className="block text-sm font-semibold mb-1" style={{ color: 'var(--on-surface-variant)' }}>
               {messages.derivacion.servicioDestino}
             </label>
             <select
               id="servicio-destino"
               value={servicioDestinoId}
               onChange={(e) => setServicioDestinoId(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full rounded px-3 py-2 text-sm"
+              style={{ backgroundColor: 'var(--surface-container-low)', border: '1px solid var(--outline)', color: 'var(--on-surface)' }}
             >
               <option value="">{messages.derivacion.selectDestino}</option>
               {serviciosDisponibles.map((s) => (
@@ -74,7 +75,7 @@ export const DerivacionModal: FC<DerivacionModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="motivo-derivacion" className="block text-sm font-semibold text-gray-600 mb-1">
+            <label htmlFor="motivo-derivacion" className="block text-sm font-semibold mb-1" style={{ color: 'var(--on-surface-variant)' }}>
               {messages.derivacion.motivo}
             </label>
             <textarea
@@ -82,11 +83,12 @@ export const DerivacionModal: FC<DerivacionModalProps> = ({
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
               rows={4}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              className="w-full rounded px-3 py-2 text-sm"
+              style={{ backgroundColor: 'var(--surface-container-low)', border: '1px solid var(--outline)', color: 'var(--on-surface)' }}
               placeholder={messages.derivacion.motivoPlaceholder}
             />
             {motivo.length > 0 && !motivoValido && (
-              <p className="text-red-500 text-xs mt-1">{messages.derivacion.motivoMinLength}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--error)' }}>{messages.derivacion.motivoMinLength}</p>
             )}
           </div>
         </div>
@@ -94,14 +96,20 @@ export const DerivacionModal: FC<DerivacionModalProps> = ({
         <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={handleCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+            className="px-4 py-2 rounded"
+            style={{ backgroundColor: 'var(--surface-container-high)', color: 'var(--on-surface)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface-container-highest)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface-container-high)' }}
           >
             {messages.actions.cancelar}
           </button>
           <button
             onClick={handleSubmit}
             disabled={!puedeDerivar}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded disabled:cursor-not-allowed"
+            style={{ backgroundColor: !puedeDerivar ? 'var(--surface-container-high)' : 'var(--primary)', color: !puedeDerivar ? 'var(--on-surface-variant)' : 'var(--on-primary)' }}
+            onMouseEnter={(e) => { if (puedeDerivar) e.currentTarget.style.backgroundColor = 'var(--primary-container)' }}
+            onMouseLeave={(e) => { if (puedeDerivar) e.currentTarget.style.backgroundColor = 'var(--primary)' }}
           >
             {messages.derivacion.derivar}
           </button>

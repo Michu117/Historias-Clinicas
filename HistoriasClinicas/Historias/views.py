@@ -1,6 +1,10 @@
+import logging
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, status
+
+logger = logging.getLogger(__name__)
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -21,6 +25,8 @@ from .serializers import (
     HistoriaClinicaSerializer,
     RegistroClinicoHistoriaSerializer,
 )
+from Notificaciones.services import generate_notification_for_event
+
 from .services import (
     actualizar_historia_clinica,
     crear_historia_clinica,
@@ -175,6 +181,14 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
             )
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=historia.usuario.cuenta,
+                detalles={'mensaje': 'Su historia clínica ha sido actualizada.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para historia clínica %s: %s', pk, exc)
         return self.ok(HistoriaClinicaSerializer(historia).data)
 
     @extend_schema(
@@ -199,6 +213,14 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
             )
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=historia.usuario.cuenta,
+                detalles={'mensaje': 'Su historia clínica ha sido actualizada.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para historia clínica %s: %s', pk, exc)
         return self.ok(HistoriaClinicaSerializer(historia).data)
 
     def delete(self, request, pk):
@@ -209,8 +231,6 @@ class HistoriaClinicaDetailView(BaseHistoriasView):
 
 class CasoListCreateView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
         if self._es_medico(request) or self._es_trabajador_social(request):
             casos = Caso.objects.select_related("historia_clinica").all()
         else:
@@ -242,6 +262,14 @@ class CasoListCreateView(BaseHistoriasView):
             caso = serializer.save(historia_clinica=historia)
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=historia.usuario.cuenta,
+                detalles={'mensaje': f'Se ha abierto un nuevo caso en su historia clínica con prioridad {caso.get_prioridad_display()}.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para nuevo caso: %s', exc)
         return self.created(CasoSerializer(caso).data)
 
 
@@ -281,6 +309,14 @@ class CasoDetailView(BaseHistoriasView):
             caso = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=caso.historia_clinica.usuario.cuenta,
+                detalles={'mensaje': f'Se ha actualizado un caso en su historia clínica. Estado: {caso.get_estado_caso_display()}.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para actualización de caso %s: %s', pk, exc)
         return self.ok(CasoSerializer(caso).data)
 
     @extend_schema(
@@ -301,6 +337,14 @@ class CasoDetailView(BaseHistoriasView):
             caso = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=caso.historia_clinica.usuario.cuenta,
+                detalles={'mensaje': f'Se ha actualizado un caso en su historia clínica. Estado: {caso.get_estado_caso_display()}.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para actualización de caso %s: %s', pk, exc)
         return self.ok(CasoSerializer(caso).data)
 
     def delete(self, request, pk):
@@ -311,8 +355,6 @@ class CasoDetailView(BaseHistoriasView):
 
 class AntecedenteListCreateView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
         if self._es_medico(request) or self._es_trabajador_social(request):
             antecedentes = Antecedente.objects.select_related("historia_clinica").all()
         else:
@@ -344,6 +386,14 @@ class AntecedenteListCreateView(BaseHistoriasView):
             antecedente = serializer.save(historia_clinica=historia)
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=historia.usuario.cuenta,
+                detalles={'mensaje': f'Se ha registrado un nuevo antecedente ({antecedente.get_tipo_antecedente_display()}) en su historia clínica.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para nuevo antecedente: %s', exc)
         return self.created(AntecedenteSerializer(antecedente).data)
 
 
@@ -383,6 +433,14 @@ class AntecedenteDetailView(BaseHistoriasView):
             antecedente = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=antecedente.historia_clinica.usuario.cuenta,
+                detalles={'mensaje': 'Se ha actualizado un antecedente en su historia clínica.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para actualización de antecedente %s: %s', pk, exc)
         return self.ok(AntecedenteSerializer(antecedente).data)
 
     @extend_schema(
@@ -403,6 +461,14 @@ class AntecedenteDetailView(BaseHistoriasView):
             antecedente = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=antecedente.historia_clinica.usuario.cuenta,
+                detalles={'mensaje': 'Se ha actualizado un antecedente en su historia clínica.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para actualización de antecedente %s: %s', pk, exc)
         return self.ok(AntecedenteSerializer(antecedente).data)
 
     def delete(self, request, pk):
@@ -418,8 +484,6 @@ class AntecedenteDetailView(BaseHistoriasView):
 
 class DocumentoListCreateView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
         if self._es_medico(request) or self._es_trabajador_social(request):
             documentos = Documento.objects.select_related("historia_clinica").all()
         else:
@@ -451,6 +515,14 @@ class DocumentoListCreateView(BaseHistoriasView):
             documento = serializer.save(historia_clinica=historia)
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=historia.usuario.cuenta,
+                detalles={'mensaje': f'Se ha añadido un nuevo documento ({documento.get_tipo_documento_display()}) a su historia clínica.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para nuevo documento: %s', exc)
         return self.created(DocumentoSerializer(documento).data)
 
 
@@ -496,6 +568,14 @@ class DocumentoDetailView(BaseHistoriasView):
             documento = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=documento.historia_clinica.usuario.cuenta,
+                detalles={'mensaje': 'Se ha actualizado un documento en su historia clínica.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para actualización de documento %s: %s', pk, exc)
         return self.ok(DocumentoSerializer(documento).data)
 
     @extend_schema(
@@ -516,6 +596,14 @@ class DocumentoDetailView(BaseHistoriasView):
             documento = serializer.save()
         except DjangoValidationError as exc:
             return self.validation_error(self._error_detail(exc))
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=documento.historia_clinica.usuario.cuenta,
+                detalles={'mensaje': 'Se ha actualizado un documento en su historia clínica.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para actualización de documento %s: %s', pk, exc)
         return self.ok(DocumentoSerializer(documento).data)
 
     def delete(self, request, pk):
@@ -531,9 +619,6 @@ class DocumentoDetailView(BaseHistoriasView):
 
 class MiHistoriaClinicaView(BaseHistoriasView):
     def get(self, request):
-        if self._es_admin(request):
-            return self._denied()
-
         perfil = getattr(request.user, 'perfil', None)
         if not perfil:
             return self.not_found()
@@ -548,10 +633,7 @@ class MiHistoriaClinicaView(BaseHistoriasView):
 
 class RegistroClinicoHistoriaListCreateView(BaseHistoriasView):
     def get(self, request, historia_id):
-        if self._es_admin(request):
-            return self._denied()
-
-        if self._es_paciente(request):
+        if self._es_paciente(request) or self._es_admin(request):
             try:
                 historia = HistoriaClinica.objects.get(
                     pk=historia_id, usuario__cuenta=request.user
@@ -595,6 +677,14 @@ class RegistroClinicoHistoriaListCreateView(BaseHistoriasView):
             )
         except Exception as exc:
             return self.validation_error({"detail": str(exc)})
+        try:
+            generate_notification_for_event(
+                event_type='actualizacion_historia',
+                destinatario=historia.usuario.cuenta,
+                detalles={'mensaje': f'Se ha añadido un nuevo registro clínico ({registro.get_tipo_display()}) a su historia clínica.'},
+            )
+        except Exception as exc:
+            logger.exception('Error al crear notificación para nuevo registro clínico: %s', exc)
         return self.created(RegistroClinicoHistoriaSerializer(registro).data)
 
 
@@ -608,10 +698,7 @@ TIPO_CONSULTA_MAP = {
 
 class HistoriaConsultasListView(BaseHistoriasView):
     def get(self, request, historia_id):
-        if self._es_admin(request):
-            return self._denied()
-
-        if self._es_paciente(request):
+        if self._es_paciente(request) or self._es_admin(request):
             try:
                 historia = HistoriaClinica.objects.get(
                     pk=historia_id, usuario__cuenta=request.user

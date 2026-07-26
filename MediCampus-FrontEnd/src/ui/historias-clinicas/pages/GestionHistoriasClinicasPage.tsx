@@ -257,32 +257,32 @@ const MedicoContent = () => {
       value: rawHistorias.length,
       badge: 'Total',
       icon: '▣',
-      iconClass: 'bg-sky-100 text-sky-700',
-      badgeClass: 'bg-sky-50 text-sky-700',
+      iconClass: 'hc-stat-icon-sky',
+      badgeClass: 'hc-stat-badge-sky',
     },
     {
       label: 'Historias activas',
       value: rawHistorias.length,
       badge: 'Activas',
       icon: '✓',
-      iconClass: 'bg-emerald-100 text-emerald-700',
-      badgeClass: 'bg-emerald-50 text-emerald-700',
+      iconClass: 'hc-stat-icon-emerald',
+      badgeClass: 'hc-stat-badge-emerald',
     },
     {
       label: 'Casos cerrados',
       value: casosCerrados,
       badge: 'Cerrados',
       icon: '▤',
-      iconClass: 'bg-indigo-100 text-indigo-700',
-      badgeClass: 'bg-indigo-50 text-indigo-700',
+      iconClass: 'hc-stat-icon-indigo',
+      badgeClass: 'hc-stat-badge-indigo',
     },
     {
       label: 'Actualizadas hoy',
       value: historiasActualizadasHoy,
       badge: 'Hoy',
       icon: '◷',
-      iconClass: 'bg-rose-100 text-rose-700',
-      badgeClass: 'bg-rose-50 text-rose-700',
+      iconClass: 'hc-stat-icon-rose',
+      badgeClass: 'hc-stat-badge-rose',
     },
   ];
 
@@ -391,8 +391,8 @@ export const GestionHistoriasClinicasPage = () => {
       navigate('/historias/mi-historia', { replace: true });
       return;
     }
-    if (role === 'ADMINISTRADOR' || permissions?.isAdminBlocked) {
-      navigate('/home', { replace: true });
+    if (role === 'ADMINISTRADOR') {
+      navigate('/historias/mi-historia', { replace: true });
       return;
     }
     if (role !== 'MEDICO' && role !== 'TRABAJADOR_SOCIAL') {

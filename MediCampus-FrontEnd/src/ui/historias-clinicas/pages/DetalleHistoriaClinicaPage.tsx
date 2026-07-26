@@ -12,6 +12,7 @@ import type { AntecedenteClinico } from '../types/antecedenteClinico.types';
 import type { ConsultaClinico } from '../types/consultaClinico.types';
 import type { DocumentoClinico } from '../types/documentoClinico.types';
 import type { RegistroClinicoHistoria } from '../types/registroClinico.types';
+import CasosClinicosList from '../components/CasosClinicosList';
 import DocumentosClinicosList from '../components/DocumentosClinicosList';
 
 const Field = ({ label, value, className = '' }: { label: string; value: string | null | undefined; className?: string }) => {
@@ -267,21 +268,7 @@ export const DetalleHistoriaClinicaPage = () => {
 
           <Card className="mt-4">
             <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Casos clínicos</h2>
-            {casos.length === 0 ? (
-              <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin casos clínicos registrados</p>
-            ) : (
-              <div className="space-y-3">
-                {casos.map((c, i) => (
-                  <div key={c.id || i} className="rounded-lg p-4" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
-                    <div className="grid grid-cols-3 gap-x-6 gap-y-2">
-                      <Field label="Fecha" value={c.fecha} />
-                      <Field label="Tipo" value={c.tipo} />
-                      <Field label="Estado" value={c.estado} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <CasosClinicosList casos={casos} />
           </Card>
 
           <Card className="mt-4">

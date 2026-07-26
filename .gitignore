@@ -6,3 +6,5 @@ db.sqlite3
 .DS_Store
 
 MediCampus-FrontEnd/node_modules/
+.env
+MobileApp/

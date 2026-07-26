@@ -11,11 +11,11 @@ import { HamburgerMenu } from '../shared/HamburgerMenu';
 
 const ESTADO_LABEL: Record<string, { label: string; style: React.CSSProperties }> = {
   AGENDADA: { label: 'Agendada', style: { backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' } },
-  CONFIRMADA: { label: 'Confirmada', style: { backgroundColor: '#eef2ff', color: '#4338ca' } },
+  CONFIRMADA: { label: 'Confirmada', style: { backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' } },
   ATENDIDA: { label: 'Atendida', style: { backgroundColor: 'var(--secondary-container)', color: 'var(--on-secondary-container)' } },
-  CANCELADA: { label: 'Cancelada', style: { backgroundColor: '#fef2f2', color: '#991b1b' } },
-  NO_ASISTIDA: { label: 'No Asistió', style: { backgroundColor: '#fef3c7', color: '#92400e' } },
-  REAGENDADA: { label: 'Reagendada', style: { backgroundColor: '#f3e8ff', color: '#6b21a8' } },
+  CANCELADA: { label: 'Cancelada', style: { backgroundColor: 'var(--error-container)', color: 'var(--on-error-container)' } },
+  NO_ASISTIDA: { label: 'No Asistió', style: { backgroundColor: 'var(--warning-container)', color: 'var(--on-warning-container)' } },
+  REAGENDADA: { label: 'Reagendada', style: { backgroundColor: 'var(--tertiary-fixed)', color: 'var(--on-tertiary-fixed)' } },
 };
 
 export const MisCitas: React.FC = () => {
@@ -94,14 +94,14 @@ export const MisCitas: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--hc-bg)' }}>
-      <header className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between" style={{ backgroundColor: 'var(--btn-primary-bg)' }}>
+      <header className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3" style={{ backgroundColor: 'var(--btn-primary-bg)' }}>
+        <HamburgerMenu />
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0">
             <span className="font-bold text-sm sm:text-base text-white">M</span>
           </div>
           <h1 className="text-base sm:text-lg font-semibold truncate text-white">Mis Citas</h1>
         </div>
-        <HamburgerMenu />
       </header>
 
       <main className="flex-1 min-h-0 overflow-y-auto max-w-4xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
@@ -124,7 +124,8 @@ export const MisCitas: React.FC = () => {
             {[
               { value: 'AGENDADA,CONFIRMADA,REAGENDADA', label: 'Próximas' },
               { value: 'ATENDIDA', label: 'Atendidas' },
-              { value: 'CANCELADA,NO_ASISTIDA', label: 'Canceladas' },
+              { value: 'NO_ASISTIDA', label: 'No Asistidas' },
+              { value: 'CANCELADA', label: 'Canceladas' },
             ].map((f) => (
               <button
                 key={f.value}
@@ -151,7 +152,7 @@ export const MisCitas: React.FC = () => {
         {(error || message) && (
           <div className="space-y-2">
             {error ? (
-              <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#fecaca', backgroundColor: '#fef2f2', color: '#991b1b' }}>
+              <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: 'var(--error)', backgroundColor: 'var(--error-container)', color: 'var(--on-error-container)' }}>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -159,7 +160,7 @@ export const MisCitas: React.FC = () => {
               </div>
             ) : null}
             {message ? (
-              <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: '#bbf7d0', backgroundColor: '#f0fdf4', color: '#166534' }}>
+              <div className="rounded-lg border p-3 sm:p-4 text-xs sm:text-sm flex items-center gap-2 font-medium" style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--primary-fixed)', color: 'var(--on-primary-fixed)' }}>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

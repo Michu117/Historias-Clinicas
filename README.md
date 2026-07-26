@@ -1,13 +1,73 @@
-# Historias-Clinicas
+# MediCampus – Sistema de Historias Clínicas
 
-## Objetivo del Sistema
-El proyecto tiene como finalidad diseñar una aplicación orientada a centralizar y optimizar las actividades del área de Bienestar Universitario de la Universidad Nacional de Loja.
-La aplicación permitirá a los miembros de la comunidad universitaria gestionar de manera eficiente diversos servicios, tales como: la programación de citas médicas, la recepción de notificaciones sobre citas pendientes, el acceso a resultados de exámenes médicos y la solicitud de permisos médicos.
+MediCampus es una aplicación web para la gestión de los servicios de Bienestar Universitario. Permite administrar usuarios, roles, citas, servicios médicos, historias clínicas, atenciones, reportes y notificaciones.
 
-## Arquitectura del Sistema
-El sistema usará una aquitectura cliente-servidor, en conjunto con el Modelo-Vista-Controlador (MVC) y el patrón DAO para encapsular y gestionar de forma eficiente el acceso a la base de datos, facilitando la modularidad del sistema y simplificando futuras modificaciones o mantenimientos.
+## Requisitos
 
+- Git
+- Python 3.12+
+- pip
+- Node.js 18+
+- npm
 
-## Entorno de desarrollo backend
-Se configuró el entorno de desarrollo utilizando el IDE PyCharm, el cual permite la integración del framework Django junto con su entorno virtual para la gestión de dependencias.
-En la [carpeta principal](HistoriasClinicas/HistoriasClinicas)  del proyecto se encuentra la configuración inicial del sistema. En la primera versión del proyecto, se incluyó únicamente la aplicación principal junto con sus respectivas configuraciones.
+## Backend
+
+1. Clona el repositorio e ingresa a la carpeta:
+
+```bash
+git clone https://github.com/Michu117/Historias-Clinicas.git
+cd Historias-Clinicas
+cd HistoriasClinicas
+```
+
+2. Crea y activa el entorno virtual:
+
+```bash
+python -m venv venv
+```
+
+**Windows (CMD):** `venv\Scripts\activate`
+**Windows (PowerShell):** `venv\Scripts\Activate.ps1`
+**Linux/macOS:** `source venv/bin/activate`
+
+3. Instala las dependencias (el archivo `requirements.txt` está en la raíz del repositorio):
+
+```bash
+pip install -r ../requirements.txt
+```
+
+4. Ejecuta las migraciones:
+
+```bash
+python manage.py migrate
+```
+
+5. Inicia el servidor:
+
+```bash
+python manage.py runserver
+```
+
+El backend queda disponible en `http://127.0.0.1:8000/`.
+
+## Frontend
+
+Abre otra terminal y ejecuta:
+
+```bash
+cd Historias-Clinicas
+cd MediCampus-FrontEnd
+npm install
+npm run dev
+```
+
+Abre `http://localhost:5173/` en el navegador.
+
+## Notas
+
+- **Base de datos:** usa SQLite por defecto, no requiere configuración adicional.
+- **Variables de entorno:** no es necesario crear archivos `.env` para desarrollo local.
+- **Roles:** se precargan automáticamente al ejecutar `migrate`.
+- **Superusuario:** `python manage.py createsuperuser` para acceder a `/admin/`.
+- **Registro:** `POST /api/v1/auth/register` desde la API.
+- **Documentación API:** `http://127.0.0.1:8000/api/docs/`.

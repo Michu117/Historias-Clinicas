@@ -86,7 +86,7 @@ export const HistoriasClinicasTable = ({
             return (
               <TableRow
                 key={historia.id}
-                className="align-middle hover:bg-slate-50"
+                className="align-middle hc-row-hover"
               >
                 <TableCell className="px-4 py-3 align-middle">
                   <span className="inline-flex rounded-full bg-hc-primary/10 px-3 py-1 text-sm font-bold text-hc-primary">
