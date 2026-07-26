@@ -334,13 +334,21 @@ El backend arranca automáticamente con:
 3. Servidor Gunicorn en puerto `8000`
 
 ### Opción B: Con datos de prueba precargados (recomendado)
-En Linux:
+
+**Linux / macOS:**
 ```bash
 DJANGO_SEED_DATA=true docker compose up -d
 ```
-En Windows:
-```bash
+
+**Windows (PowerShell):**
+```powershell
 $env:DJANGO_SEED_DATA="true"
+docker compose up -d
+```
+
+**Windows (CMD):**
+```cmd
+set DJANGO_SEED_DATA=true
 docker compose up -d
 ```
 
@@ -418,10 +426,23 @@ docker compose down --volumes
 
 ## 6. Variables de entorno
 
-Puedes anteponer variables al comando `docker compose up`:
-
+**Linux / macOS:**
 ```bash
 DJANGO_SEED_DATA=true DEBUG=True docker compose up -d
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:DJANGO_SEED_DATA="true"
+$env:DEBUG="True"
+docker compose up -d
+```
+
+**Windows (CMD):**
+```cmd
+set DJANGO_SEED_DATA=true
+set DEBUG=True
+docker compose up -d
 ```
 
 | Variable | Default | Descripción |
@@ -461,7 +482,57 @@ docker compose up -d
 ```bash
 # Limpia los datos y vuelve a iniciar
 docker compose down --volumes
+```
+
+**Linux / macOS:**
+```bash
 DJANGO_SEED_DATA=true docker compose up -d
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:DJANGO_SEED_DATA="true"
+docker compose up -d
+```
+
+**Windows (CMD):**
+```cmd
+set DJANGO_SEED_DATA=true
+docker compose up -d
+```
+
+### Error `host not found in upstream "backend"` (solo Windows)
+
+El contenedor frontend (Nginx) intenta resolver el nombre `backend` antes de que el servicio esté registrado en la red de Docker.
+
+**Solución:** Reconstruye la imagen del frontend:
+
+```bash
+docker compose build frontend
+docker compose up -d
+```
+
+Si el error persiste, verifica que el backend esté funcionando:
+
+```bash
+docker compose logs backend
+```
+
+### Error `exec /entrypoint.sh: no such file or directory` (solo Windows)
+
+El archivo `entrypoint.sh` se clonó con saltos de línea CRLF (Windows), por lo que el shebang `#!/bin/bash\r` no se encuentra dentro del contenedor Linux.
+
+**Solución:** Reconstruye la imagen del backend:
+
+```bash
+docker compose build backend
+docker compose up -d
+```
+
+Si el error persiste después de clonar el repo en Windows, asegúrate de tener el archivo `.gitattributes` en la raíz (ya incluido en el proyecto) y vuelve a clonar:
+
+```bash
+git clone https://github.com/Michu117/Historias-Clinicas.git
 ```
 
 ---
