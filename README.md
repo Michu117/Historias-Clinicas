@@ -295,6 +295,87 @@ npm run dev
 
 Abre `http://localhost:5173/` en el navegador.
 
+---
+
+# Ejecución con Docker
+
+## Requisitos
+
+- Docker 24+ y Docker Compose 2.20+
+
+## Inicio rápido
+
+```bash
+# Construir las imágenes
+docker compose build
+
+# Iniciar con datos sintéticos precargados (recomendado para pruebas)
+DJANGO_SEED_DATA=true docker compose up -d
+
+# Iniciar desde cero (solo admin)
+docker compose up -d
+```
+
+- **Frontend:** `http://localhost`
+- **Backend API:** `http://localhost:8000`
+- **Admin Django:** `http://localhost:8000/admin/`
+- **Swagger:** `http://localhost:8000/api/docs/`
+
+## Usuarios disponibles
+
+### Sin seed:
+| Email | Password | Rol |
+|-------|----------|-----|
+| `admin@medicampus.local` | `Admin12345.` | Superadmin |
+
+### Con seed (`DJANGO_SEED_DATA=true`):
+| Email | Password | Rol |
+|-------|----------|-----|
+| `admin@medicampus.local` | `Admin12345.` | Superadmin |
+| `dr.juan@medicampus.com` | `MediCampus2024!` | Médico |
+| `dra.maria@medicampus.com` | `MediCampus2024!` | Psicólogo |
+| `dr.carlos@medicampus.com` | `MediCampus2024!` | Odontólogo |
+| `ts.ana@medicampus.com` | `MediCampus2024!` | Trabajador Social |
+| `paciente.demo@medicampus.local` | `Paciente12345.` | Paciente |
+| `profesional.demo@medicampus.local` | `Profesional12345.` | Psicólogo |
+| `medico.demo@medicampus.local` | `Medico12345.` | Médico |
+
+## Comandos útiles
+
+```bash
+# Ver estado de los contenedores
+docker compose ps
+
+# Ver logs en vivo
+docker compose logs -f
+
+# Detener sin eliminar datos
+docker compose stop
+
+# Detener y eliminar contenedores (datos persisteen)
+docker compose down
+
+# Detener, eliminar contenedores Y borrar la base de datos
+docker compose down --volumes
+```
+
+## Variables de entorno
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `DJANGO_SEED_DATA` | `false` | `true` para cargar datos sintéticos al iniciar |
+| `SECRET_KEY` | (generada) | Clave secreta de Django |
+| `DEBUG` | `False` | Modo debug de Django |
+| `EMAIL_BACKEND` | `console` | Backend de correo |
+
+Ejemplo con variables personalizadas:
+
+```bash
+DJANGO_SEED_DATA=true DEBUG=True docker compose up -d
+```
+
+---
+
 ## Notas
 
 - **Base de datos:** usa SQLite por defecto, no requiere configuración adicional.

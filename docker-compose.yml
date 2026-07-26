@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: HistoriasClinicas/Dockerfile
+    container_name: medicampus-backend
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - medicampus_data:/data
+    environment:
+      - DB_DIR=/data
+      - MEDIA_ROOT=/data/media
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-docker-9^8mv0^9_dsy**7_(wm%*p2msa%r0$sktafkaq)ks62rcze}
+      - DEBUG=${DEBUG:-False}
+      - DJANGO_SEED_DATA=${DJANGO_SEED_DATA:-false}
+      - EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: MediCampus-FrontEnd/Dockerfile
+    container_name: medicampus-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  medicampus_data:

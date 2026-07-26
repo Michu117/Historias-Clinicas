@@ -77,12 +77,12 @@ class Command(BaseCommand):
             cuenta, created = Cuenta.objects.get_or_create(
                 correo=prof['correo'],
                 defaults={
-                    'rol': created_roles[prof['rol']],
                     'is_active': True,
                 },
             )
             if created:
                 cuenta.set_password(prof['clave'])
+                cuenta.roles.add(created_roles[prof['rol']])
                 cuenta.save()
 
                 Usuario.objects.get_or_create(

@@ -4,19 +4,18 @@ export type ApiRootResponse = {
   endpoints: Record<string, unknown>;
 };
 
-const DEFAULT_API_BASE_URL = 'http://127.0.0.1:8000';
 const DEV_PROXY_PREFIX = '/backend';
 
 export function getApiBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL;
+  return import.meta.env.VITE_API_BASE_URL?.trim() || '';
 }
 
 export function getApiRootUrl() {
-  if (!import.meta.env.VITE_API_BASE_URL?.trim() && import.meta.env.DEV) {
+  const base = getApiBaseUrl();
+  if (!base) {
     return `${DEV_PROXY_PREFIX}/`;
   }
-
-  return new URL('/', getApiBaseUrl()).toString();
+  return new URL('/', base).toString();
 }
 
 export async function fetchApiRoot(): Promise<ApiRootResponse> {
@@ -36,7 +35,11 @@ export type TokenRequestPayload = {
 
 // noinspection JSUnusedGlobalSymbols
 export async function requestToken(payload: TokenRequestPayload) {
-  const response = await fetch(new URL('/backend/api/token/', getApiBaseUrl()).toString(), {
+  const baseUrl = getApiBaseUrl();
+  const url = baseUrl
+    ? new URL('/backend/api/token/', baseUrl).toString()
+    : '/backend/api/token/';
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
