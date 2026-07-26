@@ -74,7 +74,16 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
     setError('')
     try {
       const data = await historiasClinicasService.listarDocumentosPorHistoria(historiaClinicaId)
-      setDocumentos(data)
+      const enriquecidos = data.map((d) => {
+        if (d.tipo === 'RESULTADO') {
+          const caso = obtenerCasoAsociadoDocumento(historiaClinicaId, d.id)
+          if (caso) {
+            return { ...d, casoClinicoId: caso.id }
+          }
+        }
+        return d
+      })
+      setDocumentos(enriquecidos)
     } catch (err: any) {
       setError(err?.message ?? 'Error al cargar documentos.')
     } finally {
@@ -100,7 +109,9 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
   const handleDescargar = (doc: DocumentoClinico) => {
     if (!historia) return
     if (doc.tipo === 'RESULTADO') {
-      const casoAsociado = obtenerCasoAsociadoDocumento(historiaClinicaId, doc.id)
+      const casoAsociado = doc.casoClinicoId
+        ? obtenerCasoAsociadoDocumento(historiaClinicaId, doc.id)
+        : null
       if (casoAsociado && esCasoAtendido(casoAsociado.estado)) {
         setDocParaDescargar(doc)
         setCasoPendiente(casoAsociado)
@@ -133,6 +144,11 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
     const caso = casosDisponibles.find((c) => c.id === casoSeleccionado) ?? null
     if (caso && esCasoAtendido(caso.estado)) {
       guardarCasoAsociadoDocumento(historiaClinicaId, docParaDescargar.id, caso)
+      setDocumentos((prev) =>
+        prev.map((d) =>
+          d.id === docParaDescargar.id ? { ...d, casoClinicoId: caso.id } : d
+        )
+      )
     }
     generarDocumentoClinicoPDF({
       documento: docParaDescargar,
@@ -292,12 +308,12 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
       <Modal
         open={showConfirmModal}
         onClose={() => { setShowConfirmModal(false); setDocParaDescargar(null); setCasoPendiente(null) }}
-        title="Descargar resultado"
+        title="Descargar documento"
         closeable={!descargando}
       >
         <div className="space-y-4">
           <p className="text-sm leading-relaxed" style={{ color: 'var(--on-surface-variant)' }}>
-            Este resultado está asociado al caso clínico seleccionado. ¿Desea generar el PDF?
+            ¿Desea generar el PDF con el caso clínico asociado?
           </p>
           <div className="flex justify-end gap-2">
             <Button
@@ -314,7 +330,7 @@ const DocumentosClinicosList: React.FC<DocumentosClinicosListProps> = ({
               onClick={handleConfirmarDescargaDirecta}
               disabled={descargando}
             >
-              {descargando ? 'Generando PDF...' : 'Sí, descargar PDF'}
+              {descargando ? 'Generando PDF...' : 'Sí, descargar'}
             </Button>
           </div>
         </div>
