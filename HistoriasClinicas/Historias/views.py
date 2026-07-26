@@ -19,8 +19,8 @@ from Agendas.models import (
 from .models import Antecedente, Caso, Documento, HistoriaClinica, RegistroClinicoHistoria
 from .serializers import (
     AntecedenteSerializer,
+    CasoClinicoSerializer,
     CasoSerializer,
-    ConsultaHistoriaSerializer,
     DocumentoSerializer,
     HistoriaClinicaSerializer,
     RegistroClinicoHistoriaSerializer,
@@ -34,6 +34,7 @@ from .services import (
     es_medico,
     es_paciente,
     es_trabajador_social,
+    listar_casos_clinicos,
     normalizar_rol,
     obtener_historia_por_id,
     obtener_historias_clinicas,
@@ -706,42 +707,9 @@ class HistoriaConsultasListView(BaseHistoriasView):
             except HistoriaClinica.DoesNotExist:
                 return self.not_found()
 
-        consultas = []
-        for model_cls, tipo_label in TIPO_CONSULTA_MAP.items():
-            qs = model_cls.objects.filter(
-                historia_clinica_id=historia_id
-            ).select_related("cita").prefetch_related("servicios")
+        try:
+            casos = listar_casos_clinicos(historia_id)
+        except HistoriaClinica.DoesNotExist:
+            return self.not_found()
 
-            for c in qs:
-                cita = c.cita
-                motivo = cita.motivo or tipo_label
-
-                signos_vitales = None
-                if hasattr(c, 'signos_vitales') and c.signos_vitales is not None:
-                    sv = c.signos_vitales
-                    signos_vitales = {
-                        "peso_kg": getattr(sv, "peso_kg", None),
-                        "temperatura": getattr(sv, "temperatura", None),
-                        "presion_arterial": getattr(sv, "presion_arterial", None),
-                        "frecuencia_cardiaca": getattr(sv, "frecuencia_cardiaca", None),
-                    }
-
-                servicios = list(c.servicios.values_list("nombre", flat=True)) if c.pk else []
-
-                consultas.append({
-                    "id": c.id,
-                    "tipo": tipo_label,
-                    "fecha": cita.fecha_hora,
-                    "motivo": motivo,
-                    "estado": cita.estado,
-                    "observaciones": c.observaciones or "",
-                    "anamnesis": getattr(c, "anamnesis", None),
-                    "diagnostico": getattr(c, "diagnostico", None),
-                    "tratamiento": getattr(c, "tratamiento", None),
-                    "signos_vitales": signos_vitales,
-                    "servicios": servicios,
-                    "historia_clinica_id": c.historia_clinica_id,
-                })
-
-        consultas.sort(key=lambda x: x["fecha"], reverse=True)
-        return self.ok_list(ConsultaHistoriaSerializer(consultas, many=True).data)
+        return self.ok_list(CasoClinicoSerializer(casos, many=True).data)

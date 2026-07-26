@@ -297,20 +297,13 @@ export default function EditarHistoriaClinicaPage() {
         style={{ color: 'var(--on-surface)' }}
       >
         {(() => {
-          const atendidas = consultas.filter((c) => c.estado === 'ATENDIDA');
+          const conDiagnostico = consultas
+            .filter((c) => c.estado === 'ATENDIDA' && c.tieneConsulta && c.diagnostico)
+            .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
-          if (atendidas.length === 0) return '—';
+          if (conDiagnostico.length === 0) return 'Sin condición preexistente registrada';
 
-          const ultima = atendidas.sort(
-            (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-          )[0];
-
-          return (
-            ultima.diagnostico ??
-            ultima.observaciones ??
-            ultima.motivo ??
-            'Sin resumen disponible'
-          );
+          return conDiagnostico[0].diagnostico;
         })()}
       </p>
     </div>

@@ -171,12 +171,7 @@ export const DetalleHistoriaClinicaPage = () => {
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
                   <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Condición preexistente</p>
                   <p className="mt-1 text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
-                    {(() => {
-                      const atendidas = casos.filter(c => c.estado === 'ATENDIDA');
-                      if (atendidas.length === 0) return '—';
-                      const ultima = atendidas.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
-                      return ultima.diagnostico ?? ultima.observaciones ?? ultima.motivo ?? 'Sin resumen disponible';
-                    })()}
+                    {historia.condicionPreexistenteUltimaConsulta || 'Sin condición preexistente registrada'}
                   </p>
                 </div>
                 <div className="rounded-lg p-3" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
