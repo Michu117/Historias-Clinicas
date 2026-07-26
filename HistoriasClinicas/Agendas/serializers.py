@@ -18,8 +18,6 @@ class CitaSerializer(serializers.ModelSerializer):
     servicios = serializers.PrimaryKeyRelatedField(
         queryset=Servicio.objects.filter(es_activo=True),
         many=True,
-        required=False,
-        allow_empty=True,
     )
     paciente_nombre = serializers.SerializerMethodField()
     profesional_nombre = serializers.SerializerMethodField()
@@ -54,6 +52,23 @@ class CitaSerializer(serializers.ModelSerializer):
             return ''
         except Cuenta.DoesNotExist:
             return ''
+
+    def validate_usuario_id(self, value):
+        from Seguridad.models import Cuenta
+        if not Cuenta.objects.filter(id=value).exists():
+            raise serializers.ValidationError(
+                f'El usuario con ID {value} no existe.'
+            )
+        return value
+
+    def validate_profesional_id(self, value):
+        if value is not None:
+            from Seguridad.models import Cuenta
+            if not Cuenta.objects.filter(id=value).exists():
+                raise serializers.ValidationError(
+                    f'El profesional con ID {value} no existe.'
+                )
+        return value
 
     def validate_fecha_hora(self, value):
         from django.utils import timezone
