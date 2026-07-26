@@ -13,6 +13,7 @@ export interface DocumentoClinico {
   tipo: TipoDocumentoClinico
   creadoEn?: string
   actualizadoEn?: string
+  casoClinicoId?: string
 }
 
 export type DocumentoClinicoModel = DocumentoClinico
