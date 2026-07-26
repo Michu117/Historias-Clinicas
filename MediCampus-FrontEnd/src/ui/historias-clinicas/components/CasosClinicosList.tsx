@@ -11,11 +11,13 @@ const ESTADO_BADGE: Record<string, { bg: string; text: string }> = {
   NO_ASISTIO: { bg: '#fef9c3', text: '#854d0e' },
 }
 
-function formatFecha(fecha?: string) {
-  if (!fecha) return { date: '', time: '' }
-  const d = new Date(fecha)
+function parseFecha(raw?: string) {
+  if (!raw) return { date: 'Sin fecha', time: '' }
+  const d = new Date(raw)
+  if (isNaN(d.getTime())) return { date: 'Sin fecha', time: '' }
   const date = d.toLocaleDateString('es-EC', { year: 'numeric', month: 'short', day: 'numeric' })
   const time = d.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
+  if (time === '00:00' || time === '0:00') return { date, time: '' }
   return { date, time }
 }
 
@@ -28,12 +30,14 @@ export default function CasosClinicosList({ casos }: Props) {
   }
 
   const c = casos[actual]
-  const { date, time } = formatFecha(c.fecha)
-  const estadoVisual = c.estadoCaso || c.estado
-  const badge = ESTADO_BADGE[estadoVisual] ?? { bg: '#e0f2fe', text: '#075985' }
-  const servicios = c.servicios?.join(', ') || ''
-  const profesional = c.profesional || ''
-  const motivo = c.motivo || ''
+  const { date, time } = parseFecha(c.fecha)
+  const estadoNormalizado = String(c.estado ?? '').toUpperCase()
+  const estadoCasoNormalizado = String(c.estadoCaso ?? '').toUpperCase()
+  const estadoKey = estadoCasoNormalizado || estadoNormalizado
+  const badge = ESTADO_BADGE[estadoKey] ?? { bg: '#e0f2fe', text: '#075985' }
+  const servicios = Array.isArray(c.servicios) ? c.servicios.filter(Boolean).join(', ') : ''
+  const profesional = c.profesional ?? ''
+  const motivo = c.motivo ?? ''
 
   return (
     <div className="w-full">
@@ -62,19 +66,19 @@ export default function CasosClinicosList({ casos }: Props) {
         </div>
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Servicio</p>
-          <p className="mt-0.5 truncate text-sm font-medium leading-snug sm:text-base" style={{ color: 'var(--on-surface)' }}>{servicios || '—'}</p>
+          <p className="mt-0.5 truncate text-sm font-medium leading-snug sm:text-base" style={{ color: 'var(--on-surface)' }}>{servicios || 'Sin servicio'}</p>
         </div>
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Profesional</p>
-          <p className="mt-0.5 truncate text-sm font-medium leading-snug sm:text-base" style={{ color: 'var(--on-surface)' }}>{profesional || '—'}</p>
+          <p className="mt-0.5 truncate text-sm font-medium leading-snug sm:text-base" style={{ color: 'var(--on-surface)' }}>{profesional || 'Sin profesional'}</p>
         </div>
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--card-text-muted)' }}>Motivo</p>
-          <p className="mt-0.5 truncate text-sm font-medium leading-snug sm:text-base" style={{ color: 'var(--on-surface)' }}>{motivo || '—'}</p>
+          <p className="mt-0.5 truncate text-sm font-medium leading-snug sm:text-base" style={{ color: 'var(--on-surface)' }}>{motivo || 'Sin motivo'}</p>
         </div>
         <div className="flex items-center justify-end">
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold sm:text-sm" style={{ backgroundColor: badge.bg, color: badge.text }}>
-            {estadoVisual}
+            {estadoNormalizado || 'Sin estado'}
           </span>
         </div>
       </div>
