@@ -81,16 +81,12 @@ class CitaViewSet(BaseAgendasViewSet):
                     'El horario seleccionado ya no está disponible o no cumple con el tiempo mínimo de anticipación de 24 horas.'
                 )
 
-            if 'servicios' in serializer.validated_data:
-                servicios = services.validar_servicios_cita(
-                    serializer.validated_data['servicios']
-                )
-                serializer.validated_data['servicios'] = servicios
-                services.validar_misma_especialidad_mismo_dia(
-                    usuario_id=serializer.validated_data.get('usuario_id'),
-                    fecha_hora=serializer.validated_data['fecha_hora'],
-                    servicios_ids=serializer.validated_data['servicios'],
-                )
+            servicios = serializer.validated_data.get('servicios', [])
+            services.validar_misma_especialidad_mismo_dia(
+                usuario_id=serializer.validated_data.get('usuario_id'),
+                fecha_hora=serializer.validated_data['fecha_hora'],
+                servicios_ids=[s.id for s in servicios],
+            )
 
             self.perform_create(serializer)
             cita = serializer.instance

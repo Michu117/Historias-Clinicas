@@ -162,6 +162,17 @@ export async function listAuditLogs(filters?: AuditLogFilters): Promise<AuditLog
   return fetchJSON(`${AUTH_BASE}/logs${qs ? `?${qs}` : ''}`, token || undefined);
 }
 
+export interface ForgotPasswordPayload {
+  correo: string;
+}
+
+export async function forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
+  await fetchJSON(`${AUTH_BASE}/forgot-password`, undefined, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
   const token = getToken();
   await fetchJSON(`${AUTH_BASE}/cambiar-clave`, token || undefined, {
