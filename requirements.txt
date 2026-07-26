@@ -19,6 +19,9 @@ reportlab==4.2.5
 # CORS
 django-cors-headers==4.9.0
 
+# Static files in production
+whitenoise==6.9.0
+
 # Development
 python-dotenv==1.0.0
 
