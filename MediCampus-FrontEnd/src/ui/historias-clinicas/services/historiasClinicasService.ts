@@ -227,18 +227,21 @@ export const historiasClinicasService = {
       ? response
       : response.data ?? response.results ?? [];
     return (data || []).map((api: any) => ({
-      id: String(api.id ?? ''),
-      historiaClinicaId: String(api.historia_clinica_id ?? api.historiaClinicaId ?? ''),
-      tipo: api.tipo ?? '',
-      fecha: api.fecha ?? '',
+      id: String(api.cita_id ?? ''),
+      tipo: api.consulta?.tipo ?? '',
+      fecha: api.fecha_hora ?? '',
       motivo: api.motivo ?? '',
-      estado: api.estado ?? '',
-      observaciones: api.observaciones ?? '',
-      anamnesis: api.anamnesis ?? null,
-      diagnostico: api.diagnostico ?? null,
-      tratamiento: api.tratamiento ?? null,
-      signosVitales: api.signos_vitales ?? api.signosVitales ?? null,
+      estado: api.estado_cita ?? '',
+      observaciones: api.consulta?.observaciones ?? '',
+      anamnesis: api.consulta?.anamnesis ?? null,
+      diagnostico: api.consulta?.diagnostico ?? null,
+      tratamiento: api.consulta?.tratamiento ?? null,
+      signosVitales: api.consulta?.signos_vitales ?? null,
       servicios: Array.isArray(api.servicios) ? api.servicios : [],
+      profesional: api.profesional ?? null,
+      estadoCaso: api.estado_caso ?? '',
+      tieneConsulta: api.tiene_consulta ?? false,
+      consulta: api.consulta ?? null,
     }));
   },
 

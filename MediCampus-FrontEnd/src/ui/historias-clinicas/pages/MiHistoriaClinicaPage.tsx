@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../ui/components/Button';
 import { Card } from '../../../ui/components/Card';
 import { HistoriasClinicasHeader } from '../components/HistoriasClinicasHeader';
+import CasosClinicosList from '../components/CasosClinicosList';
 import DocumentosClinicosList from '../components/DocumentosClinicosList';
 import { historiasClinicasService } from '../services/historiasClinicasService';
 import { useHistoriasClinicasAuth } from '../hooks/useHistoriasClinicasAuth';
@@ -401,21 +402,7 @@ export const MiHistoriaClinicaPage = () => {
           {/* ── Casos clínicos ── */}
           <Card className="mt-4">
             <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--hc-text)' }}>Casos clínicos</h2>
-            {consultas.length === 0 ? (
-              <p className="text-sm" style={{ color: 'var(--card-text-muted)' }}>Sin casos clínicos registrados</p>
-            ) : (
-              <div className="space-y-3">
-                {consultas.map((c, i) => (
-                  <div key={c.id || i} className="rounded-lg p-4" style={{ border: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}>
-                    <div className="grid grid-cols-3 gap-x-6 gap-y-2">
-                      <Field label="Fecha" value={c.fecha} />
-                      <Field label="Tipo" value={c.tipo} />
-                      <Field label="Estado" value={c.estado} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <CasosClinicosList casos={consultas} />
           </Card>
 
           {/* ── Documentos ── */}

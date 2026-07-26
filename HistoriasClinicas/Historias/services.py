@@ -263,3 +263,97 @@ def obtener_historia_clinica_por_cita(cita_id):
         return HistoriaClinica.objects.get(usuario=usuario)
     except HistoriaClinica.DoesNotExist as e:
         raise HistoriaClinicaNoEncontrada(str(e))
+
+
+MAPA_ESTADO_CASO = {
+    'AGENDADA': 'AGENDADO',
+    'CONFIRMADA': 'CONFIRMADO',
+    'REAGENDADA': 'REAGENDADO',
+    'CANCELADA': 'CANCELADO',
+    'NO_ASISTIDA': 'NO_ASISTIO',
+    'ATENDIDA': 'CERRADO',
+}
+
+
+def obtener_estado_caso(estado_cita):
+    return MAPA_ESTADO_CASO.get(estado_cita, estado_cita)
+
+
+def listar_casos_clinicos(historia_clinica_id):
+    from Agendas.models import Cita, ConsultaMedica, ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial
+    from Seguridad.models import Cuenta
+
+    historia = HistoriaClinica.objects.get(id=historia_clinica_id)
+    cuenta_id = historia.usuario.cuenta.id
+    citas = Cita.objects.filter(usuario_id=cuenta_id).prefetch_related('servicios').order_by('-fecha_hora')
+
+    cita_ids = [c.id for c in citas]
+
+    consultas_por_cita = {}
+    TIPO_CONSULTA_MAP = {
+        ConsultaMedica: 'Consulta médica',
+        ConsultaOdontologica: 'Consulta odontológica',
+        ConsultaPsicologica: 'Consulta psicológica',
+        ConsultaSocial: 'Consulta social',
+    }
+    for model_cls, tipo_label in TIPO_CONSULTA_MAP.items():
+        qs = model_cls.objects.filter(cita_id__in=cita_ids).select_related('cita')
+        for obj in qs:
+            consultas_por_cita[obj.cita_id] = (obj, tipo_label)
+
+    reagendadas_ids = set(
+        Cita.objects.filter(
+            usuario_id=cuenta_id, estado='REAGENDADA'
+        ).values_list('id', flat=True)
+    )
+
+    resultados = []
+    for cita in citas:
+        if cita.id in reagendadas_ids:
+            continue
+        tiene_consulta = cita.id in consultas_por_cita
+        consulta_data = None
+        if tiene_consulta:
+            consulta_obj, tipo_label = consultas_por_cita[cita.id]
+            signos_vitales = None
+            if hasattr(consulta_obj, 'signos_vitales') and consulta_obj.signos_vitales is not None:
+                sv = consulta_obj.signos_vitales
+                signos_vitales = {
+                    'peso_kg': getattr(sv, 'peso_kg', None),
+                    'temperatura': getattr(sv, 'temperatura', None),
+                    'presion_arterial': getattr(sv, 'presion_arterial', None),
+                    'frecuencia_cardiaca': getattr(sv, 'frecuencia_cardiaca', None),
+                }
+            consulta_data = {
+                'id': consulta_obj.id,
+                'tipo': tipo_label,
+                'observaciones': consulta_obj.observaciones or '',
+                'anamnesis': getattr(consulta_obj, 'anamnesis', None),
+                'diagnostico': getattr(consulta_obj, 'diagnostico', None),
+                'tratamiento': getattr(consulta_obj, 'tratamiento', None),
+                'signos_vitales': signos_vitales,
+            }
+
+        profesional_nombre = None
+        if cita.profesional_id:
+            try:
+                prof_cuenta = Cuenta.objects.get(id=cita.profesional_id)
+                profesional_nombre = getattr(prof_cuenta.perfil, 'nombre_completo', None)
+            except (Cuenta.DoesNotExist, AttributeError):
+                pass
+
+        servicios = [s.nombre for s in cita.servicios.all()] if cita.pk else []
+
+        resultados.append({
+            'cita_id': cita.id,
+            'fecha_hora': cita.fecha_hora,
+            'servicios': servicios,
+            'profesional': profesional_nombre,
+            'motivo': cita.motivo or '',
+            'estado_cita': cita.estado,
+            'estado_caso': obtener_estado_caso(cita.estado),
+            'tiene_consulta': tiene_consulta,
+            'consulta': consulta_data,
+        })
+
+    return resultados
