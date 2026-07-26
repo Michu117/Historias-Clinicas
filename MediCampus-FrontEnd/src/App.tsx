@@ -15,6 +15,7 @@ import CriticalAlertsPage from './ui/seguridad/views/CriticalAlertsPage';
 import AuditLogDetailPage from './ui/seguridad/views/AuditLogDetailPage';
 import ForbiddenPage from './ui/seguridad/views/ForbiddenPage';
 import CambiarClavePage from './ui/seguridad/views/CambiarClavePage';
+import ForgotPasswordPage from './ui/seguridad/views/ForgotPasswordPage';
 import GestionHistoriasClinicasPage from "./ui/historias-clinicas/pages/GestionHistoriasClinicasPage";
 import NuevaHistoriaClinicaPage from "./ui/historias-clinicas/pages/NuevaHistoriaClinicaPage";
 import {DetalleHistoriaClinicaPage} from "./ui/historias-clinicas/pages/DetalleHistoriaClinicaPage";
@@ -90,6 +91,7 @@ export default function App() {
             <Route path="/seguridad/login" element={<LoginPage />} />
             <Route path="/seguridad/register" element={<RegisterPage />} />
             <Route path="/seguridad/cambiar-clave" element={<CambiarClavePage />} />
+            <Route path="/seguridad/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/seguridad/403" element={<ForbiddenPage />} />
 
             <Route path="/seguridad" element={<SecurityLayout />}>

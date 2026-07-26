@@ -37,6 +37,7 @@ const SERVICE_TO_ROLES: Record<string, string[]> = {
   'Psicologia': ['psicologo'],
   'Psicología': ['psicologo'],
   'Trabajo Social': ['trabajador_social'],
+  'Becas': ['Orientador'],
 };
 
 export function mapProfesionalBackendToFrontend(dto: ProfesionalBackendDTO): Profesional {
