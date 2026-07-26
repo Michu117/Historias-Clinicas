@@ -26,9 +26,9 @@ export const timing = {
 
   // Horarios de atención (formato HH:mm)
   scheduleStart: '08:00', // Hora de apertura
-  scheduleEnd: '18:00', // Hora de cierre
-  scheduleBreakStart: '12:00', // Inicio descanso
-  scheduleBreakEnd: '13:00', // Fin descanso
+  scheduleEnd: '17:30', // Hora de cierre
+  scheduleBreakStart: '12:30', // Inicio descanso
+  scheduleBreakEnd: '15:00', // Fin descanso
 
   // Polling y sincronización
   pollingIntervalShort: 5000, // 5 segundos para datos críticos

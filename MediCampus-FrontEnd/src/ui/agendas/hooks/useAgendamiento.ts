@@ -1,6 +1,7 @@
 import { Servicio, Profesional, Cita, EstadoCita } from '../types';
 import { isDatePast, hasConflict } from '../utils/validators/citaValidators';
 import { messages } from '../utils/constants/messages';
+import { timing } from '../utils/constants/timing';
 import { servicioService } from '../services/api/servicioService';
 import { profesionalService } from '../services/api/profesionalService';
 import citaService from '../services/api/citaService';
@@ -111,18 +112,28 @@ export const useAgendamiento = (): UseAgendamientoState => {
         return false;
       }
 
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      if (fecha <= todayStr) {
+        return false;
+      }
+
       const ninetyDaysFromNow = new Date(now);
       ninetyDaysFromNow.setDate(now.getDate() + 90);
-      if (requestedDate < now || requestedDate > ninetyDaysFromNow) {
+      if (requestedDate > ninetyDaysFromNow) {
+        return false;
+      }
+
+      const dayOfWeek = new Date(parseInt(fecha.split('-')[0]), parseInt(fecha.split('-')[1]) - 1, parseInt(fecha.split('-')[2])).getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
         return false;
       }
 
       const timeMinutes = parseTime(hora);
-      if (timeMinutes < parseTime('08:00') || timeMinutes >= parseTime('18:00')) {
+      if (timeMinutes < parseTime(timing.scheduleStart) || timeMinutes >= parseTime(timing.scheduleEnd)) {
         return false;
       }
 
-      if (timeMinutes >= parseTime('12:00') && timeMinutes < parseTime('13:00')) {
+      if (timeMinutes >= parseTime(timing.scheduleBreakStart) && timeMinutes < parseTime(timing.scheduleBreakEnd)) {
         return false;
       }
 

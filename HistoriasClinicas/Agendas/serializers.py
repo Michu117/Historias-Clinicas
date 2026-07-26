@@ -60,6 +60,13 @@ class CitaSerializer(serializers.ModelSerializer):
 
         if value <= timezone.now():
             raise serializers.ValidationError('La fecha y hora de la cita debe ser futura.')
+
+        from .services import validar_anticipacion_minima
+        if not validar_anticipacion_minima(value):
+            raise serializers.ValidationError(
+                'El horario seleccionado no cumple con el tiempo mínimo de anticipación de 24 horas.'
+            )
+
         return value
 
 

@@ -82,6 +82,14 @@ export const hasCitaSameDayService = (
   });
 };
 
+export const canCancelCita = (fecha: string, hora: string): boolean => {
+  const citaDate = new Date(`${fecha}T${hora}:00`);
+  const now = new Date();
+  const diffMs = citaDate.getTime() - now.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+  return diffHours >= 24;
+};
+
 export const isServiceActive = (servicio: Servicio): boolean => {
   return servicio?.es_activo === true;
 };
