@@ -334,9 +334,14 @@ El backend arranca automáticamente con:
 3. Servidor Gunicorn en puerto `8000`
 
 ### Opción B: Con datos de prueba precargados (recomendado)
-
+En Linux:
 ```bash
 DJANGO_SEED_DATA=true docker compose up -d
+```
+En Windows:
+```bash
+$env:DJANGO_SEED_DATA="true"
+docker compose up -d
 ```
 
 Además de lo anterior, se ejecuta el script `seed_all` que crea roles, profesionales, pacientes, historias clínicas, antecedentes, casos, documentos, citas, consultas, derivaciones y notificaciones de demostración.
