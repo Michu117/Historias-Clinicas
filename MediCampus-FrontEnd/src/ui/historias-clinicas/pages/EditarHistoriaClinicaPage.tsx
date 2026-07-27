@@ -41,8 +41,8 @@ export default function EditarHistoriaClinicaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [confirmationType, setConfirmationType] = useState<'save' | 'cancel' | null>(null);
 
   const [consultas, setConsultas] = useState<ConsultaClinico[]>([]);
   const [registros, setRegistros] = useState<RegistroClinicoHistoria[]>([]);
@@ -110,30 +110,28 @@ export default function EditarHistoriaClinicaPage() {
     setValues((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-  e?.preventDefault();
-
-  if (!id) {
-    setMessage('No se recibió el ID de la historia clínica.');
-    return;
-  }
-
-  setIsSubmitting(true);
-  setMessage('');
-  setError('');
-
-  try {
-    const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {});
-    setHistoria(hcActualizada);
-    alert('Historia clínica actualizada correctamente.');
-    navigate('/historias', { replace: true });
-  } catch (err: any) {
-    console.error('Error al actualizar:', err);
-    setError(err?.message ?? 'No se pudo actualizar. Revisa la respuesta del API.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  const handleSubmit = async () => {
+    if (!id) {
+      setMessage('No se recibió el ID de la historia clínica.');
+      return;
+    }
+    setIsSaving(true);
+    setMessage('');
+    setError('');
+    try {
+      const hcActualizada = await historiasClinicasService.actualizarHistoriaClinica(id, {});
+      setHistoria(hcActualizada);
+      setConfirmationType(null);
+      setMessage('Historia clínica actualizada correctamente.');
+      setTimeout(() => navigate('/historias', { replace: true }), 1500);
+    } catch (err: any) {
+      console.error('Error al actualizar:', err);
+      setConfirmationType(null);
+      setError(err?.message ?? 'No se pudo actualizar. Revisa la respuesta del API.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleAgregarAlergia = async () => {
     if (!id || !nuevaAlergia.trim()) return;
@@ -182,7 +180,11 @@ export default function EditarHistoriaClinicaPage() {
   };
 
   const handleCancel = () => {
-    setShowCancelModal(true);
+    setConfirmationType('cancel');
+  };
+
+  const requestSaveConfirmation = () => {
+    setConfirmationType('save');
   };
 
   const registrosAlergias = registros.filter((r) => r.tipo === 'ALERGIA');
@@ -295,20 +297,13 @@ export default function EditarHistoriaClinicaPage() {
         style={{ color: 'var(--on-surface)' }}
       >
         {(() => {
-          const atendidas = consultas.filter((c) => c.estado === 'ATENDIDA');
+          const conDiagnostico = consultas
+            .filter((c) => c.estado === 'ATENDIDA' && c.tieneConsulta && c.diagnostico)
+            .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
-          if (atendidas.length === 0) return '—';
+          if (conDiagnostico.length === 0) return 'Sin condición preexistente registrada';
 
-          const ultima = atendidas.sort(
-            (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-          )[0];
-
-          return (
-            ultima.diagnostico ??
-            ultima.observaciones ??
-            ultima.motivo ??
-            'Sin resumen disponible'
-          );
+          return conDiagnostico[0].diagnostico;
         })()}
       </p>
     </div>
@@ -411,44 +406,100 @@ export default function EditarHistoriaClinicaPage() {
             <Button
               type="button"
               variant="primary"
-              onClick={() => handleSubmit()}
-              disabled={isSubmitting}
+              onClick={requestSaveConfirmation}
             >
-              {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+              Guardar cambios
             </Button>
           </div>
         </div>
       </section>
 
+      {/* Save confirmation modal */}
       <Modal
-  open={showCancelModal}
-  onClose={() => setShowCancelModal(false)}
-  title="Cancelar edición"
->
-  <div className="space-y-4">
-    <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
-      ¿Está seguro de que desea salir sin guardar? Los cambios no guardados se perderán.
-    </p>
-
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="secondary"
-        onClick={() => setShowCancelModal(false)}
+        open={confirmationType === 'save'}
+        onClose={() => setConfirmationType(null)}
+        title="Guardar cambios"
+        titleId="save-modal-title"
+        descriptionId="save-modal-desc"
+        closeable={!isSaving}
+        icon={
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/40">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+          </div>
+        }
       >
-        No, continuar editando
-      </Button>
+        <div className="space-y-4">
+          <p id="save-modal-desc" className="text-sm leading-relaxed" style={{ color: 'var(--on-surface-variant)' }}>
+            ¿Está seguro de que desea guardar los cambios realizados en la historia clínica?
+          </p>
 
-      <Button
-        type="button"
-        variant="danger"
-        onClick={() => navigate('/historias', { replace: true })}
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setConfirmationType(null)}
+              disabled={isSaving}
+            >
+              No, revisar de nuevo
+            </Button>
+
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Guardando...' : 'Sí, guardar cambios'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Cancel confirmation modal */}
+      <Modal
+        open={confirmationType === 'cancel'}
+        onClose={() => setConfirmationType(null)}
+        title="Cancelar edición"
+        titleId="cancel-modal-title"
+        descriptionId="cancel-modal-desc"
+        icon={
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+        }
       >
-        Sí, salir sin guardar
-      </Button>
-    </div>
-  </div>
-</Modal>
+        <div className="space-y-4">
+          <p id="cancel-modal-desc" className="text-sm leading-relaxed" style={{ color: 'var(--on-surface-variant)' }}>
+            ¿Está seguro de que desea salir sin guardar? Los cambios no guardados se perderán.
+          </p>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setConfirmationType(null)}
+            >
+              No, continuar editando
+            </Button>
+
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => navigate('/historias', { replace: true })}
+            >
+              Sí, salir sin guardar
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </HistoriasClinicasDashboardLayout>
   );
 }

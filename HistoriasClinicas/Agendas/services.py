@@ -9,6 +9,7 @@ from .models import (
     SignosVitales, ConsultaMedica,
     ConsultaOdontologica, ConsultaPsicologica, ConsultaSocial
 )
+from Historias.services import obtener_historia_clinica_por_cita, HistoriaClinicaNoEncontrada
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +26,9 @@ SERVICIO_ROL_MAP = {
 }
 
 HORA_INICIO = time(8, 0)
-HORA_FIN = time(18, 0)
-RECESO_INICIO = time(12, 0)
-RECESO_FIN = time(13, 0)
+HORA_FIN = time(17, 30)
+RECESO_INICIO = time(12, 30)
+RECESO_FIN = time(15, 0)
 SLOT_MINUTOS = 30
 
 
@@ -37,6 +38,9 @@ class ConflictoHorarioError(Exception):
 
 class DatosInvalidosError(Exception):
     """Excepción para datos inválidos o campos faltantes."""
+    def __init__(self, message, code='BAD_REQUEST'):
+        self.code = code
+        super().__init__(message)
 
 
 class EstadoCitaInvalidoError(Exception):
@@ -126,6 +130,12 @@ def validar_misma_especialidad_mismo_dia(usuario_id, fecha_hora, servicios_ids, 
         )
 
 
+def validar_anticipacion_minima(fecha_hora, horas=24):
+    """Valida que una fecha/hora cumpla con la anticipación mínima respecto al momento actual."""
+    ahora = timezone.now()
+    return fecha_hora >= ahora + timedelta(hours=horas)
+
+
 def validar_servicios_cita(servicios_ids):
     """Valida que los servicios existan y estén activos."""
     if not servicios_ids:
@@ -152,9 +162,12 @@ def registrar_atencion_integral(cita_id, tipo_consulta, datos_consulta):
             f'No se puede registrar una atención para una cita en estado {cita.estado}.'
         )
 
-    historia_clinica_id = datos_consulta.get('historia_clinica_id')
-    if not historia_clinica_id:
-        raise DatosInvalidosError('Debe proporcionar historia_clinica_id para la consulta.')
+    try:
+        historia_clinica = obtener_historia_clinica_por_cita(cita_id)
+    except HistoriaClinicaNoEncontrada as e:
+        raise DatosInvalidosError(str(e))
+
+    historia_clinica_id = historia_clinica.id
 
     tipo_consulta = tipo_consulta.lower()
 
@@ -382,7 +395,9 @@ def buscar_siguiente_cita_disponible(servicio_id, servicio_nombre, usuario_id):
             f'No hay profesionales activos para el servicio "{servicio_nombre}".'
         )
 
-    fecha = timezone.localdate() + timedelta(days=1)
+    ahora = timezone.now()
+    inicio_minimo = ahora + timedelta(hours=24)
+    fecha = inicio_minimo.date()
     for _ in range(30):
         if fecha.weekday() >= 5:
             fecha += timedelta(days=1)
@@ -398,17 +413,20 @@ def buscar_siguiente_cita_disponible(servicio_id, servicio_nombre, usuario_id):
             ).values_list('fecha_hora', flat=True)
 
             for slot in slots:
-                if slot in citas_existentes:
+                slot_aware = timezone.make_aware(slot)
+                if slot_aware < inicio_minimo:
+                    continue
+                if slot_aware in citas_existentes:
                     continue
                 # Verificar que el usuario no tenga cita en ese horario
                 if Cita.objects.filter(
                     usuario_id=usuario_id,
-                    fecha_hora=slot,
+                    fecha_hora=slot_aware,
                 ).exclude(
                     estado__in=ESTADOS_INACTIVOS,
                 ).exists():
                     continue
-                return profesional.id, timezone.make_aware(slot)
+                return profesional.id, slot_aware
 
         fecha += timedelta(days=1)
 

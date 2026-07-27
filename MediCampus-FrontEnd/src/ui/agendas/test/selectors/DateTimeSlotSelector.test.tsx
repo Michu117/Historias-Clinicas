@@ -202,7 +202,7 @@ describe('DateTimeSlotSelector Component', () => {
       }
     });
 
-    it('debe respetar horario de atenci\u00f3n (08:00 - 18:00)', () => {
+    it('debe respetar horario de atenci\u00f3n (08:00 - 17:30)', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -216,13 +216,13 @@ describe('DateTimeSlotSelector Component', () => {
       );
 
       const beforeStart = screen.queryByTestId('time-07:00');
-      const afterEnd = screen.queryByTestId('time-19:00');
+      const afterEnd = screen.queryByTestId('time-18:00');
 
       if (beforeStart) expect((beforeStart as HTMLButtonElement).disabled).toBe(true);
       if (afterEnd) expect((afterEnd as HTMLButtonElement).disabled).toBe(true);
     });
 
-    it('debe excluir descanso (12:00 - 13:00)', () => {
+    it('debe excluir descanso (12:30 - 15:00) y mostrar slots de manana y tarde', () => {
       render(
         <DateTimeSlotSelector
           profesionalId={101}
@@ -235,10 +235,16 @@ describe('DateTimeSlotSelector Component', () => {
         />
       );
 
-      const breakTime = screen.queryByTestId('time-12:30');
+      const breakTime = screen.queryByTestId('time-13:00');
       if (breakTime) {
         expect((breakTime as HTMLButtonElement).disabled).toBe(true);
       }
+
+      const morningSlot = screen.getByTestId('time-12:00');
+      expect((morningSlot as HTMLButtonElement).disabled).toBe(false);
+
+      const afternoonSlot = screen.getByTestId('time-15:00');
+      expect((afternoonSlot as HTMLButtonElement).disabled).toBe(false);
     });
   });
 

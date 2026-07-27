@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Cita } from '../../types';
+import { timing } from '../../utils/constants/timing';
 import { messages } from '../../utils/constants/messages';
 
 interface DateTimeSlotSelectorProps {
@@ -36,9 +37,9 @@ const getTodayStart = () => {
   return d;
 };
 
-const isInBreakTime = (timeMinutes: number) => timeMinutes >= parseTime('12:00') && timeMinutes < parseTime('13:00');
+const isInBreakTime = (timeMinutes: number) => timeMinutes >= parseTime(timing.scheduleBreakStart) && timeMinutes < parseTime(timing.scheduleBreakEnd);
 
-const isWithinBusinessHours = (timeMinutes: number) => timeMinutes >= parseTime('08:00') && timeMinutes < parseTime('18:00');
+const isWithinBusinessHours = (timeMinutes: number) => timeMinutes >= parseTime(timing.scheduleStart) && timeMinutes < parseTime(timing.scheduleEnd);
 
 const hasConflict = (citasExistentes: Cita[], profesionalId: number, fecha: string, hora: string) => {
   const start = parseTime(hora);
@@ -61,7 +62,7 @@ const hasConflict = (citasExistentes: Cita[], profesionalId: number, fecha: stri
 
 const generateTimeSlots = () => {
   const slots: string[] = [];
-  for (let minutes = parseTime('08:00'); minutes < parseTime('18:00'); minutes += 30) {
+  for (let minutes = parseTime(timing.scheduleStart); minutes < parseTime(timing.scheduleEnd); minutes += 30) {
     const hours = Math.floor(minutes / 60)
       .toString()
       .padStart(2, '0');
@@ -112,15 +113,24 @@ export const DateTimeSlotSelector: React.FC<DateTimeSlotSelectorProps> = ({
     return d.getHours() * 60 + d.getMinutes();
   }, []);
 
+  const minDateTime = useMemo(() => {
+    const d = new Date();
+    d.setMilliseconds(d.getMilliseconds() + 24 * 60 * 60 * 1000);
+    return d;
+  }, []);
+
   const todayStr = useMemo(() => formatDate(todayStart), [todayStart]);
 
   const timeOptions = allTimeSlots.map((hora) => {
     const horaMinutes = parseTime(hora);
+    const slotDateTime = new Date(`${internalDate}T${hora}:00`);
     const isPastSlot = internalDate === todayStr && horaMinutes <= nowMinutes;
+    const dentroDe24h = internalDate !== null && slotDateTime < minDateTime;
     const disabled =
       !isWithinBusinessHours(horaMinutes) ||
       isInBreakTime(horaMinutes) ||
       isPastSlot ||
+      dentroDe24h ||
       (internalDate !== null && hasConflict(citasExistentes, profesionalId, internalDate, hora));
 
     return { hora, disabled };

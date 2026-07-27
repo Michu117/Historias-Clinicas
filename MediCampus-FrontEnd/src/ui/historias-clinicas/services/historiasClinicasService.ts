@@ -20,6 +20,7 @@ const mapApiHistoriaToModel = (api: any): HistoriaClinica => {
     id: String(api.id ?? api.pk ?? ''),
     alergia: api.alergia ?? '',
     condicionPreexistente: api.condicion_preexistente ?? api.condicionPreexistente ?? '',
+    condicionPreexistenteUltimaConsulta: api.condicion_preexistente_ultima_consulta ?? null,
     factorRiesgo: api.factor_riesgo ?? api.factorRiesgo ?? '',
     fechaApertura: normalizarFecha(api.created_at) || undefined,
     ultimaActualizacion: normalizarFecha(api.updated_at) || undefined,
@@ -223,23 +224,30 @@ export const historiasClinicasService = {
     const response = await apiClient.get<any>(
       `/historias/historias_clinicas/${historiaId}/consultas/`
     );
-    const data = Array.isArray(response)
+    const raw = Array.isArray(response)
       ? response
       : response.data ?? response.results ?? [];
-    return (data || []).map((api: any) => ({
-      id: String(api.id ?? ''),
-      historiaClinicaId: String(api.historia_clinica_id ?? api.historiaClinicaId ?? ''),
-      tipo: api.tipo ?? '',
-      fecha: api.fecha ?? '',
-      motivo: api.motivo ?? '',
-      estado: api.estado ?? '',
-      observaciones: api.observaciones ?? '',
-      anamnesis: api.anamnesis ?? null,
-      diagnostico: api.diagnostico ?? null,
-      tratamiento: api.tratamiento ?? null,
-      signosVitales: api.signos_vitales ?? api.signosVitales ?? null,
-      servicios: Array.isArray(api.servicios) ? api.servicios : [],
-    }));
+    const data = Array.isArray(raw) ? raw : [];
+    return data.map((api: any) => {
+      const svcRaw = api.servicios ?? api.servicio ?? [];
+        return {
+          id: String(api.cita_id ?? api.id ?? ''),
+          tipo: api.consulta?.tipo ?? '',
+          fecha: String(api.fecha_hora ?? api.fecha ?? ''),
+          motivo: String(api.motivo ?? ''),
+          estado: String(api.estado_cita ?? api.estado ?? ''),
+          observaciones: api.consulta?.observaciones ?? '',
+          anamnesis: api.consulta?.anamnesis ?? null,
+          diagnostico: api.consulta?.diagnostico ?? null,
+          tratamiento: api.consulta?.tratamiento ?? null,
+          signosVitales: api.consulta?.signos_vitales ?? null,
+          servicios: Array.isArray(svcRaw) ? svcRaw.filter(Boolean) : svcRaw ? [svcRaw] : [],
+          profesional: api.profesional ?? api.profesional_nombre ?? null,
+          estadoCaso: String(api.estado_caso ?? ''),
+          tieneConsulta: Boolean(api.tiene_consulta ?? false),
+          consulta: api.consulta ?? null,
+        }
+    });
   },
 
   listarTodosLosAntecedentes: async (): Promise<AntecedenteClinico[]> => {

@@ -61,7 +61,6 @@ export const ConsultaMedicaForm: React.FC<ConsultaMedicaFormProps> = ({
     setValidationError(null);
     onSave({
       cita: cita.id,
-      historia_clinica_id: cita.paciente_id,
       anamnesis,
       tratamiento,
       diagnostico,

@@ -1,0 +1,13 @@
+.venv
+venv
+*.pyc
+__pycache__
+*.sqlite3
+.env
+.git
+.gitignore
+README.md
+Documentacion
+MediCampus-FrontEnd/node_modules
+MediCampus-FrontEnd/dist
+MobileApp

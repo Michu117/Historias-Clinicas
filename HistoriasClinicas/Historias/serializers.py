@@ -113,6 +113,18 @@ class RegistroClinicoHistoriaSerializer(serializers.ModelSerializer):
         return value.strip()
 
 
+class CasoClinicoSerializer(serializers.Serializer):
+    cita_id = serializers.IntegerField(read_only=True)
+    fecha_hora = serializers.DateTimeField(read_only=True)
+    servicios = serializers.ListField(child=serializers.CharField(), read_only=True, allow_empty=True)
+    profesional = serializers.CharField(read_only=True, allow_null=True)
+    motivo = serializers.CharField(read_only=True, allow_blank=True)
+    estado_cita = serializers.CharField(read_only=True)
+    estado_caso = serializers.CharField(read_only=True)
+    tiene_consulta = serializers.BooleanField(read_only=True)
+    consulta = serializers.JSONField(read_only=True, allow_null=True)
+
+
 class ConsultaHistoriaSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     tipo = serializers.CharField(read_only=True)
@@ -155,11 +167,22 @@ class HistoriaClinicaSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
     )
+    condicion_preexistente_ultima_consulta = serializers.SerializerMethodField()
 
     class Meta:
         model = HistoriaClinica
-        fields = ("id","usuario","usuario_id","alergia","condicion_preexistente","factor_riesgo","created_at","updated_at","casos","antecedentes","documentos",)
+        fields = ("id","usuario","usuario_id","alergia","condicion_preexistente","condicion_preexistente_ultima_consulta","factor_riesgo","created_at","updated_at","casos","antecedentes","documentos",)
         read_only_fields = ("id", "usuario", "created_at", "updated_at")
+
+    def get_condicion_preexistente_ultima_consulta(self, obj):
+        from .services import listar_casos_clinicos
+        resultados = listar_casos_clinicos(obj.id)
+        for r in resultados:
+            if r.get('tiene_consulta') and r.get('consulta'):
+                diag = r['consulta'].get('diagnostico')
+                if diag:
+                    return diag
+        return None
 
     def validate_alergia(self, value):
         if value is None or not value.strip():

@@ -1,3 +1,7 @@
+import type { Caso } from './caso.types';
+import type { AntecedenteClinico } from './antecedenteClinico.types';
+import type { DocumentoClinico } from './documentoClinico.types';
+
 export type EstadoHistoriaClinica = 'ACTIVA' | 'CERRADA';
 
 export interface UsuarioHistoriaClinica {
@@ -9,6 +13,7 @@ export interface HistoriaClinica {
   id: string;
   alergia: string;
   condicionPreexistente: string;
+  condicionPreexistenteUltimaConsulta?: string | null;
   factorRiesgo: string;
   fechaApertura?: string;
   ultimaActualizacion?: string;
